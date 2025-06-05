@@ -1,5 +1,3 @@
-
-
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
@@ -9,25 +7,21 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 // Ruta del archivo donde se guardan los resultados
-const resultsFile = path.join(__dirname, "data/results.json");
+const resultsFile = path.join(__dirname, "calceteam/data/results.json");
 
 // Configurar almacenamiento de capturas en /uploads
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads"),
+  destination: (req, file, cb) => cb(null, "calceteam/uploads"),
   filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
 });
 const upload = multer({ storage });
 
 // Middleware
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public")); // Archivos estáticos
-app.use("/uploads", express.static("uploads")); // Acceso a capturas
+app.use(express.json()); // Añadido para React
+app.use("/uploads", express.static("calceteam/uploads")); // Acceso a capturas
 
-// Página principal
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/index.html"));
-});
-
+// RUTAS API PRIMERO (antes que React)
 // Ruta para subir resultados
 app.post("/submit", upload.single("screenshot"), (req, res) => {
   const { teamName, opponentName, score } = req.body;
@@ -65,19 +59,38 @@ app.post("/submit", upload.single("screenshot"), (req, res) => {
   });
 });
 
-// Página para ver resultados guardados
-app.get('/resultados', (req, res) => {
-  fs.readFile(resultsFile, 'utf-8', (err, data) => {
+// API para obtener resultados (para React)
+app.get("/api/resultados", (req, res) => {
+  fs.readFile(resultsFile, "utf-8", (err, data) => {
     if (err) {
-      console.error('Error leyendo los resultados:', err);
-      return res.status(500).send('Error al cargar los resultados');
+      console.error("Error leyendo los resultados:", err);
+      return res.status(500).json({ error: "Error al cargar los resultados" });
     }
 
     let results = [];
     try {
       results = JSON.parse(data);
     } catch {
-      return res.status(500).send('Archivo de resultados corrupto');
+      return res.status(500).json({ error: "Archivo de resultados corrupto" });
+    }
+
+    res.json(results);
+  });
+});
+
+// Página HTML para ver resultados (fallback)
+app.get("/resultados", (req, res) => {
+  fs.readFile(resultsFile, "utf-8", (err, data) => {
+    if (err) {
+      console.error("Error leyendo los resultados:", err);
+      return res.status(500).send("Error al cargar los resultados");
+    }
+
+    let results = [];
+    try {
+      results = JSON.parse(data);
+    } catch {
+      return res.status(500).send("Archivo de resultados corrupto");
     }
 
     // Generar HTML dinámicamente
@@ -106,18 +119,25 @@ app.get('/resultados', (req, res) => {
             <th>Resultado</th>
             <th>Captura</th>
           </tr>
-          ${
-            results.map(r => `
+          ${results
+            .map(
+              (r) => `
               <tr>
                 <td>${new Date(r.date).toLocaleString()}</td>
                 <td>${r.teamName}</td>
                 <td>${r.opponentName}</td>
                 <td>${r.score}</td>
-                <td>${r.screenshot ? `<a href="/uploads/${r.screenshot}" target="_blank"><img src="/uploads/${r.screenshot}"></a>` : 'Sin imagen'}</td>
+                <td>${
+                  r.screenshot
+                    ? `<a href="/uploads/${r.screenshot}" target="_blank"><img src="/uploads/${r.screenshot}"></a>`
+                    : "Sin imagen"
+                }</td>
               </tr>
-            `).join('')
-          }
+            `
+            )
+            .join("")}
         </table>
+        <a href="/">← Volver al inicio</a>
       </body>
       </html>
     `;
@@ -126,17 +146,21 @@ app.get('/resultados', (req, res) => {
   });
 });
 
-
-// Servir React desde Express (producción)
-const frontendPath = path.join(__dirname, 'frontend/dist');
+// SERVIR REACT AL FINAL
+const frontendPath = path.join(__dirname, "frontend/dist");
 app.use(express.static(frontendPath));
 
-app.get(/^\/(?!api|submit|resultados|uploads).*/, (req, res) => {
+// Ruta específica para React (evita conflictos con path-to-regexp)
+app.get("/", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
 
+// Fallback para rutas no encontradas
+app.use((req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
+});
 
-// Escuchar en todas las interfaces (necesario para acceso externo)
+// Escuchar en todas las interfaces
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Servidor activo en http://localhost:${PORT}`);
 });
