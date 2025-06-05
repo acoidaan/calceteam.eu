@@ -1,0 +1,12 @@
+# Node.js
+node_modules/
+.env
+uploads/
+
+# Logs
+npm-debug.log
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
