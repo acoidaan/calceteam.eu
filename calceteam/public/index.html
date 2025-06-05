@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calce Team - Torneos</title>
+</head>
+<body>
+  <h1>Enviar resultado</h1>
+  <form action="/submit" method="POST" enctype="multipart/form-data">
+    <label>Tu equipo: <input type="text" name="teamName" required></label><br>
+    <label>Rival: <input type="text" name="opponentName" required></label><br>
+    <label>Resultado: <input type="text" name="score" required></label><br>
+    <label>Captura del resultado: <input type="file" name="screenshot" required></label><br>
+    <button type="submit">Enviar</button>
+  </form>
+</body>
+</html>
