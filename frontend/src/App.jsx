@@ -1,11 +1,6 @@
-import { useState, useEffect } from 'react'
 import './App.css'
 
 function App() {
-  const [user, setUser] = useState(null)
-  const [currentView, setCurrentView] = useState('landing')
-  const [selectedGame, setSelectedGame] = useState('lol')
-
   const games = {
     lol: {
       name: 'League of Legends',
@@ -17,289 +12,118 @@ function App() {
     }
   }
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem('calce_user')
-    if (savedUser) {
-      setUser(JSON.parse(savedUser))
-    }
-  }, [])
-
-  const handleLogin = async (e) => {
-    e.preventDefault()
-    const formData = new FormData(e.target)
-    
-    const userData = {
-      id: Date.now(),
-      username: formData.get('username'),
-      email: formData.get('email')
-    }
-    
-    localStorage.setItem('calce_user', JSON.stringify(userData))
-    setUser(userData)
-    setCurrentView('dashboard')
-  }
-
-  const handleLogout = () => {
-    localStorage.removeItem('calce_user')
-    setUser(null)
-    setCurrentView('landing')
-  }
-
-  if (currentView === 'landing' && !user) {
-    return (
-      <div className="landing">
-        {/* Hero Section */}
-        <section className="hero">
-          <div className="hero-bg"></div>
-          <div className="hero-content">
-            <div className="calce-logo">
-              <div className="logo-triangle">
-                <span className="logo-ca">CA</span>
-              </div>
-            </div>
-            <h1>CALCE TEAM</h1>
-            <p>Club de Esports Profesional</p>
-            <div className="social-links">
-              <span>Instagram: calceliga</span>
-              <span>Twitter: CalceTeam0</span>
-              <span>TikTok: @calce_team_</span>
-            </div>
-            <button 
-              className="enter-btn"
-              onClick={() => setCurrentView('login')}
-            >
-              Acceder al Portal
-            </button>
-          </div>
-        </section>
-
-        {/* About Section */}
-        <section className="about">
-          <div className="container">
-            <h2>Sobre Nosotros</h2>
-            <p>Somos un club de esports dedicado a la competición profesional en League of Legends y Valorant. Participamos en torneos nacionales e internacionales representando la excelencia en el gaming competitivo.</p>
-            
-            <div className="stats-grid">
-              <div className="stat">
-                <h3>5+</h3>
-                <p>Torneos Ganados</p>
-              </div>
-              <div className="stat">
-                <h3>15+</h3>
-                <p>Jugadores Activos</p>
-              </div>
-              <div className="stat">
-                <h3>2</h3>
-                <p>Juegos Profesionales</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Games Section */}
-        <section className="games">
-          <div className="container">
-            <h2>Nuestros Juegos</h2>
-            <div className="games-showcase">
-              <div className="game-item">
-                <img src={games.lol.image} alt="League of Legends" />
-                <h3>League of Legends</h3>
-                <p>Equipo competitivo en la liga nacional</p>
-              </div>
-              <div className="game-item">
-                <img src={games.valorant.image} alt="Valorant" />
-                <h3>Valorant</h3>
-                <p>División táctica de shooters</p>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-    )
-  }
-
-  if (currentView === 'login') {
-    return (
-      <div className="login-page">
-        <div className="login-container">
-          <div className="login-card">
-            <div className="calce-logo-small">
-              <div className="logo-triangle-small">
-                <span className="logo-ca-small">CA</span>
-              </div>
-            </div>
-            <h1>Portal Calce Team</h1>
-            <form onSubmit={handleLogin} className="login-form">
-              <input 
-                type="text" 
-                name="username" 
-                placeholder="Nombre de usuario" 
-                required 
-              />
-              <input 
-                type="email" 
-                name="email" 
-                placeholder="Email" 
-                required 
-              />
-              <button type="submit">Entrar</button>
-            </form>
-            <button 
-              className="back-btn"
-              onClick={() => setCurrentView('landing')}
-            >
-              ← Volver
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Dashboard y torneos para usuarios logueados
   return (
-    <div className="app">
+    <div className="landing">
+      {/* Header */}
       <header className="header">
-        <div className="container">
+        <div className="header-content">
           <div className="header-logo">
-            <div className="logo-triangle-header">
-              <span className="logo-ca-header">CA</span>
-            </div>
-            <span>Calce Team</span>
+            <img src="/logo_transparent.png" alt="Calce Team" className="header-logo-img" />
           </div>
-          <nav className="nav">
-            <button 
-              className={currentView === 'dashboard' ? 'nav-btn active' : 'nav-btn'}
-              onClick={() => setCurrentView('dashboard')}
-            >
-              Dashboard
+          <nav className="header-nav">
+            <button className="nav-icon">
+              <img src="/search-icon.png" alt="Buscar" />
             </button>
-            <button 
-              className={currentView === 'tournaments' ? 'nav-btn active' : 'nav-btn'}
-              onClick={() => setCurrentView('tournaments')}
-            >
-              Torneos
+            <button className="nav-icon">
+              <img src="/user-icon.png" alt="Iniciar Sesión" />
             </button>
-            <button 
-              className={currentView === 'team' ? 'nav-btn active' : 'nav-btn'}
-              onClick={() => setCurrentView('team')}
-            >
-              Mi Equipo
-            </button>
-            <button className="nav-btn logout" onClick={handleLogout}>
-              Salir
-            </button>
+            {/* <button className="nav-icon">
+              <img src="/cart-icon.png" alt="Carrito" />
+            </button> */}
           </nav>
         </div>
       </header>
-
-      <main className="main">
-        <div className="container">
-          
-          {currentView === 'dashboard' && (
-            <section className="dashboard">
-              <h2>Bienvenido, {user?.username}</h2>
-              <div className="dashboard-grid">
-                <div className="dash-card">
-                  <h3>Mi Equipo</h3>
-                  <p>Calce Team LoL</p>
-                  <button onClick={() => setCurrentView('team')}>Ver Equipo</button>
-                </div>
-                <div className="dash-card">
-                  <h3>Próximos Torneos</h3>
-                  <p>3 disponibles</p>
-                  <button onClick={() => setCurrentView('tournaments')}>Ver Torneos</button>
-                </div>
-                <div className="dash-card">
-                  <h3>Mis Resultados</h3>
-                  <p>5 partidas</p>
-                  <button>Ver Historial</button>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {currentView === 'tournaments' && (
-            <section className="tournaments">
-              <h2>Torneos Disponibles</h2>
-              
-              <div className="game-selector">
-                <h3>Seleccionar Juego:</h3>
-                <div className="games-grid">
-                  {Object.entries(games).map(([gameKey, game]) => (
-                    <div 
-                      key={gameKey}
-                      className={`game-card ${selectedGame === gameKey ? 'selected' : ''}`}
-                      onClick={() => setSelectedGame(gameKey)}
-                    >
-                      <img src={game.image} alt={game.name} />
-                      <h4>{game.name}</h4>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="tournaments-list">
-                <h3>Torneos de {games[selectedGame].name}</h3>
-                <div className="tournament-cards">
-                  <div className="tournament-card">
-                    <h4>Copa de Invierno 2025</h4>
-                    <p><strong>Fecha:</strong> 15 Febrero - 1 Marzo</p>
-                    <p><strong>Equipos:</strong> 0/16</p>
-                    <p><strong>Premio:</strong> €500</p>
-                    <button className="join-btn">Inscribirse</button>
-                  </div>
-                  <div className="tournament-card">
-                    <h4>Liga Regional</h4>
-                    <p><strong>Fecha:</strong> 1 Marzo - 30 Abril</p>
-                    <p><strong>Equipos:</strong> 2/32</p>
-                    <p><strong>Premio:</strong> €1000</p>
-                    <button className="join-btn">Inscribirse</button>
-                  </div>
-                  <div className="tournament-card">
-                    <h4>Championship Series</h4>
-                    <p><strong>Fecha:</strong> 15 Mayo - 30 Junio</p>
-                    <p><strong>Equipos:</strong> 1/64</p>
-                    <p><strong>Premio:</strong> €2500</p>
-                    <button className="join-btn">Inscribirse</button>
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {currentView === 'team' && (
-            <section className="team-section">
-              <h2>Calce Team - Roster</h2>
-              <div className="team-view">
-                <div className="team-info">
-                  <div className="players-section">
-                    <h3>Jugadores Principales</h3>
-                    <div className="players-list">
-                      <div className="player-card captain">
-                        <span className="crown">👑</span>
-                        <span>{user.username} (Capitán)</span>
-                      </div>
-                      <div className="player-card">CalceADC</div>
-                      <div className="player-card">CalceMid</div>
-                      <div className="player-card">CalceJungle</div>
-                      <div className="player-card">CalceSupport</div>
-                    </div>
-                  </div>
-                  <div className="subs-section">
-                    <h3>Suplentes</h3>
-                    <div className="players-list">
-                      <div className="player-card">CalceSub1</div>
-                      <div className="player-card">CalceSub2</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
-
+      {/* Hero Section */}
+      <section className="hero">
+        <div className="hero-bg"></div>
+        <div className="hero-content">
+          {/* <button className="enter-btn">
+            Acceder al Portal
+          </button> */}
         </div>
-      </main>
+      </section>
+
+      {/* About Section */}
+      <section className="about">
+        <div className="container">
+          <h2>Sobre Nosotros</h2>
+          <p>Somos un club de esports dedicado a la competición profesional en League of Legends y Valorant. Participamos en torneos nacionales e internacionales representando la excelencia en el gaming competitivo.</p>
+          
+          <div className="stats-grid">
+            <div className="stat">
+              <h3>5+</h3>
+              <p>Torneos Ganados</p>
+            </div>
+            <div className="stat">
+              <h3>15+</h3>
+              <p>Jugadores Activos</p>
+            </div>
+            <div className="stat">
+              <h3>2</h3>
+              <p>Juegos Profesionales</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Games Section */}
+      <section className="games">
+        <div className="container">
+          <h2>Nuestros Juegos</h2>
+          <div className="games-showcase">
+            <div className="game-item">
+              <img src={games.lol.image} alt="League of Legends" />
+              <h3>League of Legends</h3>
+              <p>Equipo competitivo en la liga nacional</p>
+            </div>
+            <div className="game-item">
+              <img src={games.valorant.image} alt="Valorant" />
+              <h3>Valorant</h3>
+              <p>División táctica de shooters</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="footer">
+        <div className="container">
+          <div className="footer-content">
+            <div className="footer-logo">
+              <img src="/logo_transparent.png" alt="Calce Team" className="footer-logo-img" />
+              <p>Club de Esports Profesional</p>
+            </div>
+            <div className="footer-social">
+              <h3>Síguenos</h3>
+              <div className="social-links">
+                <a href="https://instagram.com/calceliga" className="social-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z"/>
+                  </svg>
+                </a>
+                <a href="https://x.com/CalceTeam0" className="social-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                </a>
+                <a href="https://www.tiktok.com/@calce_team_" className="social-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+                  </svg>
+                </a>
+                <a href="https://twitch.tv/calceteam_" className="social-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div className="footer-bottom">
+            <p>&copy; 2025 Calce Team. Todos los derechos reservados.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
