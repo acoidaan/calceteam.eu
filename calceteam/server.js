@@ -3,7 +3,7 @@ const multer = require('multer');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 // Configura almacenamiento de archivos subidos
 const storage = multer.diskStorage({
