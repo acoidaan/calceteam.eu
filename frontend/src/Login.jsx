@@ -34,8 +34,41 @@ const Login = () => {
       }
     }
 
-    console.log("Form submitted:", formData);
-    alert(isLogin ? "Iniciando sesión..." : "Creando cuenta...");
+    try {
+      const baseURL = window.location.origin;
+      const endpoint = isLogin ? `${baseURL}/api/login` : `${baseURL}/api/register`;
+      // CAMBIAR PARA PRODUCCION POR
+      // const endpoint = isLogin
+      //   ? "https://calceteam.eu/api/login"
+      //   : "https://calceteam.eu/api/register";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (isLogin) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("username", data.username);
+          alert("Inicio de sesión exitoso");
+          window.location.reload();
+        } else {
+          alert("Registro exitoso, ahora puedes iniciar sesión");
+          setIsLogin(true);
+        }
+      } else {
+        alert(data.error || "Error en la petición.");
+      }
+    } catch (error) {
+      alert("Error de conexión. Por favor intenta más tarde.");
+      console.error(error);
+    }
   };
 
   return (

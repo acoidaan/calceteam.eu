@@ -1,11 +1,27 @@
 import "./App.css";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Login from './Login';
 
 function App() {
   const [showLogin, setShowLogin] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('');
 
-  if (showLogin) {
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const name = localStorage.getItem("username");
+    if (token && name) {
+      setIsLoggedIn(true);
+      setUsername(name);
+    }
+  }, [])
+
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.reload();
+  };
+
+  if (showLogin && !isLoggedIn) {
     return <Login />;
   }
   const games = {
@@ -36,9 +52,16 @@ function App() {
             <button className="nav-icon">
               <img src="/search-icon.png" alt="Buscar" />
             </button>
-            <button className="nav-icon" onClick={() => setShowLogin(true)}>
-              <img src="/user-icon.png" alt="Iniciar Sesión" />
-            </button>
+            {isLoggedIn ? (
+              <div className="nav-icon username-display">
+                {username}
+                <button onClick={handleLogout}>Salir</button>
+              </div>
+            ) : (
+              <button className="nav-icon" onClick={() => setShowLogin(true)}>
+                <img src="/user-icon.png" alt="Iniciar Sesión" />
+              </button>
+            )}
           </nav>
         </div>
       </header>
@@ -55,7 +78,11 @@ function App() {
         <div className="side-menu-trigger">
           <div className="menu-label">MENU</div>
           <div className="side-menu">
-            <div className="menu-item" onClick={() => setShowLogin(true)} style={{cursor: 'pointer'}}>
+            <div
+              className="menu-item"
+              onClick={() => setShowLogin(true)}
+              style={{ cursor: "pointer" }}
+            >
               <h3>Cuenta</h3>
               <p>Perfil y configuración</p>
             </div>
