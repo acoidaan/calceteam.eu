@@ -12,3 +12,4 @@ npm-debug.log
 Thumbs.db
 
 results.json
+nodemailer.config.js

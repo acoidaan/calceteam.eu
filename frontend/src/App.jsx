@@ -1,19 +1,35 @@
 import "./App.css";
 import { useState, useEffect } from 'react';
 import Login from './Login';
+import Account from './Account';
+import Teams from "./Teams";
 
 function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
-
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showAccount, setShowAccount] = useState(false);
+  
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenFromURL = urlParams.get('token');
+    const nameFromURL = urlParams.get('username');
+
+    if (tokenFromURL && nameFromURL) {
+      localStorage.setItem("token", tokenFromURL);
+      localStorage.setItem("username", nameFromURL);
+      window.history.replaceState(null, '', window.location.pathname);
+      setIsLoggedIn(true);
+      setUsername(nameFromURL);
+    } else {
     const token = localStorage.getItem("token");
     const name = localStorage.getItem("username");
     if (token && name) {
       setIsLoggedIn(true);
       setUsername(name);
     }
+  }
   }, [])
 
   const handleLogout = () => {
@@ -24,6 +40,11 @@ function App() {
   if (showLogin && !isLoggedIn) {
     return <Login />;
   }
+
+  if (showAccount) {
+    return <Account onBack={() => setShowAccount(false)} />;
+  }
+
   const games = {
     lol: {
       name: "League of Legends",
@@ -53,9 +74,29 @@ function App() {
               <img src="/search-icon.png" alt="Buscar" />
             </button>
             {isLoggedIn ? (
-              <div className="nav-icon username-display">
-                {username}
-                <button onClick={handleLogout}>Salir</button>
+              <div className="user-menu">
+                <button
+                  className="user-button"
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                >
+                  <img src="/user-icon.png" alt="Usuario" />
+                </button>
+                {showUserMenu && (
+                  <div className="user-dropdown">
+                    <div className="user-info">
+                      <span className="username-text">{username}</span>
+                    </div>
+                    <button
+                      onClick={() => setShowAccount(true)}
+                      className="account-btn"
+                    >
+                      Cuenta
+                    </button>
+                    <button onClick={handleLogout} className="logout-btn">
+                      Cerrar Sesión
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <button className="nav-icon" onClick={() => setShowLogin(true)}>
@@ -74,17 +115,35 @@ function App() {
           </video>
         </div>
 
+        {/* Welcome Message */}
+        {isLoggedIn && (
+          <div className="welcome-message">
+            <h1>Bienvenido, {username}</h1>
+          </div>
+        )}
+
         {/* Side Menu */}
         <div className="side-menu-trigger">
           <div className="menu-label">MENU</div>
           <div className="side-menu">
             <div
               className="menu-item"
-              onClick={() => setShowLogin(true)}
+              onClick={() => {
+                if (isLoggedIn) {
+                  setShowAccount(true);
+                } else {
+                  setShowLogin(true);
+                }
+              }}
               style={{ cursor: "pointer" }}
             >
               <h3>Cuenta</h3>
               <p>Perfil y configuración</p>
+            </div>
+            <div className="menu-item">
+              <br></br>
+              <h3>Equipo</h3>
+              <p>Gestiona tu equipo</p>
             </div>
             <div className="menu-item">
               <br></br>
