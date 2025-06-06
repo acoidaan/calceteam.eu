@@ -1,0 +1,235 @@
+.login-container {
+  min-height: 100vh;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  position: relative;
+}
+
+.login-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.2) 0%, #000000 50%, rgba(30, 58, 138, 0.2) 100%);
+}
+
+.login-card-wrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-logo-section {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-logo {
+  height: 80px;
+  margin: 0 auto 1rem;
+  /* filter: invert(1); */
+}
+
+.login-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: white;
+  letter-spacing: 2px;
+}
+
+.login-card {
+  background: rgba(17, 24, 39, 0.8);
+  backdrop-filter: blur(20px);
+  border-radius: 1rem;
+  padding: 2rem;
+  border: 1px solid rgba(55, 65, 81, 1);
+}
+
+.toggle-buttons {
+  display: flex;
+  background: rgba(31, 41, 55, 1);
+  padding: 4px;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.toggle-buttons::before {
+  content: '';
+  position: absolute;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  background: #2563EB;
+  border-radius: 6px;
+  top: 4px;
+  left: 4px;
+  transition: transform 0.3s ease;
+}
+
+.toggle-buttons.register::before {
+  transform: translateX(100%);
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: #9CA3AF;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+}
+
+.toggle-btn.active {
+  color: white;
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  color: #D1D5DB;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(31, 41, 55, 1);
+  border: 1px solid rgba(55, 65, 81, 1);
+  border-radius: 8px;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-input::placeholder {
+  color: #6B7280;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #2563EB;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #2563EB;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.submit-btn:hover {
+  background: #1D4ED8;
+}
+
+.forgot-password {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.forgot-password a {
+  color: #9CA3AF;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.3s ease;
+}
+
+.forgot-password a:hover {
+  color: #3B82F6;
+}
+
+.divider {
+  position: relative;
+  margin: 2rem 0;
+}
+
+.divider-line {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+}
+
+.divider-line::before {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(55, 65, 81, 1);
+}
+
+.divider-text {
+  position: relative;
+  padding: 0 0.5rem;
+  background: rgba(17, 24, 39, 0.8);
+  color: #9CA3AF;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.discord-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #5865F2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.discord-btn:hover {
+  background: #4752C4;
+}
+
+.discord-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.back-link {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.back-btn {
+  color: #9CA3AF;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+
+.back-btn:hover {
+  color: white;
+}

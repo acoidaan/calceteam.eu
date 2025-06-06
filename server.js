@@ -2,6 +2,54 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const cors = require("cors");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const sqlite3 = require("sqlite3").verbose();
+
+app.use(cors()); // Permitir CORS para todas las rutas
+
+// Crear / conectar DB
+const db = new sqlite3.Database('./calceteam.db');
+
+// Crear tabla de usuarios si no existe
+db.run(`CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  // Endpoint registro
+  app.post('/api/register', async (req, res) => {
+    const { username, email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    db.run(
+      `INSERT INTO users (username, email, password) VALUES (?, ?, ?)`,
+      [username, email, hashedPassword],
+      (err) => {
+        if (err) return res.status(400).json({ error: "Usuario ya existe" });
+        res.json({ message: "Usuario registrado con éxito" });
+      }
+    );
+  });
+
+  // Endpoint login
+  app.post('/api/login', (req, res) => {
+    const { email, password } = req.body;
+
+    db.get(`SELECT * FROM users WHERE email = ?`, [email], async (err, user) => {
+      if (!user) return res.status(400).json({ error: "Usuario no encontrado" });
+
+      const validPassword = await bcrypt.compare(password, user.password);
+      if (!validPassword) return res.status(400).json({ error: "Contraseña incorrecta" });
+
+      const token = jwt.sign({ id: user.id }, 'token_secreto');
+      res.json({ token, username: user.username });
+    });
+  });
 
 const app = express();
 const PORT = process.env.PORT || 8080;
