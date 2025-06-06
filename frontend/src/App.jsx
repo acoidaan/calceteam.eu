@@ -10,6 +10,7 @@ function App() {
   const [username, setUsername] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
+  const [showTeams, setShowTeams] = useState(false);
   
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -45,6 +46,9 @@ function App() {
     return <Account onBack={() => setShowAccount(false)} />;
   }
 
+  if (showTeams) {
+    return <Teams onBack={() => setShowTeams(false)} />;
+  }
   const games = {
     lol: {
       name: "League of Legends",
@@ -140,11 +144,21 @@ function App() {
               <h3>Cuenta</h3>
               <p>Perfil y configuración</p>
             </div>
-            <div className="menu-item">
-              <br></br>
+            <div
+              className="menu-item"
+              onClick={() => {
+                if (isLoggedIn) {
+                  setShowTeams(true);
+                } else {
+                  setShowLogin(true);
+                }
+              }}
+              style={{ cursor: "pointer" }}
+            >
               <h3>Equipo</h3>
               <p>Gestiona tu equipo</p>
             </div>
+
             <div className="menu-item">
               <br></br>
               <h3>Torneos</h3>

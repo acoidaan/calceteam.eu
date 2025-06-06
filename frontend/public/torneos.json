@@ -1,0 +1,20 @@
+[
+  {
+    "id": "lol-openspring-2025",
+    "juego": "lol",
+    "nombre": "Open Spring 2025",
+    "estado": "en curso",
+    "equipoParticipando": "Calce Legends",
+    "logo": "/assets/lol_spring.png",
+    "link": "/torneos/lol-openspring-2025"
+  },
+  {
+    "id": "valo-qualifiers-jun25",
+    "juego": "valorant",
+    "nombre": "Valorant Qualifiers Junio",
+    "estado": "registrado",
+    "equipoParticipando": "Calce Valorant",
+    "logo": "/assets/valo_qualifier.png",
+    "link": "/torneos/valo-qualifiers-jun25"
+  }
+]
