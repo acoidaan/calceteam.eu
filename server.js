@@ -105,12 +105,10 @@ app.post("/api/register", async (req, res) => {
                  <p>Este enlace caduca en 1 hora.</p>`,
           });
 
-          res
-            .status(200)
-            .json({
-              message:
-                "Registro exitoso. Revisa tu correo para verificar tu cuenta.",
-            });
+          res.status(200).json({
+            message:
+              "Registro exitoso. Revisa tu correo para verificar tu cuenta.",
+          });
         }
       );
     });
@@ -165,11 +163,11 @@ app.post("/api/login", (req, res) => {
     const token = jwt.sign(
       { id: user.id, username: user.username },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "24h" }
     );
     res.status(200).json({
       token,
-      username: user.username
+      username: user.username,
     });
   });
 });
@@ -205,11 +203,13 @@ app.put("/api/user/update", verifyToken, (req, res) => {
 
   const query = "SELECT * FROM users WHERE id = ?";
   db.query(query, [req.userId], async (err, results) => {
-    if (err || results.length === 0) return res.status(500).json({ message: "Error al buscar usuario" });
+    if (err || results.length === 0)
+      return res.status(500).json({ message: "Error al buscar usuario" });
 
     const user = results[0];
     const match = await bcrypt.compare(currentPassword, user.password);
-    if (!match) return res.status(401).json({ message: "Contraseña incorrecta" });
+    if (!match)
+      return res.status(401).json({ message: "Contraseña incorrecta" });
 
     const updateQuery = `UPDATE users SET ${field} = ? WHERE id = ?`;
     db.query(updateQuery, [value, req.userId], (err) => {
@@ -225,22 +225,23 @@ app.put("/api/user/change-password", verifyToken, (req, res) => {
 
   const query = "SELECT * FROM users WHERE id = ?";
   db.query(query, [req.userId], async (err, results) => {
-    if (err || results.length === 0) return res.status(500).json({ message: "Error al buscar usuario" });
+    if (err || results.length === 0)
+      return res.status(500).json({ message: "Error al buscar usuario" });
 
     const user = results[0];
     const match = await bcrypt.compare(currentPassword, user.password);
-    if (!match) return res.status(401).json({ message: "Contraseña actual incorrecta" });
+    if (!match)
+      return res.status(401).json({ message: "Contraseña actual incorrecta" });
 
     const hashed = await bcrypt.hash(newPassword, 10);
     const updateQuery = "UPDATE users SET password = ? WHERE id = ?";
     db.query(updateQuery, [hashed, req.userId], (err) => {
-      if (err) return res.status(500).json({ message: "Error al cambiar contraseña" });
+      if (err)
+        return res.status(500).json({ message: "Error al cambiar contraseña" });
       res.json({ message: "Contraseña actualizada" });
     });
   });
 });
-
-
 
 // Subir avatar
 app.post(
@@ -260,10 +261,261 @@ app.post(
   }
 );
 
-// Ruta 404 para APIs
-app.all("/api/*", (req, res) => {
-  res.status(404).json({ message: "Ruta API no encontrada" });
+// RUTAS DE EQUIPOS
+
+// Obtener mi equipo
+app.get("/api/team/my-team", verifyToken, (req, res) => {
+  const { game } = req.query;
+  const query = `
+    SELECT t.*, GROUP_CONCAT(
+      JSON_OBJECT(
+        'userId', p.user_id,
+        'nickname', p.nickname,
+        'role', p.role,
+        'opgg', p.opgg_link
+      )
+    ) as players
+    FROM teams t
+    LEFT JOIN team_players p ON t.id = p.team_id
+    WHERE t.id IN (SELECT team_id FROM team_players WHERE user_id = ?)
+    AND t.game = ?
+    GROUP BY t.id
+  `;
+
+  db.query(query, [req.userId, game], (err, results) => {
+    if (err) return res.status(500).json({ message: "Error del servidor" });
+
+    if (results.length === 0) {
+      return res.json({ team: null });
+    }
+
+    const team = results[0];
+    let teamData = {
+      id: team.id,
+      name: team.name,
+      game: team.game,
+      code: team.invite_code,
+      logo: team.logo
+        ? `data:image/jpeg;base64,${team.logo.toString("base64")}`
+        : null,
+      players: [],
+    };
+
+    if (team.players) {
+      try {
+        teamData.players = JSON.parse(`[${team.players}]`);
+      } catch (e) {
+        teamData.players = [];
+      }
+    }
+
+    res.json({ team: teamData });
+  });
 });
+
+// Crear equipo
+app.post(
+  "/api/team/create",
+  verifyToken,
+  upload.single("teamLogo"),
+  (req, res) => {
+    const { teamName, game, playerRole, playerNickname, playerOpgg } = req.body;
+
+    // Generar código único
+    const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    const createTeamQuery =
+      "INSERT INTO teams (name, game, invite_code, logo, created_by) VALUES (?, ?, ?, ?, ?)";
+    const teamLogo = req.file ? req.file.buffer : null;
+
+    db.query(
+      createTeamQuery,
+      [teamName, game, inviteCode, teamLogo, req.userId],
+      (err, result) => {
+        if (err)
+          return res.status(500).json({ message: "Error al crear equipo" });
+
+        const teamId = result.insertId;
+        const addPlayerQuery =
+          "INSERT INTO team_players (team_id, user_id, nickname, role, opgg_link) VALUES (?, ?, ?, ?, ?)";
+
+        db.query(
+          addPlayerQuery,
+          [teamId, req.userId, playerNickname, playerRole, playerOpgg],
+          (err) => {
+            if (err)
+              return res
+                .status(500)
+                .json({ message: "Error al añadir jugador" });
+            res.json({
+              message: "Equipo creado exitosamente",
+              teamId,
+              inviteCode,
+            });
+          }
+        );
+      }
+    );
+  }
+);
+
+// Unirse a equipo
+app.post("/api/team/join", verifyToken, (req, res) => {
+  const { code, game, playerRole, playerNickname, playerOpgg } = req.body;
+
+  // Verificar que el equipo existe y es del juego correcto
+  const findTeamQuery =
+    "SELECT * FROM teams WHERE invite_code = ? AND game = ?";
+
+  db.query(findTeamQuery, [code, game], (err, teams) => {
+    if (err) return res.status(500).json({ message: "Error del servidor" });
+    if (teams.length === 0)
+      return res.status(404).json({ message: "Código de equipo inválido" });
+
+    const team = teams[0];
+
+    // Verificar que no esté ya en el equipo
+    const checkQuery =
+      "SELECT * FROM team_players WHERE team_id = ? AND user_id = ?";
+    db.query(checkQuery, [team.id, req.userId], (err, results) => {
+      if (err) return res.status(500).json({ message: "Error del servidor" });
+      if (results.length > 0)
+        return res
+          .status(400)
+          .json({ message: "Ya eres miembro de este equipo" });
+
+      // Verificar límites por rol
+      const countRoleQuery =
+        "SELECT COUNT(*) as count FROM team_players WHERE team_id = ? AND role = ?";
+      db.query(countRoleQuery, [team.id, playerRole], (err, results) => {
+        if (err)
+          return res.status(500).json({ message: "Error del servidor" });
+
+        const count = results[0].count;
+
+        let limit = 1;
+        if (playerRole === "suplente") limit = 5;
+        else if (playerRole === "staff") limit = 2;
+        else if (
+          !["top", "jungla", "medio", "adc", "support"].includes(playerRole)
+        ) {
+          return res.status(400).json({ message: "Rol inválido" });
+        }
+
+        if (count >= limit) {
+          return res
+            .status(400)
+            .json({ message: `El rol ${playerRole} ya está completo` });
+        }
+
+        // Añadir al equipo
+        const joinQuery =
+          "INSERT INTO team_players (team_id, user_id, nickname, role, opgg_link) VALUES (?, ?, ?, ?, ?)";
+        db.query(
+          joinQuery,
+          [team.id, req.userId, playerNickname, playerRole, playerOpgg],
+          (err) => {
+            if (err)
+              return res
+                .status(500)
+                .json({ message: "Error al unirse al equipo" });
+            res.json({ message: "Te has unido al equipo exitosamente" });
+          }
+        );
+      });
+    });
+  });
+});
+
+
+// Salir del equipo
+app.post("/api/team/leave", verifyToken, (req, res) => {
+  const { teamId } = req.body;
+
+  const deleteQuery =
+    "DELETE FROM team_players WHERE team_id = ? AND user_id = ?";
+  db.query(deleteQuery, [teamId, req.userId], (err, result) => {
+    if (err)
+      return res.status(500).json({ message: "Error al salir del equipo" });
+    if (result.affectedRows === 0)
+      return res
+        .status(404)
+        .json({ message: "No eres miembro de este equipo" });
+
+    res.json({ message: "Has salido del equipo" });
+  });
+});
+
+app.post("/api/tournaments", verifyToken, (req, res) => {
+  const { name, game, date } = req.body;
+
+  const query = "INSERT INTO tournaments (name, game, date) VALUES (?, ?, ?)";
+  db.query(query, [name, game, date], (err, result) => {
+    if (err) return res.status(500).json({ message: "Error al crear torneo" });
+    res.status(201).json({ message: "Torneo creado correctamente" });
+  });
+});
+
+app.get("/api/tournaments", (req, res) => {
+  const { game } = req.query;
+  let query = "SELECT * FROM tournaments";
+  let params = [];
+
+  if (game) {
+    query += " WHERE game = ?";
+    params.push(game);
+  }
+
+  db.query(query, params, (err, results) => {
+    if (err)
+      return res.status(500).json({ message: "Error al obtener torneos" });
+    res.json({ tournaments: results });
+  });
+});
+
+
+// Obtener eventos disponibles
+app.get("/api/events/available", (req, res) => {
+  const { game } = req.query;
+  // Por ahora devolvemos datos de ejemplo
+  res.json({ events: [] });
+});
+
+app.get("/api/user/is-admin", verifyToken, (req, res) => {
+  const query = "SELECT role FROM users WHERE id = ?";
+  db.query(query, [req.userId], (err, results) => {
+    if (err || results.length === 0) {
+      return res.status(500).json({ isAdmin: false });
+    }
+    const role = results[0].role;
+    res.json({ isAdmin: role === "admin" });
+  });
+});
+
+app.post("/api/tournaments/create", verifyToken, isAdmin, (req, res) => {
+  const { name, game, status, date, description } = req.body;
+  const query = `
+    INSERT INTO tournaments (name, game, status, date, description, created_at, created_by)
+    VALUES (?, ?, ?, ?, ?, NOW(), ?)`;
+
+  // Ruta 404 para APIs
+  app.all("/api/*", (req, res) => {
+    res.status(404).json({ message: "Ruta API no encontrada" });
+  });
+
+  db.query(
+    query,
+    [name, game, status || "abierto", date, description, req.userId],
+    (err) => {
+      if (err) {
+        console.error("Error creando torneo:", err);
+        return res.status(500).json({ message: "Error del servidor" });
+      }
+      res.json({ message: "Torneo creado exitosamente" });
+    }
+  );
+});
+
 
 // Middleware de errores
 app.use((err, req, res, next) => {
@@ -271,12 +523,21 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Error interno del servidor" });
 });
 
+function isAdmin(req, res, next) {
+  const query = "SELECT role FROM users WHERE id = ?";
+  db.query(query, [req.userId], (err, results) => {
+    if (err || results.length === 0) return res.sendStatus(403);
+    if (results[0].role !== "admin") return res.sendStatus(403);
+    next();
+  });
+}
+
+
 // Servir frontend
 app.use(express.static(path.join(__dirname, "frontend", "dist")));
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
 });
-
 
 app.listen(port, () => {
   console.log(`🚀 Servidor backend corriendo en http://localhost:${port}`);

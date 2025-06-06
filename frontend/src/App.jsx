@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Login from './Login';
 import Account from './Account';
 import Teams from "./Teams";
+import Tournaments from "./Tournaments";
 
 function App() {
   const [showLogin, setShowLogin] = useState(false);
@@ -11,6 +12,9 @@ function App() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
   const [showTeams, setShowTeams] = useState(false);
+  const [showTournaments, setShowTournaments] = useState(false);
+
+
   
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -49,6 +53,12 @@ function App() {
   if (showTeams) {
     return <Teams onBack={() => setShowTeams(false)} />;
   }
+
+  if (showTournaments) {
+    return <Tournaments onBack={() => setShowTournaments(false)} />;
+  }
+  
+  
   const games = {
     lol: {
       name: "League of Legends",
@@ -155,15 +165,29 @@ function App() {
               }}
               style={{ cursor: "pointer" }}
             >
+              <br></br>
               <h3>Equipo</h3>
               <p>Gestiona tu equipo</p>
             </div>
 
-            <div className="menu-item">
-              <br></br>
+            <div
+              className="menu-item"
+              onClick={() => {
+                if (isLoggedIn) {
+                  setShowAccount(false);
+                  setShowTeams(false);
+                  setShowTournaments(true);
+                } else {
+                  setShowLogin(true);
+                }
+              }}
+              style={{ cursor: "pointer" }}
+            >
+              <br />
               <h3>Torneos</h3>
               <p>Competiciones activas</p>
             </div>
+
             <div className="menu-item">
               <br></br>
               <h3>Redes</h3>
@@ -215,12 +239,12 @@ function App() {
           <h2>Nuestros Juegos</h2>
           <div className="games-showcase">
             <div className="game-item">
-              <img src={games.lol.image} alt="League of Legends" />
+              <img src="/lol_logo.png" alt="League of Legends" />
               <h3>League of Legends</h3>
               <p>MOBA</p>
             </div>
             <div className="game-item">
-              <img src={games.valorant.image} alt="Valorant" />
+              <img src="/valorant_logo.png" alt="Valorant" />
               <h3>Valorant</h3>
               <p>Tactical Shooter</p>
             </div>

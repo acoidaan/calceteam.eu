@@ -1,0 +1,256 @@
+.teams-container {
+  padding: 2rem;
+  color: white;
+  background-color: #0e0e0e;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.teams-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.back-button {
+  background: transparent;
+  color: white;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.game-selector {
+  margin: 1rem 0;
+  display: flex;
+  gap: 1rem;
+}
+
+.game-btn {
+  padding: 0.5rem 1rem;
+  background: #222;
+  border: 1px solid #555;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+.game-btn.active {
+  background: #008cff;
+  border-color: #00aaff;
+}
+
+.team-logo-name {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.team-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+}
+
+.team-logo-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #333;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.team-header-section {
+  flex: 1;
+}
+
+.team-actions-small {
+  margin-top: 1rem;
+}
+
+.team-code {
+  margin-top: 0.5rem;
+  color: #aaa;
+}
+
+.players-section {
+  margin-top: 2rem;
+}
+
+.players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.player-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #1a1a1a;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border-left: 4px solid #008cff;
+}
+
+.role-icon {
+  font-size: 1.4rem;
+}
+
+.opgg-link {
+  color: #00aaff;
+  font-size: 0.9rem;
+  margin-left: 0.5rem;
+}
+
+.tournament-card,
+.event-card {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 1rem;
+  margin: 1rem 0;
+  flex: 1;
+  min-width: 250px;
+}
+
+.tournaments-grid,
+.events-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.register-btn,
+.view-status-btn {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #00aaff;
+  border: none;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.divider {
+  margin: 2rem 0;
+  border-top: 2px dashed #444;
+}
+
+/* Tarjeta lateral */
+.team-summary-card {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 1rem;
+  width: 300px;
+  text-align: center;
+}
+
+.team-summary-card h4 {
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.team-summary-card p {
+  color: #aaa;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.team-display {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-top: 2rem;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
+.team-column-left {
+  flex: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.team-column-right {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.tournaments-section,
+.events-section {
+  background: #1b1b1b;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid #333;
+}
+
+.tournaments-section h3,
+.events-section h3 {
+  margin-bottom: 1rem;
+}
+
+.tournaments-grid,
+.events-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #1c1c1c;
+  padding: 2rem;
+  border-radius: 10px;
+  border: 1px solid #444;
+  text-align: center;
+  color: white;
+}
+
+.modal-buttons {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.confirm-btn,
+.cancel-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.confirm-btn {
+  background: #e63946;
+  color: white;
+}
+
+.cancel-btn {
+  background: #555;
+  color: white;
+}
