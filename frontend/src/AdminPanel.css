@@ -1,0 +1,255 @@
+.admin-panel {
+  background: rgba(25, 25, 25, 0.9);
+  border: 1px solid #333;
+  border-radius: 15px;
+  padding: 2rem;
+  margin-top: 2rem;
+  color: white;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.admin-header h2 {
+  color: white;
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.create-tournament-btn {
+  background: var(--calce-blue);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.create-tournament-btn:hover {
+  background: var(--calce-blue-light);
+  transform: translateY(-2px);
+}
+
+.admin-form-container {
+  background: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.admin-form-container h3 {
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-form input,
+.admin-form select,
+.admin-form textarea {
+  padding: 0.75rem;
+  background: #0e0e0e;
+  border: 1px solid #555;
+  border-radius: 6px;
+  color: white;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.admin-form input::placeholder,
+.admin-form textarea::placeholder {
+  color: #888;
+}
+
+.admin-form input:focus,
+.admin-form select:focus,
+.admin-form textarea:focus {
+  outline: none;
+  border-color: var(--calce-blue-light);
+}
+
+.form-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.save-btn,
+.cancel-btn,
+.edit-btn,
+.delete-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.save-btn {
+  background: #10B981;
+  color: white;
+}
+
+.save-btn:hover {
+  background: #059669;
+}
+
+.cancel-btn {
+  background: #6B7280;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #4B5563;
+}
+
+.edit-btn {
+  background: #3B82F6;
+  color: white;
+  margin-right: 0.5rem;
+}
+
+.edit-btn:hover {
+  background: #2563EB;
+}
+
+.delete-btn {
+  background: #EF4444;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #DC2626;
+}
+
+.tournaments-admin-list {
+  margin-top: 2rem;
+}
+
+.tournaments-admin-list h3 {
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.no-tournaments {
+  color: #888;
+  text-align: center;
+  padding: 2rem;
+  font-style: italic;
+}
+
+.tournaments-table {
+  overflow-x: auto;
+  background: #1a1a1a;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.tournaments-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tournaments-table th,
+.tournaments-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #333;
+}
+
+.tournaments-table th {
+  background: #0e0e0e;
+  color: var(--calce-blue-light);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+}
+
+.tournaments-table td {
+  color: #ddd;
+}
+
+.tournaments-table tr:hover td {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.tournaments-table input,
+.tournaments-table select,
+.tournaments-table textarea {
+  padding: 0.5rem;
+  background: #0e0e0e;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: white;
+  font-size: 0.875rem;
+  width: 100%;
+}
+
+.tournaments-table input:focus,
+.tournaments-table select:focus,
+.tournaments-table textarea:focus {
+  outline: none;
+  border-color: var(--calce-blue-light);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.status-badge.abierto {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10B981;
+  border: 1px solid #10B981;
+}
+
+.status-badge.cerrado {
+  background: rgba(239, 68, 68, 0.2);
+  color: #EF4444;
+  border: 1px solid #EF4444;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .create-tournament-btn {
+    width: 100%;
+  }
+  
+  .tournaments-table {
+    padding: 0.5rem;
+  }
+  
+  .tournaments-table th,
+  .tournaments-table td {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .edit-btn,
+  .delete-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}

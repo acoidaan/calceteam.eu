@@ -82,11 +82,15 @@ app.post("/api/register", async (req, res) => {
       if (results.length > 0)
         return res.status(400).json({ message: "Correo ya registrado" });
 
-      const insertQuery =
-        "INSERT INTO users (username, email, password, verified) VALUES (?, ?, ?, ?)";
+      const insertQuery = `
+        INSERT INTO users (username, email, password, created_at, verified, role)
+        VALUES (?, ?, ?, NOW(), ?, ?)
+      `;
+
       db.query(
         insertQuery,
-        [username, email, hashedPassword, false],
+        [username, email, hashedPassword, 0, "user"],
+
         async (err) => {
           if (err)
             return res.status(500).json({ message: "Error al registrar" });
@@ -657,6 +661,148 @@ app.post("/api/tournaments/create", verifyToken, isAdmin, (req, res) => {
     }
   );
 });
+
+
+// Añadir estos endpoints en tu server.js después de los endpoints existentes de torneos:
+
+// Obtener torneos en los que está inscrito un equipo
+app.get("/api/tournaments/my-tournaments", verifyToken, (req, res) => {
+  const { teamId } = req.query;
+  
+  if (!teamId) {
+    return res.status(400).json({ message: "Team ID requerido" });
+  }
+
+  const query = `
+    SELECT t.* FROM tournaments t
+    INNER JOIN tournament_registrations tr ON t.id = tr.tournament_id
+    WHERE tr.team_id = ?
+    ORDER BY t.date DESC
+  `;
+
+  db.query(query, [teamId], (err, results) => {
+    if (err) {
+      console.error("Error obteniendo torneos:", err);
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+    res.json({ tournaments: results });
+  });
+});
+
+// Obtener torneos disponibles para un juego
+app.get("/api/tournaments/available", verifyToken, (req, res) => {
+  const { game } = req.query;
+  
+  let query = "SELECT * FROM tournaments WHERE status = 'abierto'";
+  let params = [];
+
+  if (game) {
+    query += " AND game = ?";
+    params.push(game);
+  }
+
+  query += " ORDER BY date ASC";
+
+  db.query(query, params, (err, results) => {
+    if (err) {
+      console.error("Error obteniendo torneos disponibles:", err);
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+    res.json({ tournaments: results });
+  });
+});
+
+// Inscribir equipo en torneo
+app.post("/api/tournament/register", verifyToken, (req, res) => {
+  const { tournamentId, teamId } = req.body;
+
+  if (!tournamentId || !teamId) {
+    return res.status(400).json({ message: "Faltan datos requeridos" });
+  }
+
+  // Verificar que el usuario es miembro del equipo
+  const checkMemberQuery = "SELECT * FROM team_players WHERE team_id = ? AND user_id = ?";
+  db.query(checkMemberQuery, [teamId, req.userId], (err, memberResults) => {
+    if (err || memberResults.length === 0) {
+      return res.status(403).json({ message: "No eres miembro de este equipo" });
+    }
+
+    // Verificar que el torneo existe y está abierto
+    const checkTournamentQuery = "SELECT * FROM tournaments WHERE id = ? AND status = 'abierto'";
+    db.query(checkTournamentQuery, [tournamentId], (err, tournamentResults) => {
+      if (err || tournamentResults.length === 0) {
+        return res.status(404).json({ message: "Torneo no disponible" });
+      }
+
+      // Verificar que no están ya inscritos
+      const checkRegistrationQuery = "SELECT * FROM tournament_registrations WHERE tournament_id = ? AND team_id = ?";
+      db.query(checkRegistrationQuery, [tournamentId, teamId], (err, regResults) => {
+        if (err) {
+          return res.status(500).json({ message: "Error del servidor" });
+        }
+        
+        if (regResults.length > 0) {
+          return res.status(400).json({ message: "El equipo ya está inscrito en este torneo" });
+        }
+
+        // Inscribir al equipo
+        const insertQuery = "INSERT INTO tournament_registrations (tournament_id, team_id, registered_at) VALUES (?, ?, NOW())";
+        db.query(insertQuery, [tournamentId, teamId], (err) => {
+          if (err) {
+            console.error("Error inscribiendo equipo:", err);
+            return res.status(500).json({ message: "Error al inscribir equipo" });
+          }
+          res.json({ message: "Equipo inscrito exitosamente" });
+        });
+      });
+    });
+  });
+});
+
+// Actualizar torneo (admin)
+app.put("/api/tournaments/update/:id", verifyToken, isAdmin, (req, res) => {
+  const { id } = req.params;
+  const { name, game, status, date, description } = req.body;
+
+  const query = `
+    UPDATE tournaments 
+    SET name = ?, game = ?, status = ?, date = ?, description = ?
+    WHERE id = ?
+  `;
+
+  db.query(query, [name, game, status, date, description, id], (err) => {
+    if (err) {
+      console.error("Error actualizando torneo:", err);
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+    res.json({ message: "Torneo actualizado correctamente" });
+  });
+});
+
+// Eliminar torneo (admin)
+app.delete("/api/tournaments/delete/:id", verifyToken, isAdmin, (req, res) => {
+  const { id } = req.params;
+
+  // Primero eliminar las inscripciones
+  const deleteRegistrationsQuery = "DELETE FROM tournament_registrations WHERE tournament_id = ?";
+  db.query(deleteRegistrationsQuery, [id], (err) => {
+    if (err) {
+      console.error("Error eliminando inscripciones:", err);
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+
+    // Luego eliminar el torneo
+    const deleteTournamentQuery = "DELETE FROM tournaments WHERE id = ?";
+    db.query(deleteTournamentQuery, [id], (err) => {
+      if (err) {
+        console.error("Error eliminando torneo:", err);
+        return res.status(500).json({ message: "Error del servidor" });
+      }
+      res.json({ message: "Torneo eliminado correctamente" });
+    });
+  });
+});
+
 
 // Ruta 404 para APIs
 app.all("/api/*", (req, res) => {

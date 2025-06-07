@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from "react";
 import Modal from "./Modal";
 import { useModal } from "./useModal";
+import "./AdminPanel.css";
 
 const AdminPanel = () => {
-  const { modalConfig, showAlert } = useModal();
+  const { modalConfig, showAlert, showSuccess, showError, showConfirm } =
+    useModal();
   const [tournaments, setTournaments] = useState([]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingTournament, setEditingTournament] = useState(null);
   const [newTournament, setNewTournament] = useState({
     name: "",
     game: "lol",
@@ -37,63 +41,281 @@ const AdminPanel = () => {
       body: JSON.stringify(newTournament),
     });
     const data = await res.json();
-    showAlert(data.message);
-    fetchTournaments();
+    if (res.ok) {
+      showSuccess(data.message);
+      setShowCreateForm(false);
+      setNewTournament({
+        name: "",
+        game: "lol",
+        status: "abierto",
+        date: "",
+        description: "",
+      });
+      fetchTournaments();
+    } else {
+      showError(data.message || "Error al crear torneo");
+    }
+  };
+
+  const updateTournament = async () => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`/api/tournaments/update/${editingTournament.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(editingTournament),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showSuccess("Torneo actualizado correctamente");
+      setEditingTournament(null);
+      fetchTournaments();
+    } else {
+      showError(data.message || "Error al actualizar torneo");
+    }
+  };
+
+  const deleteTournament = async (id) => {
+    showConfirm(
+      "¿Estás seguro de que quieres eliminar este torneo?",
+      async () => {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`/api/tournaments/delete/${id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (res.ok) {
+          showSuccess("Torneo eliminado correctamente");
+          fetchTournaments();
+        } else {
+          showError("Error al eliminar torneo");
+        }
+      },
+      "Confirmar eliminación"
+    );
   };
 
   return (
     <div className="admin-panel">
       <Modal {...modalConfig} />
 
-      <h2>Panel de Torneos</h2>
-
-      <div>
-        <h3>Crear nuevo torneo</h3>
-        <input
-          placeholder="Nombre"
-          value={newTournament.name}
-          onChange={(e) =>
-            setNewTournament({ ...newTournament, name: e.target.value })
-          }
-        />
-        <select
-          value={newTournament.game}
-          onChange={(e) =>
-            setNewTournament({ ...newTournament, game: e.target.value })
-          }
+      <div className="admin-header">
+        <h2>Panel de Administración - Torneos</h2>
+        <button
+          className="create-tournament-btn"
+          onClick={() => setShowCreateForm(true)}
         >
-          <option value="lol">LoL</option>
-          <option value="valorant">Valorant</option>
-        </select>
-        <input
-          type="date"
-          value={newTournament.date}
-          onChange={(e) =>
-            setNewTournament({ ...newTournament, date: e.target.value })
-          }
-        />
-        <textarea
-          placeholder="Descripción"
-          value={newTournament.description}
-          onChange={(e) =>
-            setNewTournament({ ...newTournament, description: e.target.value })
-          }
-        />
-        <button onClick={createTournament}>Crear Torneo</button>
+          + Crear Torneo
+        </button>
       </div>
 
-      <div>
+      {showCreateForm && (
+        <div className="admin-form-container">
+          <h3>Crear nuevo torneo</h3>
+          <div className="admin-form">
+            <input
+              placeholder="Nombre del torneo"
+              value={newTournament.name}
+              onChange={(e) =>
+                setNewTournament({ ...newTournament, name: e.target.value })
+              }
+            />
+            <select
+              value={newTournament.game}
+              onChange={(e) =>
+                setNewTournament({ ...newTournament, game: e.target.value })
+              }
+            >
+              <option value="lol">League of Legends</option>
+              <option value="valorant">Valorant</option>
+            </select>
+            <select
+              value={newTournament.status}
+              onChange={(e) =>
+                setNewTournament({ ...newTournament, status: e.target.value })
+              }
+            >
+              <option value="abierto">Abierto</option>
+              <option value="cerrado">Cerrado</option>
+            </select>
+            <input
+              type="date"
+              value={newTournament.date}
+              onChange={(e) =>
+                setNewTournament({ ...newTournament, date: e.target.value })
+              }
+            />
+            <textarea
+              placeholder="Descripción del torneo"
+              value={newTournament.description}
+              onChange={(e) =>
+                setNewTournament({
+                  ...newTournament,
+                  description: e.target.value,
+                })
+              }
+              rows="3"
+            />
+            <div className="form-buttons">
+              <button className="save-btn" onClick={createTournament}>
+                Crear Torneo
+              </button>
+              <button
+                className="cancel-btn"
+                onClick={() => {
+                  setShowCreateForm(false);
+                  setNewTournament({
+                    name: "",
+                    game: "lol",
+                    status: "abierto",
+                    date: "",
+                    description: "",
+                  });
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="tournaments-admin-list">
         <h3>Torneos existentes</h3>
         {tournaments.length === 0 ? (
-          <p>No hay torneos</p>
+          <p className="no-tournaments">No hay torneos creados</p>
         ) : (
-          tournaments.map((t) => (
-            <div key={t.id}>
-              <strong>{t.name}</strong> – {t.status} ({t.game}) –{" "}
-              {new Date(t.date).toLocaleDateString()}
-              <p>{t.description}</p>
-            </div>
-          ))
+          <div className="tournaments-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Juego</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                  <th>Descripción</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tournaments.map((t) => (
+                  <tr key={t.id}>
+                    {editingTournament?.id === t.id ? (
+                      <>
+                        <td>
+                          <input
+                            value={editingTournament.name}
+                            onChange={(e) =>
+                              setEditingTournament({
+                                ...editingTournament,
+                                name: e.target.value,
+                              })
+                            }
+                          />
+                        </td>
+                        <td>
+                          <select
+                            value={editingTournament.game}
+                            onChange={(e) =>
+                              setEditingTournament({
+                                ...editingTournament,
+                                game: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="lol">LoL</option>
+                            <option value="valorant">Valorant</option>
+                          </select>
+                        </td>
+                        <td>
+                          <select
+                            value={editingTournament.status}
+                            onChange={(e) =>
+                              setEditingTournament({
+                                ...editingTournament,
+                                status: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="abierto">Abierto</option>
+                            <option value="cerrado">Cerrado</option>
+                          </select>
+                        </td>
+                        <td>
+                          <input
+                            type="date"
+                            value={editingTournament.date.split("T")[0]}
+                            onChange={(e) =>
+                              setEditingTournament({
+                                ...editingTournament,
+                                date: e.target.value,
+                              })
+                            }
+                          />
+                        </td>
+                        <td>
+                          <textarea
+                            value={editingTournament.description || ""}
+                            onChange={(e) =>
+                              setEditingTournament({
+                                ...editingTournament,
+                                description: e.target.value,
+                              })
+                            }
+                            rows="2"
+                          />
+                        </td>
+                        <td>
+                          <button
+                            className="save-btn"
+                            onClick={updateTournament}
+                          >
+                            Guardar
+                          </button>
+                          <button
+                            className="cancel-btn"
+                            onClick={() => setEditingTournament(null)}
+                          >
+                            Cancelar
+                          </button>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td>{t.name}</td>
+                        <td>{t.game.toUpperCase()}</td>
+                        <td>
+                          <span className={`status-badge ${t.status}`}>
+                            {t.status}
+                          </span>
+                        </td>
+                        <td>{new Date(t.date).toLocaleDateString()}</td>
+                        <td>{t.description || "-"}</td>
+                        <td>
+                          <button
+                            className="edit-btn"
+                            onClick={() => setEditingTournament(t)}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            className="delete-btn"
+                            onClick={() => deleteTournament(t.id)}
+                          >
+                            Eliminar
+                          </button>
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

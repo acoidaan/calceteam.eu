@@ -10,8 +10,8 @@ const Teams = ({ onBack }) => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showJoinForm, setShowJoinForm] = useState(false);
   const [selectedGame, setSelectedGame] = useState("lol");
-  const [tournaments, setTournaments] = useState([]);
-  const [availableEvents, setAvailableEvents] = useState([]);
+  const [myTournaments, setMyTournaments] = useState([]);
+  const [availableTournaments, setAvailableTournaments] = useState([]);
   const [joinCode, setJoinCode] = useState("");
 
   // Form states
@@ -21,7 +21,12 @@ const Teams = ({ onBack }) => {
   const [playerNickname, setPlayerNickname] = useState("");
   const [playerOpgg, setPlayerOpgg] = useState("");
 
-  const registerToTournament = async (eventId) => {
+  const registerToTournament = async (tournamentId) => {
+    if (!myTeam) {
+      showError("Necesitas tener un equipo para inscribirte");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       const response = await fetch("/api/tournament/register", {
@@ -30,12 +35,12 @@ const Teams = ({ onBack }) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ eventId, teamId: myTeam.id }),
+        body: JSON.stringify({ tournamentId, teamId: myTeam.id }),
       });
 
       if (response.ok) {
         showSuccess("Equipo inscrito exitosamente en el torneo");
-        fetchTournaments(); // Actualiza la lista de torneos
+        fetchTournaments(); // Actualiza las listas
       } else {
         const error = await response.json();
         showError(error.message || "Error al inscribir el equipo");
@@ -55,7 +60,6 @@ const Teams = ({ onBack }) => {
   useEffect(() => {
     fetchMyTeam();
     fetchTournaments();
-    fetchAvailableEvents();
   }, [selectedGame]);
 
   const fetchMyTeam = async () => {
@@ -75,27 +79,37 @@ const Teams = ({ onBack }) => {
 
   const fetchTournaments = async () => {
     try {
-      const response = await fetch(`/api/tournaments?game=${selectedGame}`);
-      if (response.ok) {
-        const data = await response.json();
-        setTournaments(data.tournaments || []);
+      const token = localStorage.getItem("token");
+
+      // Obtener torneos en los que estoy inscrito
+      if (myTeam) {
+        const myResponse = await fetch(
+          `/api/tournaments/my-tournaments?teamId=${myTeam.id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (myResponse.ok) {
+          const myData = await myResponse.json();
+          setMyTournaments(myData.tournaments || []);
+        }
+      } else {
+        setMyTournaments([]);
+      }
+
+      // Obtener todos los torneos disponibles del juego
+      const availableResponse = await fetch(
+        `/api/tournaments/available?game=${selectedGame}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (availableResponse.ok) {
+        const availableData = await availableResponse.json();
+        setAvailableTournaments(availableData.tournaments || []);
       }
     } catch (error) {
       console.error("Error fetching tournaments:", error);
-    }
-  };
-
-  const fetchAvailableEvents = async () => {
-    try {
-      const response = await fetch(
-        `/api/events/available?game=${selectedGame}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setAvailableEvents(data.events || []);
-      }
-    } catch (error) {
-      console.error("Error fetching events:", error);
     }
   };
 
@@ -461,51 +475,64 @@ const Teams = ({ onBack }) => {
 
           <div className="team-column-right">
             <div className="tournaments-section">
-              <h3>Torneos Activos</h3>
+              <h3>Torneos en los que estás inscrito</h3>
               <div className="tournaments-grid">
-                {tournaments.length > 0 ? (
-                  tournaments.map((tournament) => (
+                {myTournaments.length > 0 ? (
+                  myTournaments.map((tournament) => (
                     <div key={tournament.id} className="tournament-card">
                       <h4>{tournament.name}</h4>
-                      <p>Estado: {tournament.status}</p>
+                      <p>Juego: {tournament.game.toUpperCase()}</p>
                       <p>
                         Fecha: {new Date(tournament.date).toLocaleDateString()}
                       </p>
+                      <div className="tournament-status inscrito">Inscrito</div>
                     </div>
                   ))
                 ) : (
                   <p className="no-tournaments">
-                    No estás participando en ningún torneo
+                    No estás inscrito en ningún torneo
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="events-section">
-              <h3>Eventos Disponibles</h3>
-              <div className="events-grid">
-                {availableEvents.length > 0 ? (
-                  availableEvents.map((event) => (
-                    <div key={event.id} className="event-card">
-                      <h4>{event.name}</h4>
-                      <p>{event.description}</p>
-                      <p>
-                        Inscripción hasta:{" "}
-                        {new Date(
-                          event.registrationDeadline
-                        ).toLocaleDateString()}
-                      </p>
-                      <button
-                        className="register-btn"
-                        onClick={() => registerToTournament(event.id)}
-                      >
-                        Inscribir Equipo
-                      </button>
-                    </div>
-                  ))
+            <div className="available-section">
+              <h3>Otros torneos de {selectedGame.toUpperCase()}</h3>
+              <div className="tournaments-grid">
+                {availableTournaments.length > 0 ? (
+                  availableTournaments.map((tournament) => {
+                    const isRegistered = myTournaments.some(
+                      (t) => t.id === tournament.id
+                    );
+                    return (
+                      <div key={tournament.id} className="tournament-card">
+                        <h4>{tournament.name}</h4>
+                        <p>
+                          Fecha:{" "}
+                          {new Date(tournament.date).toLocaleDateString()}
+                        </p>
+                        {tournament.description && (
+                          <p>{tournament.description}</p>
+                        )}
+                        <button
+                          className="register-btn"
+                          onClick={() => registerToTournament(tournament.id)}
+                          disabled={
+                            isRegistered || tournament.status === "cerrado"
+                          }
+                        >
+                          {isRegistered
+                            ? "Ya inscrito"
+                            : tournament.status === "cerrado"
+                              ? "Cerrado"
+                              : "Inscribir Equipo"}
+                        </button>
+                      </div>
+                    );
+                  })
                 ) : (
-                  <p className="no-events">
-                    No hay eventos disponibles actualmente
+                  <p className="no-tournaments">
+                    No hay torneos disponibles actualmente
                   </p>
                 )}
               </div>
