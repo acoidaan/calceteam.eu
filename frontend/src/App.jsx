@@ -5,8 +5,6 @@ import Account from "./Account";
 import Teams from "./Teams";
 import Tournaments from "./Tournaments";
 import ResetPassword from "./ResetPassword";
-import AOS from "aos";
-import "aos/dist/aos.css";
 
 function App() {
   const [showLogin, setShowLogin] = useState(false);
@@ -18,7 +16,9 @@ function App() {
   const [showTournaments, setShowTournaments] = useState(false);
 
   useEffect(() => {
-    AOS.init({ duration: 1000, once: true });
+    // Inicializar el efecto de scroll tipo Apple
+    initAppleScrollEffect();
+
     // Verificar si es la página de reset password
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("reset-password")) {
@@ -43,6 +43,89 @@ function App() {
       }
     }
   }, []);
+
+  // Función principal para inicializar el efecto de scroll tipo Apple
+  const initAppleScrollEffect = () => {
+    // Crear el intersection observer para elementos animados
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: "-50px",
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+        }
+      });
+    }, observerOptions);
+
+    // Observar elementos específicos
+    const animatedElements = document.querySelectorAll(
+      ".about h2, .about p, .games h2, .game-item, .footer"
+    );
+
+    animatedElements.forEach((element) => {
+      observer.observe(element);
+    });
+
+    // Efecto parallax sutil en scroll
+    let ticking = false;
+    const updateParallax = () => {
+      const scrolled = window.pageYOffset;
+
+      // Parallax para la sección hero
+      const hero = document.querySelector(".hero-video-bg");
+      if (hero) {
+        hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+      }
+
+      // Efecto de escala sutil para elementos
+      const aboutSection = document.querySelector(".about");
+      const gamesSection = document.querySelector(".games");
+
+      if (aboutSection) {
+        const aboutRect = aboutSection.getBoundingClientRect();
+        const aboutVisible =
+          aboutRect.top < window.innerHeight && aboutRect.bottom > 0;
+
+        if (aboutVisible) {
+          const progress = 1 - aboutRect.top / window.innerHeight;
+          const scale = 0.95 + progress * 0.05;
+          aboutSection.style.transform = `scale(${Math.min(scale, 1)})`;
+        }
+      }
+
+      if (gamesSection) {
+        const gamesRect = gamesSection.getBoundingClientRect();
+        const gamesVisible =
+          gamesRect.top < window.innerHeight && gamesRect.bottom > 0;
+
+        if (gamesVisible) {
+          const progress = 1 - gamesRect.top / window.innerHeight;
+          const scale = 0.95 + progress * 0.05;
+          gamesSection.style.transform = `scale(${Math.min(scale, 1)})`;
+        }
+      }
+
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateParallax);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    // Cleanup function
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      observer.disconnect();
+    };
+  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -70,17 +153,6 @@ function App() {
   if (showTournaments) {
     return <Tournaments onBack={() => setShowTournaments(false)} />;
   }
-
-  const games = {
-    lol: {
-      name: "League of Legends",
-      image: "lol_logo.png", // Replace with actual image URL or path
-    },
-    valorant: {
-      name: "Valorant",
-      image: "valorant_logo.png",
-    },
-  };
 
   return (
     <div className="landing">
@@ -215,7 +287,7 @@ function App() {
       </section>
 
       {/* About Section */}
-      <section className="about" data-aos="fade-up">
+      <section className="about parallax-wrapper">
         <div className="container">
           <h2>Sobre Nosotros</h2>
           <p>
@@ -246,16 +318,16 @@ function App() {
       </section>
 
       {/* Games Section */}
-      <section className="games" data-aos="fade-up">
+      <section className="games parallax-wrapper">
         <div className="container">
           <h2>Nuestros Juegos</h2>
           <div className="games-showcase">
-            <div className="game-item" data-aos="zoom-in" data-aos-delay="100">
+            <div className="game-item">
               <img src="/lol_logo.png" alt="League of Legends" />
               <h3>League of Legends</h3>
               <p>MOBA</p>
             </div>
-            <div className="game-item" data-aos="zoom-in" data-aos-delay="200">
+            <div className="game-item">
               <img src="/valorant_logo.png" alt="Valorant" />
               <h3>Valorant</h3>
               <p>Tactical Shooter</p>
@@ -265,7 +337,7 @@ function App() {
       </section>
 
       {/* Footer */}
-      <footer className="footer" data-aos="fade-up">
+      <footer className="footer">
         <div className="container">
           <div className="footer-content">
             <div className="footer-logo">

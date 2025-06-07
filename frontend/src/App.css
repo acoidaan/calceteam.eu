@@ -225,11 +225,13 @@ body {
   pointer-events: auto;
 }
 
-/* About Section */
+/* About Section - Efectos Apple */
 .about {
   padding: 5rem 0;
   background: var(--calce-white);
   color: var(--calce-black);
+  position: relative;
+  overflow: hidden;
 }
 
 .container {
@@ -243,6 +245,14 @@ body {
   font-size: 3rem;
   margin-bottom: 2rem;
   color: var(--calce-blue);
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.about h2.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .about p {
@@ -252,7 +262,21 @@ body {
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
+  opacity: 0;
+  transform: translateY(30px) scale(0.98);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+.about p.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Efecto stagger para párrafos */
+.about p:nth-child(3) { transition-delay: 0.1s; }
+.about p:nth-child(4) { transition-delay: 0.2s; }
+.about p:nth-child(5) { transition-delay: 0.3s; }
+.about p:nth-child(6) { transition-delay: 0.4s; }
 
 .stats-grid {
   display: grid;
@@ -281,11 +305,13 @@ body {
   margin-bottom: 0.5rem;
 }
 
-/* Games Section */
+/* Games Section - Efectos Apple */
 .games {
   padding: 5rem 0;
   background: var(--calce-black);
   color: white;
+  position: relative;
+  overflow: hidden;
 }
 
 .games h2 {
@@ -293,6 +319,14 @@ body {
   font-size: 3rem;
   margin-bottom: 3rem;
   color: var(--calce-blue-light);
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.games h2.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .games-showcase {
@@ -307,12 +341,25 @@ body {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 15px;
   border: 2px solid var(--calce-blue);
-  transition: all 0.3s ease;
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  transform: translateY(50px) scale(0.9);
+}
+
+.game-item.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.game-item:nth-child(2) {
+  transition-delay: 0.2s;
 }
 
 .game-item:hover {
-  transform: translateY(-10px);
+  transform: translateY(-10px) scale(1.05);
   border-color: var(--calce-blue-light);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
 }
 
 .game-item img {
@@ -321,6 +368,19 @@ body {
   height: 100px;
   object-fit: contain;
   margin-bottom: 1rem;
+  filter: brightness(0.9);
+  transition: all 0.4s ease;
+}
+
+.game-item:hover img {
+  filter: brightness(1.1);
+  transform: scale(1.1);
+}
+
+/* Efecto Parallax Sutil */
+.parallax-wrapper {
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 /* Footer */
@@ -328,6 +388,14 @@ body {
   background: var(--calce-black);
   color: white;
   padding: 3rem 0 1rem;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.footer.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .footer-content {
@@ -438,7 +506,6 @@ body {
     width: 250px;
     padding: 1.5rem;
   }
-
 
   .footer-content {
     grid-template-columns: 1fr;
@@ -554,13 +621,28 @@ body {
   border-color: var(--calce-blue-light);
 }
 
-
-[data-aos] {
-  opacity: 0;
-  transition-property: transform, opacity;
-  transition-timing-function: ease-out;
+/* Animación de desenfoque en scroll */
+.blur-on-scroll {
+  transition: filter 0.3s ease;
 }
 
-[data-aos].aos-animate {
-  opacity: 1;
+.blur-on-scroll.scrolled {
+  filter: blur(3px);
+}
+
+/* Loading animation for elements */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
 }
