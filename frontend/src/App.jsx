@@ -16,8 +16,17 @@ function App() {
   const [showTournaments, setShowTournaments] = useState(false);
 
   useEffect(() => {
-    // Inicializar el efecto de scroll tipo Apple
-    initAppleScrollEffect();
+    // Reiniciar animaciones cuando se muestra la landing
+    if (!showAccount && !showTeams && !showTournaments && !showLogin) {
+      // Quitar clases visible para reiniciar animaciones
+      const animatedElements = document.querySelectorAll(".visible");
+      animatedElements.forEach((el) => el.classList.remove("visible"));
+
+      // Pequeño delay para que el DOM se actualice
+      setTimeout(() => {
+        initAppleScrollEffect();
+      }, 100);
+    }
 
     // Verificar si es la página de reset password
     const urlParams = new URLSearchParams(window.location.search);
@@ -42,10 +51,15 @@ function App() {
         setUsername(name);
       }
     }
-  }, []);
+  }, [showAccount, showTeams, showTournaments, showLogin]); // Re-ejecutar cuando cambian las vistas
 
   // Función principal para inicializar el efecto de scroll tipo Apple
   const initAppleScrollEffect = () => {
+    // Limpiar observer anterior si existe
+    if (window.scrollObserver) {
+      window.scrollObserver.disconnect();
+    }
+
     // Crear el intersection observer para elementos animados
     const observerOptions = {
       threshold: 0.1,
@@ -59,6 +73,9 @@ function App() {
         }
       });
     }, observerOptions);
+
+    // Guardar referencia global
+    window.scrollObserver = observer;
 
     // Observar elementos específicos
     const animatedElements = document.querySelectorAll(
@@ -118,12 +135,17 @@ function App() {
       }
     };
 
+    window.scrollHandler = handleScroll;
     window.addEventListener("scroll", handleScroll);
 
     // Cleanup function
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      observer.disconnect();
+      if (window.scrollObserver) {
+        window.scrollObserver.disconnect();
+      }
+      if (window.scrollHandler) {
+        window.removeEventListener("scroll", window.scrollHandler);
+      }
     };
   };
 
