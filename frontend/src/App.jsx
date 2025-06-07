@@ -5,6 +5,8 @@ import Account from "./Account";
 import Teams from "./Teams";
 import Tournaments from "./Tournaments";
 import ResetPassword from "./ResetPassword";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 function App() {
   const [showLogin, setShowLogin] = useState(false);
@@ -16,6 +18,7 @@ function App() {
   const [showTournaments, setShowTournaments] = useState(false);
 
   useEffect(() => {
+    AOS.init({ duration: 1000, once: true });
     // Verificar si es la página de reset password
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("reset-password")) {
@@ -212,7 +215,7 @@ function App() {
       </section>
 
       {/* About Section */}
-      <section className="about">
+      <section className="about" data-aos="fade-up">
         <div className="container">
           <h2>Sobre Nosotros</h2>
           <p>
