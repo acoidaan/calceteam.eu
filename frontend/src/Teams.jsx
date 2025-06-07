@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "./Teams.css";
+import Modal from "./Modal";
+import { useModal } from "./useModal";
 
 const Teams = ({ onBack }) => {
+  const { modalConfig, showAlert, showSuccess, showError, showConfirm } =
+    useModal();
   const [myTeam, setMyTeam] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showJoinForm, setShowJoinForm] = useState(false);
@@ -30,17 +34,16 @@ const Teams = ({ onBack }) => {
       });
 
       if (response.ok) {
-        alert("Equipo inscrito exitosamente en el torneo");
+        showSuccess("Equipo inscrito exitosamente en el torneo");
         fetchTournaments(); // Actualiza la lista de torneos
       } else {
         const error = await response.json();
-        alert(error.message || "Error al inscribir el equipo");
+        showError(error.message || "Error al inscribir el equipo");
       }
     } catch (error) {
-      alert("Error de conexión");
+      showError("Error de conexión");
     }
   };
-  
 
   const formatOpggLink = (url) => {
     if (!url) return "";
@@ -48,7 +51,6 @@ const Teams = ({ onBack }) => {
       ? url
       : `https://${url}`;
   };
-  
 
   useEffect(() => {
     fetchMyTeam();
@@ -97,10 +99,6 @@ const Teams = ({ onBack }) => {
     }
   };
 
-  
-  
-
-
   const isRoleAvailable = (role) => {
     if (!myTeam || !myTeam.players) return true;
 
@@ -116,13 +114,12 @@ const Teams = ({ onBack }) => {
 
     return true;
   };
-  
 
   const handleCreateTeam = async (e) => {
     e.preventDefault();
 
     if (!isRoleAvailable(playerRole)) {
-      alert(`El rol ${playerRole} ya está ocupado en el equipo`);
+      showError(`El rol ${playerRole} ya está ocupado en el equipo`);
       return;
     }
     const formData = new FormData();
@@ -142,21 +139,21 @@ const Teams = ({ onBack }) => {
       });
 
       if (response.ok) {
-        alert("Equipo creado exitosamente");
+        showSuccess("Equipo creado exitosamente");
         setShowCreateForm(false);
         fetchMyTeam();
       } else {
         const error = await response.json();
-        alert(error.message || "Error al crear equipo");
+        showError(error.message || "Error al crear equipo");
       }
     } catch (error) {
-      alert("Error de conexión");
+      showError("Error de conexión");
     }
   };
 
   const handleJoinTeam = async () => {
     if (!isRoleAvailable(playerRole)) {
-      alert(`El rol ${playerRole} ya está ocupado en el equipo`);
+      showError(`El rol ${playerRole} ya está ocupado en el equipo`);
       return;
     }
     try {
@@ -177,15 +174,15 @@ const Teams = ({ onBack }) => {
       });
 
       if (response.ok) {
-        alert("Te has unido al equipo exitosamente");
+        showSuccess("Te has unido al equipo exitosamente");
         setShowJoinForm(false);
         fetchMyTeam();
       } else {
         const error = await response.json();
-        alert(error.message || "Error al unirse al equipo");
+        showError(error.message || "Error al unirse al equipo");
       }
     } catch (error) {
-      alert("Error de conexión");
+      showError("Error de conexión");
     }
   };
 
@@ -202,17 +199,24 @@ const Teams = ({ onBack }) => {
       });
 
       if (response.ok) {
-        alert("Has salido del equipo");
+        showSuccess("Has salido del equipo");
         setMyTeam(null);
-        onBack(); // <-- redirige a la landing
+        setTimeout(() => {
+          onBack();
+        }, 1500);
       }
     } catch (error) {
-      alert("Error al salir del equipo");
-    } finally {
-      setShowLeaveConfirm(false);
+      showError("Error al salir del equipo");
     }
   };
-  
+
+  const confirmLeaveTeam = () => {
+    showConfirm(
+      "¿Seguro que quieres salir del equipo?",
+      handleLeaveTeam,
+      "Confirmar"
+    );
+  };
 
   const roleIcons = {
     top: "🛡️",
@@ -233,12 +237,11 @@ const Teams = ({ onBack }) => {
     staff: "Staff / Coach",
     suplente: "Suplente",
   };
-  
-  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
-
 
   return (
     <div className="teams-container">
+      <Modal {...modalConfig} />
+
       <div className="teams-header">
         <button onClick={onBack} className="back-button">
           ← Volver
@@ -414,10 +417,7 @@ const Teams = ({ onBack }) => {
                 <h2>{myTeam.name}</h2>
               </div>
               <div className="team-actions-small">
-                <button
-                  onClick={() => setShowLeaveConfirm(true)}
-                  className="leave-btn"
-                >
+                <button onClick={confirmLeaveTeam} className="leave-btn">
                   Salir del Equipo
                 </button>
 
@@ -513,29 +513,8 @@ const Teams = ({ onBack }) => {
           </div>
         </div>
       )}
-      {showLeaveConfirm && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>¿Seguro que quieres salir del equipo?</h3>
-            <div className="modal-buttons">
-              <button className="confirm-btn" onClick={handleLeaveTeam}>
-                Sí, salir
-              </button>
-              <button
-                className="cancel-btn"
-                onClick={() => setShowLeaveConfirm(false)}
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
-
-
-  
 };
 
 export default Teams;

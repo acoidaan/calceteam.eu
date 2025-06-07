@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import "./Account.css";
+import Modal from "./Modal";
+import { useModal } from "./useModal";
 
 const Account = ({ onBack }) => {
+  const { modalConfig, showAlert, showSuccess, showError } = useModal();
   const [userData, setUserData] = useState({
     username: localStorage.getItem("username") || "",
     email: "",
@@ -46,7 +49,7 @@ const Account = ({ onBack }) => {
 
   const handleUpdate = async (field) => {
     if (!newValues.currentPasswordForEdit) {
-      alert("Por favor ingresa tu contraseña actual");
+      showAlert("Por favor ingresa tu contraseña actual");
       return;
     }
 
@@ -73,13 +76,13 @@ const Account = ({ onBack }) => {
         setUserData((prev) => ({ ...prev, [field]: newValues[field] }));
         setEditMode((prev) => ({ ...prev, [field]: false }));
         setNewValues((prev) => ({ ...prev, currentPasswordForEdit: "" }));
-        alert("Actualizado correctamente");
+        showSuccess("Actualizado correctamente");
       } else {
         const error = await response.json();
-        alert(error.message || "Error al actualizar");
+        showError(error.message || "Error al actualizar");
       }
     } catch (error) {
-      alert("Error de conexión");
+      showError("Error de conexión");
     }
   };
 
@@ -88,7 +91,7 @@ const Account = ({ onBack }) => {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("La imagen no puede superar 5MB");
+      showError("La imagen no puede superar 5MB");
       return;
     }
 
@@ -108,21 +111,21 @@ const Account = ({ onBack }) => {
       if (response.ok) {
         const data = await response.json();
         setUserData((prev) => ({ ...prev, profilePic: data.profilePic }));
-        alert("Foto actualizada");
+        showSuccess("Foto actualizada");
       }
     } catch (error) {
-      alert("Error al subir la imagen");
+      showError("Error al subir la imagen");
     }
   };
 
   const handlePasswordChange = async () => {
     if (!newValues.currentPassword || !newValues.newPassword) {
-      alert("Completa todos los campos");
+      showAlert("Completa todos los campos");
       return;
     }
 
     if (newValues.newPassword.length < 6) {
-      alert("La contraseña debe tener al menos 6 caracteres");
+      showAlert("La contraseña debe tener al menos 6 caracteres");
       return;
     }
 
@@ -141,22 +144,24 @@ const Account = ({ onBack }) => {
       });
 
       if (response.ok) {
-        alert("Contraseña actualizada");
+        showSuccess("Contraseña actualizada");
         setNewValues((prev) => ({
           ...prev,
           currentPassword: "",
           newPassword: "",
         }));
       } else {
-        alert("Contraseña actual incorrecta");
+        showError("Contraseña actual incorrecta");
       }
     } catch (error) {
-      alert("Error al cambiar contraseña");
+      showError("Error al cambiar contraseña");
     }
   };
 
   return (
     <div className="account-container">
+      <Modal {...modalConfig} />
+
       <div className="account-header">
         <button onClick={onBack} className="back-button">
           ← Volver

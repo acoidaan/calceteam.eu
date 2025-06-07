@@ -1,7 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
+import Modal from "./Modal";
+import { useModal } from "./useModal";
 
 function CreateTeamForm({ game, onClose, onTeamCreated }) {
+  const { modalConfig, showError } = useModal();
   const [teamName, setTeamName] = useState("");
   const [logo, setLogo] = useState(null);
   const [nickname, setNickname] = useState("");
@@ -31,60 +34,63 @@ function CreateTeamForm({ game, onClose, onTeamCreated }) {
       onTeamCreated();
       onClose();
     } catch (err) {
-      alert("Error al crear el equipo.");
+      showError("Error al crear el equipo.");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Crear Equipo ({game.toUpperCase()})</h2>
-      <input
-        type="text"
-        placeholder="Nombre del equipo"
-        value={teamName}
-        onChange={(e) => setTeamName(e.target.value)}
-        required
-      />
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setLogo(e.target.files[0])}
-      />
-      <input
-        type="text"
-        placeholder="Tu nombre de juego (nombre#hashtag)"
-        value={nickname}
-        onChange={(e) => setNickname(e.target.value)}
-        required
-      />
-      <select
-        value={position}
-        onChange={(e) => setPosition(e.target.value)}
-        required
-      >
-        <option value="top">Top</option>
-        <option value="jungla">Jungla</option>
-        <option value="medio">Medio</option>
-        <option value="adc">ADC</option>
-        <option value="support">Support</option>
-      </select>
-      <input
-        type="text"
-        placeholder="Entrenador (opcional)"
-        value={coach}
-        onChange={(e) => setCoach(e.target.value)}
-      />
-      <input
-        type="text"
-        placeholder="Suplente (opcional)"
-        value={substitute}
-        onChange={(e) => setSubstitute(e.target.value)}
-      />
-      <button type="submit">Crear equipo</button>
-      <button type="button" onClick={onClose}>
-        Cancelar
-      </button>
-    </form>
+    <>
+      <Modal {...modalConfig} />
+      <form onSubmit={handleSubmit}>
+        <h2>Crear Equipo ({game.toUpperCase()})</h2>
+        <input
+          type="text"
+          placeholder="Nombre del equipo"
+          value={teamName}
+          onChange={(e) => setTeamName(e.target.value)}
+          required
+        />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setLogo(e.target.files[0])}
+        />
+        <input
+          type="text"
+          placeholder="Tu nombre de juego (nombre#hashtag)"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+          required
+        />
+        <select
+          value={position}
+          onChange={(e) => setPosition(e.target.value)}
+          required
+        >
+          <option value="top">Top</option>
+          <option value="jungla">Jungla</option>
+          <option value="medio">Medio</option>
+          <option value="adc">ADC</option>
+          <option value="support">Support</option>
+        </select>
+        <input
+          type="text"
+          placeholder="Entrenador (opcional)"
+          value={coach}
+          onChange={(e) => setCoach(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Suplente (opcional)"
+          value={substitute}
+          onChange={(e) => setSubstitute(e.target.value)}
+        />
+        <button type="submit">Crear equipo</button>
+        <button type="button" onClick={onClose}>
+          Cancelar
+        </button>
+      </form>
+    </>
   );
 }
 

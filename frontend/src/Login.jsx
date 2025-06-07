@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import "./Login.css";
+import Modal from "./Modal";
+import { useModal } from "./useModal";
 
 const Login = () => {
+  const { modalConfig, showAlert, showSuccess, showError } = useModal();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     username: "",
@@ -19,24 +22,26 @@ const Login = () => {
 
   const handleSubmit = async () => {
     if (!formData.email || !formData.password) {
-      alert("Por favor completa todos los campos");
+      showAlert("Por favor completa todos los campos");
       return;
     }
 
     if (!isLogin) {
       if (!formData.username) {
-        alert("Por favor ingresa un nombre de usuario");
+        showAlert("Por favor ingresa un nombre de usuario");
         return;
       }
       if (formData.password !== formData.confirmPassword) {
-        alert("Las contraseñas no coinciden");
+        showAlert("Las contraseñas no coinciden");
         return;
       }
     }
 
     try {
       const baseURL = window.location.origin;
-      const endpoint = isLogin ? `${baseURL}/api/login` : `${baseURL}/api/register`;
+      const endpoint = isLogin
+        ? `${baseURL}/api/login`
+        : `${baseURL}/api/register`;
       // CAMBIAR PARA PRODUCCION POR
       // const endpoint = isLogin
       //   ? "https://calceteam.eu/api/login"
@@ -56,23 +61,28 @@ const Login = () => {
         if (isLogin) {
           localStorage.setItem("token", data.token);
           localStorage.setItem("username", data.username);
-          alert("Inicio de sesión exitoso");
-          window.location.reload();
+          showSuccess("Inicio de sesión exitoso");
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
         } else {
-          alert("Registro exitoso, ahora puedes iniciar sesión");
-          setIsLogin(true);
+          showSuccess("Registro exitoso, ahora puedes iniciar sesión");
+          setTimeout(() => {
+            setIsLogin(true);
+          }, 1500);
         }
       } else {
-        alert(data.error || "Error en la petición.");
+        showError(data.error || "Error en la petición.");
       }
     } catch (error) {
-      alert("Error de conexión. Por favor intenta más tarde.");
+      showError("Error de conexión. Por favor intenta más tarde.");
       console.error(error);
     }
   };
 
   return (
     <div className="login-container">
+      <Modal {...modalConfig} />
       <div className="login-bg"></div>
 
       <div className="login-card-wrapper">

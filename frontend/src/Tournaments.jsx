@@ -2,8 +2,11 @@
 import { useEffect, useState } from "react";
 import AdminPanel from "./AdminPanel";
 import "./Tournaments.css";
+import Modal from "./Modal";
+import { useModal } from "./useModal";
 
 const Tournaments = ({ onBack }) => {
+  const { modalConfig, showError } = useModal();
   const [tournaments, setTournaments] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -18,7 +21,7 @@ const Tournaments = ({ onBack }) => {
       const data = await res.json();
       setTournaments(data.tournaments || []);
     } catch (err) {
-      alert("Error al cargar torneos");
+      showError("Error al cargar torneos");
     }
   };
 
@@ -33,6 +36,8 @@ const Tournaments = ({ onBack }) => {
 
   return (
     <div className="tournaments-container">
+      <Modal {...modalConfig} />
+
       <button onClick={onBack} className="back-button">
         ← Volver
       </button>

@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import "./TournamentCreate.css";
+import Modal from "./Modal";
+import { useModal } from "./useModal";
 
 const TournamentCreate = ({ onBack }) => {
+  const { modalConfig, showSuccess, showError } = useModal();
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
   const [game, setGame] = useState("lol");
@@ -20,19 +23,23 @@ const TournamentCreate = ({ onBack }) => {
         body: JSON.stringify({ name, date, game, status }),
       });
       if (response.ok) {
-        alert("Torneo creado con éxito");
-        onBack();
+        showSuccess("Torneo creado con éxito");
+        setTimeout(() => {
+          onBack();
+        }, 1500);
       } else {
         const err = await response.json();
-        alert(err.message || "Error al crear torneo");
+        showError(err.message || "Error al crear torneo");
       }
     } catch (error) {
-      alert("Error de conexión");
+      showError("Error de conexión");
     }
   };
 
   return (
     <div className="tournament-create-container">
+      <Modal {...modalConfig} />
+
       <button onClick={onBack} className="back-button">
         ← Volver
       </button>

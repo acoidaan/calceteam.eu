@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
+import Modal from "./Modal";
+import { useModal } from "./useModal";
 
 const AdminPanel = () => {
+  const { modalConfig, showAlert } = useModal();
   const [tournaments, setTournaments] = useState([]);
   const [newTournament, setNewTournament] = useState({
     name: "",
@@ -34,12 +37,14 @@ const AdminPanel = () => {
       body: JSON.stringify(newTournament),
     });
     const data = await res.json();
-    alert(data.message);
+    showAlert(data.message);
     fetchTournaments();
   };
 
   return (
     <div className="admin-panel">
+      <Modal {...modalConfig} />
+
       <h2>Panel de Torneos</h2>
 
       <div>
