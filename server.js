@@ -430,8 +430,8 @@ app.get("/api/team/my-team", verifyToken, (req, res) => {
       )
     ) as players
     FROM teams t
-    LEFT JOIN team_players p ON t.id = p.team_id
-    WHERE t.id IN (SELECT team_id FROM team_players WHERE user_id = ?)
+    LEFT JOIN teams_players p ON t.id = p.team_id
+    WHERE t.id IN (SELECT team_id FROM teams_players WHERE user_id = ?)
     AND t.game = ?
     GROUP BY t.id
   `;
@@ -502,7 +502,7 @@ app.post(
         const teamId = result.insertId;
 
         const addPlayerQuery =
-          "INSERT INTO team_players (team_id, user_id, nickname, role, opgg_link) VALUES (?, ?, ?, ?, ?)";
+          "INSERT INTO teams_players (team_id, user_id, nickname, role, opgg_link) VALUES (?, ?, ?, ?, ?)";
 
         db.query(
           addPlayerQuery,
@@ -545,7 +545,7 @@ app.post("/api/team/join", verifyToken, (req, res) => {
 
     // Verificar que no esté ya en el equipo
     const checkQuery =
-      "SELECT * FROM team_players WHERE team_id = ? AND user_id = ?";
+      "SELECT * FROM teams_players WHERE team_id = ? AND user_id = ?";
     db.query(checkQuery, [team.id, req.userId], (err, results) => {
       if (err) return res.status(500).json({ message: "Error del servidor" });
       if (results.length > 0)
@@ -555,7 +555,7 @@ app.post("/api/team/join", verifyToken, (req, res) => {
 
       // Verificar límites por rol
       const countRoleQuery =
-        "SELECT COUNT(*) as count FROM team_players WHERE team_id = ? AND role = ?";
+        "SELECT COUNT(*) as count FROM teams_players WHERE team_id = ? AND role = ?";
       db.query(countRoleQuery, [team.id, playerRole], (err, results) => {
         if (err) return res.status(500).json({ message: "Error del servidor" });
 
@@ -578,7 +578,7 @@ app.post("/api/team/join", verifyToken, (req, res) => {
 
         // Añadir al equipo
         const joinQuery =
-          "INSERT INTO team_players (team_id, user_id, nickname, role, opgg_link) VALUES (?, ?, ?, ?, ?)";
+          "INSERT INTO teams_players (team_id, user_id, nickname, role, opgg_link) VALUES (?, ?, ?, ?, ?)";
         db.query(
           joinQuery,
           [team.id, req.userId, playerNickname, playerRole, playerOpgg],
@@ -600,7 +600,7 @@ app.post("/api/team/leave", verifyToken, (req, res) => {
   const { teamId } = req.body;
 
   const deleteQuery =
-    "DELETE FROM team_players WHERE team_id = ? AND user_id = ?";
+    "DELETE FROM teams_players WHERE team_id = ? AND user_id = ?";
   db.query(deleteQuery, [teamId, req.userId], (err, result) => {
     if (err)
       return res.status(500).json({ message: "Error al salir del equipo" });
@@ -736,7 +736,7 @@ app.post("/api/tournament/register", verifyToken, (req, res) => {
   }
 
   // Verificar que el usuario es miembro del equipo
-  const checkMemberQuery = "SELECT * FROM team_players WHERE team_id = ? AND user_id = ?";
+  const checkMemberQuery = "SELECT * FROM teams_players WHERE team_id = ? AND user_id = ?";
   db.query(checkMemberQuery, [teamId, req.userId], (err, memberResults) => {
     if (err || memberResults.length === 0) {
       return res.status(403).json({ message: "No eres miembro de este equipo" });
