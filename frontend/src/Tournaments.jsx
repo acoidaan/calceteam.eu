@@ -5,6 +5,16 @@ import "./Tournaments.css";
 import Modal from "./Modal";
 import { useModal } from "./useModal";
 
+// Funciones de utilidad para fechas
+const formatDateToSpanish = (mysqlDate) => {
+  if (!mysqlDate) return "";
+  const date = new Date(mysqlDate);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 const Tournaments = ({ onBack }) => {
   const { modalConfig, showError } = useModal();
   const [tournaments, setTournaments] = useState([]);
@@ -50,10 +60,15 @@ const Tournaments = ({ onBack }) => {
           tournaments.map((t) => (
             <div key={t.id} className="tournament-card">
               <h3>{t.name}</h3>
-              <p>Juego: {t.game}</p>
-              <p>Fecha: {new Date(t.date).toLocaleDateString()}</p>
-              <p>Estado: {t.status}</p>
-              {t.description && <p>{t.description}</p>}
+              <p>Juego: {t.game.toUpperCase()}</p>
+              <p>Fecha: {formatDateToSpanish(t.date)}</p>
+              <p>
+                Estado:{" "}
+                <span className={`status-badge ${t.status}`}>{t.status}</span>
+              </p>
+              {t.description && (
+                <p className="tournament-description">{t.description}</p>
+              )}
             </div>
           ))
         )}
@@ -61,7 +76,7 @@ const Tournaments = ({ onBack }) => {
 
       {isAdmin && (
         <>
-          <hr />
+          <hr style={{ margin: "40px 0", opacity: 0.3 }} />
           <AdminPanel />
         </>
       )}
