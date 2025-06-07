@@ -106,7 +106,7 @@ app.post("/api/register", async (req, res) => {
             to: email,
             subject: "Verifica tu cuenta - Calce Team",
             html: `<h3>¡Bienvenido a Calce Team!</h3>
-                 <p>Haz clic <a href="http://calceteam.eu:${port}/api/verify/${verificationToken}">aquí</a> para verificar tu cuenta.</p>
+                 <p>Haz clic <a href="http://www.calceteam.eu/api/verify/${verificationToken}">aquí</a> para verificar tu cuenta.</p>
                  <p>Este enlace caduca en 1 hora.</p>`,
           });
 
