@@ -475,22 +475,32 @@ app.post(
   (req, res) => {
     const { teamName, game, playerRole, playerNickname, playerOpgg } = req.body;
 
-    // Generar código único
+    console.log("👉 Datos recibidos:", {
+      teamName,
+      game,
+      playerRole,
+      playerNickname,
+      playerOpgg,
+      file: req.file ? "sí" : "no",
+    });
+
     const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const teamLogo = req.file ? req.file.buffer : null;
 
     const createTeamQuery =
       "INSERT INTO teams (name, game, invite_code, logo, created_by, created_at) VALUES (?, ?, ?, ?, ?, NOW())";
-    const teamLogo = req.file ? req.file.buffer : null;
 
     db.query(
       createTeamQuery,
       [teamName, game, inviteCode, teamLogo, req.userId],
-
       (err, result) => {
-        if (err)
+        if (err) {
+          console.error("❌ Error en createTeamQuery:", err);
           return res.status(500).json({ message: "Error al crear equipo" });
+        }
 
         const teamId = result.insertId;
+
         const addPlayerQuery =
           "INSERT INTO team_players (team_id, user_id, nickname, role, opgg_link) VALUES (?, ?, ?, ?, ?)";
 
@@ -498,10 +508,13 @@ app.post(
           addPlayerQuery,
           [teamId, req.userId, playerNickname, playerRole, playerOpgg],
           (err) => {
-            if (err)
+            if (err) {
+              console.error("❌ Error al añadir jugador:", err);
               return res
                 .status(500)
                 .json({ message: "Error al añadir jugador" });
+            }
+
             res.json({
               message: "Equipo creado exitosamente",
               teamId,
@@ -513,6 +526,7 @@ app.post(
     );
   }
 );
+
 
 // Unirse a equipo
 app.post("/api/team/join", verifyToken, (req, res) => {
