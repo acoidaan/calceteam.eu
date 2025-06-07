@@ -3,6 +3,29 @@ import Modal from "./Modal";
 import { useModal } from "./useModal";
 import "./AdminPanel.css";
 
+// Funciones de utilidad para fechas
+const formatDateToSpanish = (mysqlDate) => {
+  if (!mysqlDate) return "";
+  const date = new Date(mysqlDate);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+const formatDateToMySQL = (spanishDate) => {
+  if (!spanishDate) return null;
+  const parts = spanishDate.split("/");
+  if (parts.length !== 3) return null;
+  const [day, month, year] = parts;
+  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+};
+
+const formatDateForInput = (mysqlDate) => {
+  if (!mysqlDate) return "";
+  return mysqlDate.split("T")[0];
+};
+
 const AdminPanel = () => {
   const { modalConfig, showAlert, showSuccess, showError, showConfirm } =
     useModal();
@@ -59,14 +82,45 @@ const AdminPanel = () => {
 
   const updateTournament = async () => {
     const token = localStorage.getItem("token");
+
+    // Preparar solo los campos que han cambiado
+    const tournamentToUpdate = {};
+    const originalTournament = tournaments.find(
+      (t) => t.id === editingTournament.id
+    );
+
+    // Comparar cada campo y solo incluir los que cambiaron
+    if (editingTournament.name !== originalTournament.name) {
+      tournamentToUpdate.name = editingTournament.name;
+    }
+    if (editingTournament.game !== originalTournament.game) {
+      tournamentToUpdate.game = editingTournament.game;
+    }
+    if (editingTournament.status !== originalTournament.status) {
+      tournamentToUpdate.status = editingTournament.status;
+    }
+    if (
+      formatDateForInput(editingTournament.date) !==
+      formatDateForInput(originalTournament.date)
+    ) {
+      tournamentToUpdate.date = editingTournament.date;
+    }
+    if (
+      (editingTournament.description || "") !==
+      (originalTournament.description || "")
+    ) {
+      tournamentToUpdate.description = editingTournament.description;
+    }
+
     const res = await fetch(`/api/tournaments/update/${editingTournament.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(editingTournament),
+      body: JSON.stringify(tournamentToUpdate),
     });
+
     const data = await res.json();
     if (res.ok) {
       showSuccess("Torneo actualizado correctamente");
@@ -248,7 +302,7 @@ const AdminPanel = () => {
                         <td>
                           <input
                             type="date"
-                            value={editingTournament.date.split("T")[0]}
+                            value={formatDateForInput(editingTournament.date)}
                             onChange={(e) =>
                               setEditingTournament({
                                 ...editingTournament,
@@ -293,7 +347,7 @@ const AdminPanel = () => {
                             {t.status}
                           </span>
                         </td>
-                        <td>{new Date(t.date).toLocaleDateString()}</td>
+                        <td>{formatDateToSpanish(t.date)}</td>
                         <td>{t.description || "-"}</td>
                         <td>
                           <button

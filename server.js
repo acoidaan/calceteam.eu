@@ -783,54 +783,56 @@ app.put("/api/tournaments/update/:id", verifyToken, isAdmin, (req, res) => {
 
   // Primero obtener los valores actuales
   const selectQuery = "SELECT * FROM tournaments WHERE id = ?";
-
+  
   db.query(selectQuery, [id], (err, results) => {
     if (err) {
       console.error("Error obteniendo torneo:", err);
       return res.status(500).json({ message: "Error del servidor" });
     }
-
+    
     if (results.length === 0) {
       return res.status(404).json({ message: "Torneo no encontrado" });
     }
-
+    
     const currentTournament = results[0];
-
+    
     // Construir la query dinámicamente solo con los campos que vienen
     const fieldsToUpdate = [];
     const values = [];
-
-    if (updates.name !== undefined && updates.name !== "") {
+    
+    if (updates.name !== undefined && updates.name !== '') {
       fieldsToUpdate.push("name = ?");
       values.push(updates.name);
     }
-    if (updates.game !== undefined && updates.game !== "") {
+    if (updates.game !== undefined && updates.game !== '') {
       fieldsToUpdate.push("game = ?");
       values.push(updates.game);
     }
-    if (updates.status !== undefined && updates.status !== "") {
+    if (updates.status !== undefined && updates.status !== '') {
       fieldsToUpdate.push("status = ?");
       values.push(updates.status);
     }
     if (updates.date !== undefined) {
+      // Convertir formato de fecha a MySQL DATE
+      const dateOnly = updates.date.split('T')[0];
       fieldsToUpdate.push("date = ?");
-      values.push(updates.date);
+      values.push(dateOnly);
     }
     if (updates.description !== undefined) {
       fieldsToUpdate.push("description = ?");
       values.push(updates.description || null);
     }
-
+    
     // Si no hay campos para actualizar, devolver éxito
     if (fieldsToUpdate.length === 0) {
       return res.json({ message: "No hay cambios para actualizar" });
     }
-
+    
     // Añadir el ID al final de los valores
     values.push(id);
-
+    
     const updateQuery = `UPDATE tournaments SET ${fieldsToUpdate.join(", ")} WHERE id = ?`;
-
+    
     db.query(updateQuery, values, (err) => {
       if (err) {
         console.error("Error actualizando torneo:", err);

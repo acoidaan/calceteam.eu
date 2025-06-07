@@ -21,6 +21,36 @@ const Teams = ({ onBack }) => {
   const [playerNickname, setPlayerNickname] = useState("");
   const [playerOpgg, setPlayerOpgg] = useState("");
 
+  const leaveTournament = async (tournamentId) => {
+    showConfirm(
+      "¿Estás seguro de que quieres salir de este torneo?",
+      async () => {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await fetch("/api/tournament/leave", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ tournamentId, teamId: myTeam.id }),
+          });
+
+          if (response.ok) {
+            showSuccess("Has salido del torneo");
+            fetchTournaments();
+          } else {
+            const error = await response.json();
+            showError(error.message || "Error al salir del torneo");
+          }
+        } catch (error) {
+          showError("Error de conexión");
+        }
+      },
+      "Confirmar salida"
+    );
+  };
+
   const registerToTournament = async (tournamentId) => {
     if (!myTeam) {
       showError("Necesitas tener un equipo para inscribirte");
@@ -59,8 +89,13 @@ const Teams = ({ onBack }) => {
 
   useEffect(() => {
     fetchMyTeam();
-    fetchTournaments();
   }, [selectedGame]);
+
+  useEffect(() => {
+    if (myTeam) {
+      fetchTournaments();
+    }
+  }, [myTeam, selectedGame]);
 
   const fetchMyTeam = async () => {
     try {
@@ -106,7 +141,18 @@ const Teams = ({ onBack }) => {
       );
       if (availableResponse.ok) {
         const availableData = await availableResponse.json();
-        setAvailableTournaments(availableData.tournaments || []);
+        // Filtrar los torneos donde ya estás inscrito y ordenar por estado
+        const filteredTournaments = (availableData.tournaments || [])
+          .filter(
+            (tournament) => !myTournaments.some((t) => t.id === tournament.id)
+          )
+          .sort((a, b) => {
+            // Primero los abiertos, luego los cerrados
+            if (a.status === "abierto" && b.status === "cerrado") return -1;
+            if (a.status === "cerrado" && b.status === "abierto") return 1;
+            return 0;
+          });
+        setAvailableTournaments(filteredTournaments);
       }
     } catch (error) {
       console.error("Error fetching tournaments:", error);
@@ -480,12 +526,18 @@ const Teams = ({ onBack }) => {
                 {myTournaments.length > 0 ? (
                   myTournaments.map((tournament) => (
                     <div key={tournament.id} className="tournament-card">
-                      <h4>{tournament.name}</h4>
+                      <h4 className="tournament-title">{tournament.name}</h4>
                       <p>Juego: {tournament.game.toUpperCase()}</p>
                       <p>
                         Fecha: {new Date(tournament.date).toLocaleDateString()}
                       </p>
                       <div className="tournament-status inscrito">Inscrito</div>
+                      <button
+                        className="leave-tournament-btn"
+                        onClick={() => leaveTournament(tournament.id)}
+                      >
+                        Salir del Torneo
+                      </button>
                     </div>
                   ))
                 ) : (
@@ -501,31 +553,26 @@ const Teams = ({ onBack }) => {
               <div className="tournaments-grid">
                 {availableTournaments.length > 0 ? (
                   availableTournaments.map((tournament) => {
-                    const isRegistered = myTournaments.some(
-                      (t) => t.id === tournament.id
-                    );
                     return (
                       <div key={tournament.id} className="tournament-card">
-                        <h4>{tournament.name}</h4>
+                        <h4 className="tournament-title">{tournament.name}</h4>
                         <p>
                           Fecha:{" "}
                           {new Date(tournament.date).toLocaleDateString()}
                         </p>
                         {tournament.description && (
-                          <p>{tournament.description}</p>
+                          <p className="tournament-description">
+                            {tournament.description}
+                          </p>
                         )}
                         <button
                           className="register-btn"
                           onClick={() => registerToTournament(tournament.id)}
-                          disabled={
-                            isRegistered || tournament.status === "cerrado"
-                          }
+                          disabled={tournament.status === "cerrado"}
                         >
-                          {isRegistered
-                            ? "Ya inscrito"
-                            : tournament.status === "cerrado"
-                              ? "Cerrado"
-                              : "Inscribir Equipo"}
+                          {tournament.status === "cerrado"
+                            ? "Cerrado"
+                            : "Inscribir Equipo"}
                         </button>
                       </div>
                     );
