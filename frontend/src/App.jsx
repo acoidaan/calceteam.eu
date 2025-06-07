@@ -246,16 +246,16 @@ function App() {
       </section>
 
       {/* Games Section */}
-      <section className="games">
+      <section className="games" data-aos="fade-up">
         <div className="container">
           <h2>Nuestros Juegos</h2>
           <div className="games-showcase">
-            <div className="game-item">
+            <div className="game-item" data-aos="zoom-in" data-aos-delay="100">
               <img src="/lol_logo.png" alt="League of Legends" />
               <h3>League of Legends</h3>
               <p>MOBA</p>
             </div>
-            <div className="game-item">
+            <div className="game-item" data-aos="zoom-in" data-aos-delay="200">
               <img src="/valorant_logo.png" alt="Valorant" />
               <h3>Valorant</h3>
               <p>Tactical Shooter</p>
@@ -265,7 +265,7 @@ function App() {
       </section>
 
       {/* Footer */}
-      <footer className="footer">
+      <footer className="footer" data-aos="fade-up">
         <div className="container">
           <div className="footer-content">
             <div className="footer-logo">

@@ -553,3 +553,14 @@ body {
   background: rgba(255, 255, 255, 0.1);
   border-color: var(--calce-blue-light);
 }
+
+
+[data-aos] {
+  opacity: 0;
+  transition-property: transform, opacity;
+  transition-timing-function: ease-out;
+}
+
+[data-aos].aos-animate {
+  opacity: 1;
+}
