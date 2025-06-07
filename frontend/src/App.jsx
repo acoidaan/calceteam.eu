@@ -1,46 +1,56 @@
 import "./App.css";
-import { useState, useEffect } from 'react';
-import Login from './Login';
-import Account from './Account';
+import { useState, useEffect } from "react";
+import Login from "./Login";
+import Account from "./Account";
 import Teams from "./Teams";
 import Tournaments from "./Tournaments";
+import ResetPassword from "./ResetPassword";
 
 function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState("");
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
   const [showTeams, setShowTeams] = useState(false);
   const [showTournaments, setShowTournaments] = useState(false);
 
-
-  
   useEffect(() => {
+    // Verificar si es la página de reset password
     const urlParams = new URLSearchParams(window.location.search);
-    const tokenFromURL = urlParams.get('token');
-    const nameFromURL = urlParams.get('username');
+    if (urlParams.get("reset-password")) {
+      return; // No hacer nada, dejar que ResetPassword maneje esto
+    }
+
+    const tokenFromURL = urlParams.get("token");
+    const nameFromURL = urlParams.get("username");
 
     if (tokenFromURL && nameFromURL) {
       localStorage.setItem("token", tokenFromURL);
       localStorage.setItem("username", nameFromURL);
-      window.history.replaceState(null, '', window.location.pathname);
+      window.history.replaceState(null, "", window.location.pathname);
       setIsLoggedIn(true);
       setUsername(nameFromURL);
     } else {
-    const token = localStorage.getItem("token");
-    const name = localStorage.getItem("username");
-    if (token && name) {
-      setIsLoggedIn(true);
-      setUsername(name);
+      const token = localStorage.getItem("token");
+      const name = localStorage.getItem("username");
+      if (token && name) {
+        setIsLoggedIn(true);
+        setUsername(name);
+      }
     }
-  }
-  }, [])
+  }, []);
 
   const handleLogout = () => {
     localStorage.clear();
     window.location.reload();
   };
+
+  // Verificar si estamos en la página de reset password
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get("reset-password") || urlParams.get("token")) {
+    return <ResetPassword />;
+  }
 
   if (showLogin && !isLoggedIn) {
     return <Login />;
@@ -57,8 +67,7 @@ function App() {
   if (showTournaments) {
     return <Tournaments onBack={() => setShowTournaments(false)} />;
   }
-  
-  
+
   const games = {
     lol: {
       name: "League of Legends",

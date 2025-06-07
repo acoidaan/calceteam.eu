@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import "./Login.css";
 import Modal from "./Modal";
 import { useModal } from "./useModal";
+import ForgotPasswordModal from "./ForgotPasswordModal";
 
 const Login = () => {
   const { modalConfig, showAlert, showSuccess, showError } = useModal();
   const [isLogin, setIsLogin] = useState(true);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -171,11 +173,26 @@ const Login = () => {
 
           {isLogin && (
             <div className="forgot-password">
-              <a href="#">¿Olvidaste tu contraseña?</a>
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowForgotPassword(true);
+                }}
+              >
+                ¿Olvidaste tu contraseña?
+              </a>
             </div>
           )}
         </div>
       </div>
+
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+        showSuccess={showSuccess}
+        showError={showError}
+      />
     </div>
   );
 };

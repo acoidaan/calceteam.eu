@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const mysql = require("mysql2");
 const path = require("path");
 const multer = require("multer");
+const crypto = require("crypto");
 require("dotenv").config();
 
 const { Resend } = require("resend");
@@ -170,6 +171,155 @@ app.post("/api/login", (req, res) => {
       username: user.username,
     });
   });
+});
+
+// RECUPERACIÓN DE CONTRASEÑA
+
+// Solicitar recuperación de contraseña
+app.post("/api/forgot-password", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: "Email requerido" });
+  }
+
+  try {
+    // Verificar si el usuario existe
+    const query = "SELECT * FROM users WHERE email = ?";
+    db.query(query, [email], async (err, results) => {
+      if (err) {
+        return res.status(500).json({ message: "Error del servidor" });
+      }
+
+      if (results.length === 0) {
+        // Por seguridad, no revelamos si el email existe o no
+        return res.json({
+          message:
+            "Si el email existe, recibirás instrucciones para recuperar tu contraseña",
+        });
+      }
+
+      const user = results[0];
+
+      // Generar token de recuperación
+      const resetToken = crypto.randomBytes(32).toString("hex");
+      const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hora
+
+      // Guardar token en la base de datos
+      const updateQuery =
+        "UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?";
+      db.query(
+        updateQuery,
+        [resetToken, resetTokenExpiry, user.id],
+        async (err) => {
+          if (err) {
+            return res
+              .status(500)
+              .json({ message: "Error al generar token de recuperación" });
+          }
+
+          // Enviar email
+          try {
+            await resend.emails.send({
+              from: "Calce Team <noreply@calceteam.eu>",
+              to: email,
+              subject: "Recuperar contraseña - Calce Team",
+              html: `
+              <h3>Recuperación de contraseña</h3>
+              <p>Hemos recibido una solicitud para restablecer tu contraseña.</p>
+              <p>Haz clic en el siguiente enlace para crear una nueva contraseña:</p>
+              <a href="http://calceteam.eu:8080?reset-password=true&token=${resetToken}" style="display: inline-block; padding: 10px 20px; background-color: #2563EB; color: white; text-decoration: none; border-radius: 5px;">Restablecer Contraseña</a>
+              <p>Si no solicitaste este cambio, puedes ignorar este correo.</p>
+              <p>Este enlace expirará en 1 hora.</p>
+            `,
+            });
+
+            res.json({
+              message: "Se ha enviado un enlace de recuperación a tu email",
+            });
+          } catch (emailError) {
+            console.error("Error enviando email:", emailError);
+            res
+              .status(500)
+              .json({ message: "Error al enviar el email de recuperación" });
+          }
+        }
+      );
+    });
+  } catch (error) {
+    console.error("Error en forgot-password:", error);
+    res.status(500).json({ message: "Error del servidor" });
+  }
+});
+
+// Verificar token de recuperación
+app.get("/api/verify-reset-token/:token", (req, res) => {
+  const { token } = req.params;
+
+  const query =
+    "SELECT * FROM users WHERE reset_token = ? AND reset_token_expiry > NOW()";
+  db.query(query, [token], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+
+    if (results.length === 0) {
+      return res.status(400).json({ message: "Token inválido o expirado" });
+    }
+
+    res.json({ valid: true });
+  });
+});
+
+// Resetear contraseña
+app.post("/api/reset-password", async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  if (!token || !newPassword) {
+    return res
+      .status(400)
+      .json({ message: "Token y nueva contraseña requeridos" });
+  }
+
+  if (newPassword.length < 6) {
+    return res
+      .status(400)
+      .json({ message: "La contraseña debe tener al menos 6 caracteres" });
+  }
+
+  try {
+    // Verificar token
+    const query =
+      "SELECT * FROM users WHERE reset_token = ? AND reset_token_expiry > NOW()";
+    db.query(query, [token], async (err, results) => {
+      if (err) {
+        return res.status(500).json({ message: "Error del servidor" });
+      }
+
+      if (results.length === 0) {
+        return res.status(400).json({ message: "Token inválido o expirado" });
+      }
+
+      const user = results[0];
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Actualizar contraseña y limpiar tokens
+      const updateQuery =
+        "UPDATE users SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?";
+      db.query(updateQuery, [hashedPassword, user.id], (err) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ message: "Error al actualizar contraseña" });
+        }
+
+        res.json({ message: "Contraseña actualizada correctamente" });
+      });
+    });
+  } catch (error) {
+    console.error("Error en reset-password:", error);
+    res.status(500).json({ message: "Error del servidor" });
+  }
 });
 
 // Perfil
@@ -388,8 +538,7 @@ app.post("/api/team/join", verifyToken, (req, res) => {
       const countRoleQuery =
         "SELECT COUNT(*) as count FROM team_players WHERE team_id = ? AND role = ?";
       db.query(countRoleQuery, [team.id, playerRole], (err, results) => {
-        if (err)
-          return res.status(500).json({ message: "Error del servidor" });
+        if (err) return res.status(500).json({ message: "Error del servidor" });
 
         const count = results[0].count;
 
@@ -426,7 +575,6 @@ app.post("/api/team/join", verifyToken, (req, res) => {
     });
   });
 });
-
 
 // Salir del equipo
 app.post("/api/team/leave", verifyToken, (req, res) => {
@@ -473,7 +621,6 @@ app.get("/api/tournaments", (req, res) => {
   });
 });
 
-
 // Obtener eventos disponibles
 app.get("/api/events/available", (req, res) => {
   const { game } = req.query;
@@ -498,11 +645,6 @@ app.post("/api/tournaments/create", verifyToken, isAdmin, (req, res) => {
     INSERT INTO tournaments (name, game, status, date, description, created_at, created_by)
     VALUES (?, ?, ?, ?, ?, NOW(), ?)`;
 
-  // Ruta 404 para APIs
-  app.all("/api/*", (req, res) => {
-    res.status(404).json({ message: "Ruta API no encontrada" });
-  });
-
   db.query(
     query,
     [name, game, status || "abierto", date, description, req.userId],
@@ -516,6 +658,10 @@ app.post("/api/tournaments/create", verifyToken, isAdmin, (req, res) => {
   );
 });
 
+// Ruta 404 para APIs
+app.all("/api/*", (req, res) => {
+  res.status(404).json({ message: "Ruta API no encontrada" });
+});
 
 // Middleware de errores
 app.use((err, req, res, next) => {
@@ -531,7 +677,6 @@ function isAdmin(req, res, next) {
     next();
   });
 }
-
 
 // Servir frontend
 app.use(express.static(path.join(__dirname, "frontend", "dist")));
