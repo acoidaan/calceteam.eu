@@ -776,6 +776,7 @@ app.post("/api/tournament/register", verifyToken, (req, res) => {
   });
 });
 
+// Actualizar torneo (admin)
 app.put("/api/tournaments/update/:id", verifyToken, isAdmin, (req, res) => {
   const { id } = req.params;
   const updates = req.body;
@@ -799,15 +800,15 @@ app.put("/api/tournaments/update/:id", verifyToken, isAdmin, (req, res) => {
     const fieldsToUpdate = [];
     const values = [];
 
-    if (updates.name !== undefined) {
+    if (updates.name !== undefined && updates.name !== "") {
       fieldsToUpdate.push("name = ?");
       values.push(updates.name);
     }
-    if (updates.game !== undefined) {
+    if (updates.game !== undefined && updates.game !== "") {
       fieldsToUpdate.push("game = ?");
       values.push(updates.game);
     }
-    if (updates.status !== undefined) {
+    if (updates.status !== undefined && updates.status !== "") {
       fieldsToUpdate.push("status = ?");
       values.push(updates.status);
     }
@@ -817,7 +818,7 @@ app.put("/api/tournaments/update/:id", verifyToken, isAdmin, (req, res) => {
     }
     if (updates.description !== undefined) {
       fieldsToUpdate.push("description = ?");
-      values.push(updates.description);
+      values.push(updates.description || null);
     }
 
     // Si no hay campos para actualizar, devolver éxito
@@ -860,6 +861,39 @@ app.delete("/api/tournaments/delete/:id", verifyToken, isAdmin, (req, res) => {
         return res.status(500).json({ message: "Error del servidor" });
       }
       res.json({ message: "Torneo eliminado correctamente" });
+    });
+  });
+});
+
+
+// Salir de un torneo
+app.post("/api/tournament/leave", verifyToken, (req, res) => {
+  const { tournamentId, teamId } = req.body;
+
+  if (!tournamentId || !teamId) {
+    return res.status(400).json({ message: "Faltan datos requeridos" });
+  }
+
+  // Verificar que el usuario es miembro del equipo
+  const checkMemberQuery = "SELECT * FROM teams_players WHERE team_id = ? AND user_id = ?";
+  db.query(checkMemberQuery, [teamId, req.userId], (err, memberResults) => {
+    if (err || memberResults.length === 0) {
+      return res.status(403).json({ message: "No eres miembro de este equipo" });
+    }
+
+    // Eliminar inscripción
+    const deleteQuery = "DELETE FROM tournaments_teams WHERE tournament_id = ? AND team_id = ?";
+    db.query(deleteQuery, [tournamentId, teamId], (err, result) => {
+      if (err) {
+        console.error("Error saliendo del torneo:", err);
+        return res.status(500).json({ message: "Error del servidor" });
+      }
+      
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "No estás inscrito en este torneo" });
+      }
+      
+      res.json({ message: "Has salido del torneo exitosamente" });
     });
   });
 });
