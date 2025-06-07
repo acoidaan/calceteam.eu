@@ -110,17 +110,13 @@ body {
 }
 
 /* Animaciones Scroll */
-.about h2,
-.about p,
-.games h2,
-.game-item,
-.footer {
+.scroll-animate {
   opacity: 0;
   transform: translateY(60px);
   transition: all 0.9s ease-out;
 }
 
-.visible {
+.scroll-animate.visible {
   opacity: 1 !important;
   transform: translateY(0) !important;
 }

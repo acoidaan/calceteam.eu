@@ -198,10 +198,10 @@ function App() {
         </div>
       </section>
 
-      <section className="about scroll-animate">
+      <section className="about">
         <div className="container">
-          <h2>Sobre Nosotros</h2>
-          <p>
+          <h2 className="scroll-animate">Sobre Nosotros</h2>
+          <p className="scroll-animate">
             <b>Calce Team</b> es un club de esports fundado en 2023 con la
             ambición de competir y crecer en el panorama competitivo.
           </p>
@@ -210,14 +210,14 @@ function App() {
 
       <section className="games scroll-animate">
         <div className="container">
-          <h2>Nuestros Juegos</h2>
+          <h2 className="scroll-animate">Nuestros Juegos</h2>
           <div className="games-showcase">
-            <div className="game-item">
+            <div className="game-item scroll-animate">
               <img src="/lol_logo.png" alt="League of Legends" />
               <h3>League of Legends</h3>
               <p>MOBA</p>
             </div>
-            <div className="game-item">
+            <div className="game-item scroll-animate">
               <img src="/valorant_logo.png" alt="Valorant" />
               <h3>Valorant</h3>
               <p>Tactical Shooter</p>
@@ -229,7 +229,7 @@ function App() {
       <footer className="footer scroll-animate">
         <div className="container">
           <div className="footer-content">
-            <div className="footer-logo">
+            <div className="footer-logo scroll-animate">
               <img
                 src="/logo_transparent.png"
                 alt="Calce Team"
@@ -238,7 +238,7 @@ function App() {
               <p>Club de Esports Profesional</p>
             </div>
           </div>
-          <div className="footer-bottom">
+          <div className="footer-bottom scroll-animate">
             <p>&copy; 2025 Calce Team. Todos los derechos reservados.</p>
           </div>
         </div>
