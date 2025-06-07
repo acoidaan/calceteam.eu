@@ -479,12 +479,13 @@ app.post(
     const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
     const createTeamQuery =
-      "INSERT INTO teams (name, game, invite_code, logo, created_by) VALUES (?, ?, ?, ?, ?)";
+      "INSERT INTO teams (name, game, invite_code, logo, created_by, created_at) VALUES (?, ?, ?, ?, ?, NOW())";
     const teamLogo = req.file ? req.file.buffer : null;
 
     db.query(
       createTeamQuery,
       [teamName, game, inviteCode, teamLogo, req.userId],
+
       (err, result) => {
         if (err)
           return res.status(500).json({ message: "Error al crear equipo" });
