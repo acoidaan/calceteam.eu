@@ -903,97 +903,94 @@ app.post("/api/tournament/leave", verifyToken, (req, res) => {
 
 // SISTEMA DE TICKETS DE SOPORTE
 
-// Crear ticket de soporte
+// Crear ticket de soporte (solo email)
 app.post("/api/support/ticket", async (req, res) => {
   const { subject, category, priority, message, email } = req.body;
   
-  // Obtener userId del token si existe
-  let userId = null;
+  if (!subject || !category || !priority || !message) {
+    return res.status(400).json({ message: "Faltan campos requeridos" });
+  }
+
+  // Obtener email del usuario si está logueado
+  let userEmail = email;
+  let username = "Usuario no registrado";
+  
   const token = req.headers.authorization?.split(" ")[1];
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      userId = decoded.id;
+      const userQuery = "SELECT email, username FROM users WHERE id = ?";
+      const userResult = await new Promise((resolve, reject) => {
+        db.query(userQuery, [decoded.id], (err, results) => {
+          if (err) reject(err);
+          else resolve(results[0]);
+        });
+      });
+      if (userResult) {
+        userEmail = userResult.email;
+        username = userResult.username;
+      }
     } catch (error) {
-      // Token inválido, continuar sin userId
+      // Continuar sin autenticación
     }
-  }
-  
-  // Validar campos requeridos
-  if (!subject || !category || !priority || !message || (!userId && !email)) {
-    return res.status(400).json({ message: "Faltan campos requeridos" });
   }
 
   const ticketNumber = `TKT-${Date.now().toString(36).toUpperCase()}`;
-  const userEmail = email || (userId ? await getUserEmail(userId) : null);
 
-  const query = `
-    INSERT INTO support_tickets (ticket_number, user_id, email, subject, category, priority, message, status, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 'abierto', NOW())
-  `;
+  try {
+    // Enviar a tu email personal
+    await resend.emails.send({
+      from: "Calce Team Support <support@calceteam.eu>",
+      to: "calceteam@proton.me", // Tu email personal
+      replyTo: userEmail, // Para poder responder directamente
+      subject: `[${priority.toUpperCase()}] Ticket #${ticketNumber}: ${subject}`,
+      html: `
+        <h2>Nuevo Ticket de Soporte</h2>
+        <p><strong>Ticket:</strong> #${ticketNumber}</p>
+        <p><strong>Usuario:</strong> ${username}</p>
+        <p><strong>Email:</strong> ${userEmail}</p>
+        <p><strong>Categoría:</strong> ${category}</p>
+        <p><strong>Prioridad:</strong> ${priority}</p>
+        <p><strong>Asunto:</strong> ${subject}</p>
+        <hr>
+        <h3>Mensaje:</h3>
+        <p>${message.replace(/\n/g, '<br>')}</p>
+      `
+    });
 
-  db.query(
-    query,
-    [ticketNumber, userId, userEmail, subject, category, priority, message],
-    async (err, result) => {
-      if (err) {
-        console.error("Error creando ticket:", err);
-        return res.status(500).json({ message: "Error al crear ticket" });
-      }
-
-      // Enviar email de confirmación
-      try {
-        await resend.emails.send({
-          from: "Calce Team Support <support@calceteam.eu>",
-          to: userEmail,
-          subject: `Ticket de Soporte #${ticketNumber} - ${subject}`,
-          html: `
-            <h3>Hemos recibido tu solicitud de soporte</h3>
-            <p>Tu ticket <strong>#${ticketNumber}</strong> ha sido creado exitosamente.</p>
-            <p><strong>Asunto:</strong> ${subject}</p>
-            <p><strong>Categoría:</strong> ${category}</p>
-            <p><strong>Prioridad:</strong> ${priority}</p>
-            <p>Te responderemos lo antes posible.</p>
-            <br>
-            <p>Saludos,<br>Equipo de Soporte de Calce Team</p>
-          `
-        });
-      } catch (emailError) {
-        console.error("Error enviando email de confirmación:", emailError);
-      }
-
-      res.json({ 
-        message: "Ticket creado exitosamente", 
-        ticketNumber 
+    // Enviar confirmación al usuario
+    if (userEmail) {
+      await resend.emails.send({
+        from: "Calce Team Support <support@calceteam.eu>",
+        to: userEmail,
+        subject: `Ticket de Soporte #${ticketNumber} - ${subject}`,
+        html: `
+          <h3>Hemos recibido tu solicitud de soporte</h3>
+          <p>Tu ticket <strong>#${ticketNumber}</strong> ha sido recibido.</p>
+          <p><strong>Asunto:</strong> ${subject}</p>
+          <p><strong>Prioridad:</strong> ${priority}</p>
+          <p>Te responderemos lo antes posible a este email.</p>
+          <br>
+          <p>Saludos,<br>Equipo de Soporte de Calce Team</p>
+        `
       });
     }
-  );
-});
 
-// Función auxiliar para obtener email del usuario
-async function getUserEmail(userId) {
-  return new Promise((resolve, reject) => {
-    db.query("SELECT email FROM users WHERE id = ?", [userId], (err, results) => {
-      if (err || results.length === 0) reject(err);
-      else resolve(results[0].email);
+    res.json({ 
+      message: "Ticket enviado exitosamente", 
+      ticketNumber 
     });
-  });
-}
+  } catch (error) {
+    console.error("Error enviando ticket:", error);
+    res.status(500).json({ message: "Error al enviar el ticket" });
+  }
+});
 
 // Obtener tickets del usuario (opcional)
 app.get("/api/support/my-tickets", verifyToken, (req, res) => {
-  const query = `
-    SELECT * FROM support_tickets 
-    WHERE user_id = ? 
-    ORDER BY created_at DESC
-  `;
-
-  db.query(query, [req.userId], (err, results) => {
-    if (err) {
-      console.error("Error obteniendo tickets:", err);
-      return res.status(500).json({ message: "Error del servidor" });
-    }
-    res.json({ tickets: results });
+  res.json({ 
+    tickets: [],
+    message: "Los tickets se gestionan por email" 
   });
 });
 
