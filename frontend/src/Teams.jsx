@@ -38,7 +38,10 @@ const Teams = ({ onBack }) => {
 
           if (response.ok) {
             showSuccess("Has salido del torneo");
-            fetchTournaments();
+            // IMPORTANTE: Esperar un poco antes de actualizar
+            setTimeout(() => {
+              fetchTournaments();
+            }, 500);
           } else {
             const error = await response.json();
             showError(error.message || "Error al salir del torneo");
@@ -70,7 +73,10 @@ const Teams = ({ onBack }) => {
 
       if (response.ok) {
         showSuccess("Equipo inscrito exitosamente en el torneo");
-        fetchTournaments(); // Actualiza las listas
+        // IMPORTANTE: Esperar un poco antes de actualizar para asegurar que la DB se actualizó
+        setTimeout(() => {
+          fetchTournaments();
+        }, 500);
       } else {
         const error = await response.json();
         showError(error.message || "Error al inscribir el equipo");
@@ -116,46 +122,53 @@ const Teams = ({ onBack }) => {
     try {
       const token = localStorage.getItem("token");
 
-      // Obtener torneos en los que estoy inscrito
-      if (myTeam) {
-        const myResponse = await fetch(
-          `/api/tournaments/my-tournaments?teamId=${myTeam.id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        if (myResponse.ok) {
-          const myData = await myResponse.json();
-          setMyTournaments(myData.tournaments || []);
-        }
-      } else {
+      if (!myTeam) {
         setMyTournaments([]);
+        setAvailableTournaments([]);
+        return;
       }
 
-      // Obtener todos los torneos disponibles del juego
-      const availableResponse = await fetch(
-        `/api/tournaments/available?game=${selectedGame}`,
-        {
+      // Obtener AMBAS listas en paralelo para evitar condiciones de carrera
+      const [myResponse, availableResponse] = await Promise.all([
+        fetch(`/api/tournaments/my-tournaments?teamId=${myTeam.id}`, {
           headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+        }),
+        fetch(`/api/tournaments/available?game=${selectedGame}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      let myTournamentsData = [];
+      let availableTournamentsData = [];
+
+      // Procesar respuesta de mis torneos
+      if (myResponse.ok) {
+        const myData = await myResponse.json();
+        myTournamentsData = myData.tournaments || [];
+        setMyTournaments(myTournamentsData);
+      }
+
+      // Procesar respuesta de torneos disponibles
       if (availableResponse.ok) {
         const availableData = await availableResponse.json();
-        // Filtrar los torneos donde ya estás inscrito y ordenar por estado
+        // Filtrar usando los datos frescos, no el state anterior
         const filteredTournaments = (availableData.tournaments || [])
           .filter(
-            (tournament) => !myTournaments.some((t) => t.id === tournament.id)
+            (tournament) =>
+              !myTournamentsData.some((myT) => myT.id === tournament.id)
           )
           .sort((a, b) => {
-            // Primero los abiertos, luego los cerrados
             if (a.status === "abierto" && b.status === "cerrado") return -1;
             if (a.status === "cerrado" && b.status === "abierto") return 1;
             return 0;
           });
+
         setAvailableTournaments(filteredTournaments);
       }
     } catch (error) {
       console.error("Error fetching tournaments:", error);
+      setMyTournaments([]);
+      setAvailableTournaments([]);
     }
   };
 
