@@ -319,18 +319,6 @@ function App() {
               <h3>Torneos</h3>
               <p>Competiciones activas</p>
             </div>
-
-            <div
-              className="menu-item"
-              onClick={() => {
-                setShowSocial(true);
-              }}
-              style={{ cursor: "pointer" }}
-            >
-              <br />
-              <h3>Redes</h3>
-              <p>Síguenos en redes</p>
-            </div>
             <div
               className="menu-item"
               onClick={() => {
