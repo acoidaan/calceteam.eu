@@ -5,6 +5,8 @@ import Account from "./Account";
 import Teams from "./Teams";
 import Tournaments from "./Tournaments";
 import ResetPassword from "./ResetPassword";
+import Social from "./Social";
+import Support from "./Support";
 
 function App() {
   const [showLogin, setShowLogin] = useState(false);
@@ -14,6 +16,8 @@ function App() {
   const [showAccount, setShowAccount] = useState(false);
   const [showTeams, setShowTeams] = useState(false);
   const [showTournaments, setShowTournaments] = useState(false);
+  const [showSocial, setShowSocial] = useState(false);
+  const [showSupport, setShowSupport] = useState(false);
 
   useEffect(() => {
     // Reiniciar animaciones cuando se muestra la landing
