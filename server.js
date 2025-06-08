@@ -906,8 +906,20 @@ app.post("/api/tournament/leave", verifyToken, (req, res) => {
 // Crear ticket de soporte
 app.post("/api/support/ticket", async (req, res) => {
   const { subject, category, priority, message, email } = req.body;
-  const userId = req.userId || null; // Si el usuario está logueado
   
+  // Obtener userId del token si existe
+  let userId = null;
+  const token = req.headers.authorization?.split(" ")[1];
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.id;
+    } catch (error) {
+      // Token inválido, continuar sin userId
+    }
+  }
+  
+  // Validar campos requeridos
   if (!subject || !category || !priority || !message || (!userId && !email)) {
     return res.status(400).json({ message: "Faltan campos requeridos" });
   }

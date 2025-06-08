@@ -67,17 +67,20 @@ function Support({ onBack }) {
     const userEmail = localStorage.getItem("email") || formData.email;
 
     try {
-      const response = await fetch("/api/support/ticket", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token ? `Bearer ${token}` : undefined,
-        },
-        body: JSON.stringify({
-          ...formData,
-          email: userEmail,
-        }),
-      });
+      const response = await fetch(
+        "http://calceteam.eu:8080/api/support/ticket",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : undefined,
+          },
+          body: JSON.stringify({
+            ...formData,
+            email: userEmail,
+          }),
+        }
+      );
 
       if (response.ok) {
         setSubmitStatus({
@@ -95,6 +98,7 @@ function Support({ onBack }) {
         throw new Error("Error al enviar ticket");
       }
     } catch (error) {
+      console.error("Error detallado:", error);
       setSubmitStatus({
         type: "error",
         message: "Error al enviar el ticket. Por favor, intenta de nuevo.",
