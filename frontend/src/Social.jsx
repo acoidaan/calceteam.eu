@@ -23,7 +23,7 @@ function Social({ onBack }) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <img src="/socials/instagram.png" alt="Instagram" />
+            <img src="/instagram.png" alt="Instagram" />
             <span>@calceliga</span>
           </a>
 
@@ -43,7 +43,7 @@ function Social({ onBack }) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <img src="/socials/discord.png" alt="Discord" />
+            <img src="/discord.png" alt="Discord" />
             <span>Discord Oficial</span>
           </a>
 
@@ -53,7 +53,7 @@ function Social({ onBack }) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <img src="/socials/tiktok.png" alt="TikTok" />
+            <img src="/tiktok.png" alt="TikTok" />
             <span>@calce_team_</span>
           </a>
 
