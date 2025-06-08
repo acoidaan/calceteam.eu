@@ -911,7 +911,7 @@ app.post("/api/support/ticket", async (req, res) => {
     return res.status(400).json({ message: "Faltan campos requeridos" });
   }
 
-  // Obtener email del usuario si está logueado
+  // Obtener información del usuario si está logueado
   let userEmail = email;
   let username = "Usuario no registrado";
   
@@ -931,50 +931,78 @@ app.post("/api/support/ticket", async (req, res) => {
         username = userResult.username;
       }
     } catch (error) {
-      // Continuar sin autenticación
+      console.log("Token inválido, continuando sin autenticación");
     }
   }
 
+  // Validar que tengamos un email
+  if (!userEmail) {
+    return res.status(400).json({ message: "Email requerido" });
+  }
+
   const ticketNumber = `TKT-${Date.now().toString(36).toUpperCase()}`;
+  
+  const categoryLabels = {
+    general: "Consulta General",
+    account: "Problemas de Cuenta",
+    team: "Problemas con Equipo",
+    tournament: "Torneos",
+    technical: "Problemas Técnicos",
+    other: "Otro"
+  };
+
+  const priorityLabels = {
+    low: "Baja",
+    normal: "Normal",
+    high: "Alta"
+  };
 
   try {
     // Enviar a tu email personal
     await resend.emails.send({
       from: "Calce Team Support <support@calceteam.eu>",
-      to: "calceteam@proton.me", // Tu email personal
-      replyTo: userEmail, // Para poder responder directamente
-      subject: `[${priority.toUpperCase()}] Ticket #${ticketNumber}: ${subject}`,
+      to: "calceteam@proton.me",
+      replyTo: userEmail,
+      subject: `[${priorityLabels[priority] || priority}] Ticket #${ticketNumber}: ${subject}`,
       html: `
-        <h2>Nuevo Ticket de Soporte</h2>
-        <p><strong>Ticket:</strong> #${ticketNumber}</p>
-        <p><strong>Usuario:</strong> ${username}</p>
-        <p><strong>Email:</strong> ${userEmail}</p>
-        <p><strong>Categoría:</strong> ${category}</p>
-        <p><strong>Prioridad:</strong> ${priority}</p>
-        <p><strong>Asunto:</strong> ${subject}</p>
-        <hr>
-        <h3>Mensaje:</h3>
-        <p>${message.replace(/\n/g, '<br>')}</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #1E3A8A;">Nuevo Ticket de Soporte</h2>
+          <div style="background: #f5f5f5; padding: 20px; border-radius: 8px;">
+            <p><strong>Ticket:</strong> #${ticketNumber}</p>
+            <p><strong>Usuario:</strong> ${username}</p>
+            <p><strong>Email:</strong> ${userEmail}</p>
+            <p><strong>Categoría:</strong> ${categoryLabels[category] || category}</p>
+            <p><strong>Prioridad:</strong> ${priorityLabels[priority] || priority}</p>
+            <p><strong>Asunto:</strong> ${subject}</p>
+          </div>
+          <hr style="margin: 20px 0;">
+          <h3>Mensaje:</h3>
+          <div style="background: #ffffff; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+            <p>${message.replace(/\n/g, '<br>')}</p>
+          </div>
+        </div>
       `
     });
 
     // Enviar confirmación al usuario
-    if (userEmail) {
-      await resend.emails.send({
-        from: "Calce Team Support <support@calceteam.eu>",
-        to: userEmail,
-        subject: `Ticket de Soporte #${ticketNumber} - ${subject}`,
-        html: `
-          <h3>Hemos recibido tu solicitud de soporte</h3>
-          <p>Tu ticket <strong>#${ticketNumber}</strong> ha sido recibido.</p>
-          <p><strong>Asunto:</strong> ${subject}</p>
-          <p><strong>Prioridad:</strong> ${priority}</p>
+    await resend.emails.send({
+      from: "Calce Team Support <support@calceteam.eu>",
+      to: userEmail,
+      subject: `Ticket de Soporte #${ticketNumber} - ${subject}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h3 style="color: #1E3A8A;">Hemos recibido tu solicitud de soporte</h3>
+          <p>Tu ticket <strong>#${ticketNumber}</strong> ha sido recibido correctamente.</p>
+          <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>Asunto:</strong> ${subject}</p>
+            <p><strong>Prioridad:</strong> ${priorityLabels[priority] || priority}</p>
+          </div>
           <p>Te responderemos lo antes posible a este email.</p>
           <br>
           <p>Saludos,<br>Equipo de Soporte de Calce Team</p>
-        `
-      });
-    }
+        </div>
+      `
+    });
 
     res.json({ 
       message: "Ticket enviado exitosamente", 
@@ -982,7 +1010,7 @@ app.post("/api/support/ticket", async (req, res) => {
     });
   } catch (error) {
     console.error("Error enviando ticket:", error);
-    res.status(500).json({ message: "Error al enviar el ticket" });
+    res.status(500).json({ message: "Error al enviar el ticket. Por favor, verifica tu conexión e intenta de nuevo." });
   }
 });
 

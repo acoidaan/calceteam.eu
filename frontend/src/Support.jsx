@@ -22,9 +22,9 @@ function Support({ onBack }) {
   ];
 
   const priorities = [
-    { value: "low", label: "Baja", color: "#28a745" },
-    { value: "normal", label: "Normal", color: "#ffc107" },
-    { value: "high", label: "Alta", color: "#dc3545" },
+    { value: "low", label: "Baja" },
+    { value: "normal", label: "Normal" },
+    { value: "high", label: "Alta" },
   ];
 
   const faqs = [
@@ -64,7 +64,6 @@ function Support({ onBack }) {
     setSubmitStatus(null);
 
     const token = localStorage.getItem("token");
-    const userEmail = localStorage.getItem("email") || formData.email;
 
     try {
       const response = await fetch(
@@ -73,19 +72,18 @@ function Support({ onBack }) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: token ? `Bearer ${token}` : undefined,
+            ...(token && { Authorization: `Bearer ${token}` }),
           },
-          body: JSON.stringify({
-            ...formData,
-            email: userEmail,
-          }),
+          body: JSON.stringify(formData),
         }
       );
+
+      const data = await response.json();
 
       if (response.ok) {
         setSubmitStatus({
           type: "success",
-          message: "Ticket enviado correctamente. Te responderemos pronto.",
+          message: `Ticket #${data.ticketNumber} enviado correctamente. Te responderemos pronto.`,
         });
         setFormData({
           subject: "",
@@ -95,13 +93,15 @@ function Support({ onBack }) {
           email: "",
         });
       } else {
-        throw new Error("Error al enviar ticket");
+        throw new Error(data.message || "Error al enviar ticket");
       }
     } catch (error) {
-      console.error("Error detallado:", error);
+      console.error("Error:", error);
       setSubmitStatus({
         type: "error",
-        message: "Error al enviar el ticket. Por favor, intenta de nuevo.",
+        message:
+          error.message ||
+          "Error al enviar el ticket. Por favor, intenta de nuevo.",
       });
     } finally {
       setIsSubmitting(false);
@@ -246,16 +246,16 @@ function Support({ onBack }) {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  discord.gg/calceteam
+                  discord.gg/3GB9PuJ4G4
                 </a>
               </div>
             </div>
             <div className="contact-method">
               <span className="contact-icon">📧</span>
               <div>
-                <h4>Email</h4>
+                <h4>Email directo</h4>
                 <p>Para consultas más formales</p>
-                <a href="mailto:support@calceteam.eu">support@calceteam.eu</a>
+                <a href="mailto:calceteam@proton.me">calceteam@proton.me</a>
               </div>
             </div>
           </div>
