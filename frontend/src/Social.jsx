@@ -1,78 +1,6 @@
-import { useState } from "react";
 import "./App.css";
 
 function Social({ onBack }) {
-  const [copiedLink, setCopiedLink] = useState("");
-
-  const socialNetworks = [
-    {
-      name: "Instagram",
-      url: "https://instagram.com/calceliga",
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z" />
-        </svg>
-      ),
-      followers: "1.2K",
-      description: "Fotos del equipo y momentos destacados",
-    },
-    {
-      name: "X (Twitter)",
-      url: "https://x.com/CalceTeam0",
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-        </svg>
-      ),
-      followers: "856",
-      description: "Noticias y actualizaciones en tiempo real",
-    },
-    {
-      name: "Discord",
-      url: "https://discord.gg/3GB9PuJ4G4",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="50"
-          height="50"
-          viewBox="0 0 50 50"
-        >
-          <path d="M 18.90625 7 C 18.90625 7 12.539063 7.4375 8.375 10.78125 C 8.355469 10.789063 8.332031 10.800781 8.3125 10.8125 C 7.589844 11.480469 7.046875 12.515625 6.375 14 C 5.703125 15.484375 4.992188 17.394531 4.34375 19.53125 C 3.050781 23.808594 2 29.058594 2 34 C 1.996094 34.175781 2.039063 34.347656 2.125 34.5 C 3.585938 37.066406 6.273438 38.617188 8.78125 39.59375 C 11.289063 40.570313 13.605469 40.960938 14.78125 41 C 15.113281 41.011719 15.429688 40.859375 15.625 40.59375 L 18.0625 37.21875 C 20.027344 37.683594 22.332031 38 25 38 C 27.667969 38 29.972656 37.683594 31.9375 37.21875 L 34.375 40.59375 C 34.570313 40.859375 34.886719 41.011719 35.21875 41 C 36.394531 40.960938 38.710938 40.570313 41.21875 39.59375 C 43.726563 38.617188 46.414063 37.066406 47.875 34.5 C 47.960938 34.347656 48.003906 34.175781 48 34 C 48 29.058594 46.949219 23.808594 45.65625 19.53125 C 45.007813 17.394531 44.296875 15.484375 43.625 14 C 42.953125 12.515625 42.410156 11.480469 41.6875 10.8125 C 41.667969 10.800781 41.644531 10.789063 41.625 10.78125 C 37.460938 7.4375 31.09375 7 31.09375 7 C 31.019531 6.992188 30.949219 6.992188 30.875 7 C 30.527344 7.046875 30.234375 7.273438 30.09375 7.59375 C 30.09375 7.59375 29.753906 8.339844 29.53125 9.40625 C 27.582031 9.09375 25.941406 9 25 9 C 24.058594 9 22.417969 9.09375 20.46875 9.40625 C 20.246094 8.339844 19.90625 7.59375 19.90625 7.59375 C 19.734375 7.203125 19.332031 6.964844 18.90625 7 Z M 18.28125 9.15625 C 18.355469 9.359375 18.40625 9.550781 18.46875 9.78125 C 16.214844 10.304688 13.746094 11.160156 11.4375 12.59375 C 11.074219 12.746094 10.835938 13.097656 10.824219 13.492188 C 10.816406 13.882813 11.039063 14.246094 11.390625 14.417969 C 11.746094 14.585938 12.167969 14.535156 12.46875 14.28125 C 17.101563 11.410156 22.996094 11 25 11 C 27.003906 11 32.898438 11.410156 37.53125 14.28125 C 37.832031 14.535156 38.253906 14.585938 38.609375 14.417969 C 38.960938 14.246094 39.183594 13.882813 39.175781 13.492188 C 39.164063 13.097656 38.925781 12.746094 38.5625 12.59375 C 36.253906 11.160156 33.785156 10.304688 31.53125 9.78125 C 31.59375 9.550781 31.644531 9.359375 31.71875 9.15625 C 32.859375 9.296875 37.292969 9.894531 40.3125 12.28125 C 40.507813 12.460938 41.1875 13.460938 41.8125 14.84375 C 42.4375 16.226563 43.09375 18.027344 43.71875 20.09375 C 44.9375 24.125 45.921875 29.097656 45.96875 33.65625 C 44.832031 35.496094 42.699219 36.863281 40.5 37.71875 C 38.5 38.496094 36.632813 38.84375 35.65625 38.9375 L 33.96875 36.65625 C 34.828125 36.378906 35.601563 36.078125 36.28125 35.78125 C 38.804688 34.671875 40.15625 33.5 40.15625 33.5 C 40.570313 33.128906 40.605469 32.492188 40.234375 32.078125 C 39.863281 31.664063 39.226563 31.628906 38.8125 32 C 38.8125 32 37.765625 32.957031 35.46875 33.96875 C 34.625 34.339844 33.601563 34.707031 32.4375 35.03125 C 32.167969 35 31.898438 35.078125 31.6875 35.25 C 29.824219 35.703125 27.609375 36 25 36 C 22.371094 36 20.152344 35.675781 18.28125 35.21875 C 18.070313 35.078125 17.8125 35.019531 17.5625 35.0625 C 16.394531 34.738281 15.378906 34.339844 14.53125 33.96875 C 12.234375 32.957031 11.1875 32 11.1875 32 C 10.960938 31.789063 10.648438 31.699219 10.34375 31.75 C 9.957031 31.808594 9.636719 32.085938 9.53125 32.464844 C 9.421875 32.839844 9.546875 33.246094 9.84375 33.5 C 9.84375 33.5 11.195313 34.671875 13.71875 35.78125 C 14.398438 36.078125 15.171875 36.378906 16.03125 36.65625 L 14.34375 38.9375 C 13.367188 38.84375 11.5 38.496094 9.5 37.71875 C 7.300781 36.863281 5.167969 35.496094 4.03125 33.65625 C 4.078125 29.097656 5.0625 24.125 6.28125 20.09375 C 6.90625 18.027344 7.5625 16.226563 8.1875 14.84375 C 8.8125 13.460938 9.492188 12.460938 9.6875 12.28125 C 12.707031 9.894531 17.140625 9.296875 18.28125 9.15625 Z M 18.5 21 C 15.949219 21 14 23.316406 14 26 C 14 28.683594 15.949219 31 18.5 31 C 21.050781 31 23 28.683594 23 26 C 23 23.316406 21.050781 21 18.5 21 Z M 31.5 21 C 28.949219 21 27 23.316406 27 26 C 27 28.683594 28.949219 31 31.5 31 C 34.050781 31 36 28.683594 36 26 C 36 23.316406 34.050781 21 31.5 21 Z M 18.5 23 C 19.816406 23 21 24.265625 21 26 C 21 27.734375 19.816406 29 18.5 29 C 17.183594 29 16 27.734375 16 26 C 16 24.265625 17.183594 23 18.5 23 Z M 31.5 23 C 32.816406 23 34 24.265625 34 26 C 34 27.734375 32.816406 29 31.5 29 C 30.183594 29 29 27.734375 29 26 C 29 24.265625 30.183594 23 31.5 23 Z"></path>
-        </svg>
-      ),
-      members: "342",
-      description: "Comunidad y chat en vivo",
-    },
-    {
-      name: "TikTok",
-      url: "https://www.tiktok.com/@calce_team_",
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
-        </svg>
-      ),
-      followers: "2.1K",
-      description: "Clips y contenido divertido",
-    },
-    {
-      name: "Twitch",
-      url: "https://twitch.tv/calceteam_",
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
-        </svg>
-      ),
-      followers: "567",
-      description: "Transmisiones en vivo de torneos",
-    },
-  ];
-
-  const handleCopyLink = (url, name) => {
-    navigator.clipboard.writeText(url);
-    setCopiedLink(name);
-    setTimeout(() => setCopiedLink(""), 2000);
-  };
-
   return (
     <div className="account-container">
       <header className="account-header">
@@ -83,248 +11,110 @@ function Social({ onBack }) {
       </header>
 
       <div className="social-content">
-        <div className="social-intro">
-          <h2>Síguenos en nuestras redes</h2>
-          <p>
-            Mantente al día con las últimas noticias, torneos y contenido
-            exclusivo de Calce Team
-          </p>
-        </div>
+        <p className="social-intro">
+          ¡Síguenos en nuestras redes para mantenerte al día y disfrutar de
+          contenido exclusivo!
+        </p>
 
         <div className="social-grid">
-          {socialNetworks.map((network) => (
-            <div key={network.name} className="social-card">
-              <div className="social-card-header">
-                <div className="social-icon-large">{network.icon}</div>
-                <h3>{network.name}</h3>
-              </div>
+          <a
+            href="https://instagram.com/calceliga"
+            className="social-card"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img src="/socials/instagram.png" alt="Instagram" />
+            <span>@calceliga</span>
+          </a>
 
-              <div className="social-card-body">
-                <p className="social-description">{network.description}</p>
-                <div className="social-stats">
-                  {network.followers && (
-                    <span className="social-stat">
-                      👥 {network.followers} seguidores
-                    </span>
-                  )}
-                  {network.members && (
-                    <span className="social-stat">
-                      👥 {network.members} miembros
-                    </span>
-                  )}
-                </div>
-              </div>
+          <a
+            href="https://x.com/CalceTeam0"
+            className="social-card"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img src="/socials/twitter.png" alt="Twitter (X)" />
+            <span>@CalceTeam0</span>
+          </a>
 
-              <div className="social-card-actions">
-                <a
-                  href={network.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="social-visit-btn"
-                >
-                  Visitar
-                </a>
-                <button
-                  onClick={() => handleCopyLink(network.url, network.name)}
-                  className="social-copy-btn"
-                >
-                  {copiedLink === network.name ? "✓ Copiado" : "Copiar enlace"}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+          <a
+            href="https://discord.gg/3GB9PuJ4G4"
+            className="social-card"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img src="/socials/discord.png" alt="Discord" />
+            <span>Discord Oficial</span>
+          </a>
 
-        <div className="social-cta">
-          <h3>¿Por qué seguirnos?</h3>
-          <div className="social-benefits">
-            <div className="benefit-item">
-              <span className="benefit-icon">🏆</span>
-              <span>Actualizaciones de torneos en tiempo real</span>
-            </div>
-            <div className="benefit-item">
-              <span className="benefit-icon">🎮</span>
-              <span>Contenido exclusivo detrás de cámaras</span>
-            </div>
-            <div className="benefit-item">
-              <span className="benefit-icon">💬</span>
-              <span>Interactúa con jugadores y staff</span>
-            </div>
-            <div className="benefit-item">
-              <span className="benefit-icon">🎁</span>
-              <span>Sorteos y promociones especiales</span>
-            </div>
-          </div>
+          <a
+            href="https://www.tiktok.com/@calce_team_"
+            className="social-card"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img src="/socials/tiktok.png" alt="TikTok" />
+            <span>@calce_team_</span>
+          </a>
+
+          <a
+            href="https://twitch.tv/calceteam_"
+            className="social-card"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img src="/socials/twitch.png" alt="Twitch" />
+            <span>@calceteam_</span>
+          </a>
         </div>
       </div>
 
       <style jsx>{`
         .social-content {
           padding: 2rem;
-          max-width: 1200px;
+          max-width: 1000px;
           margin: 0 auto;
         }
 
         .social-intro {
           text-align: center;
-          margin-bottom: 3rem;
-        }
-
-        .social-intro h2 {
-          font-size: 2rem;
-          color: var(--calce-blue);
-          margin-bottom: 1rem;
-        }
-
-        .social-intro p {
-          color: #666;
-          font-size: 1.1rem;
+          font-size: 1.2rem;
+          color: #444;
+          margin-bottom: 2rem;
         }
 
         .social-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
           gap: 2rem;
-          margin-bottom: 4rem;
         }
 
         .social-card {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-decoration: none;
           background: white;
-          border: 1px solid #eee;
+          padding: 1.5rem;
           border-radius: 12px;
-          padding: 2rem;
-          transition: all 0.3s ease;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+          transition: transform 0.2s;
         }
 
         .social-card:hover {
           transform: translateY(-5px);
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-          border-color: var(--calce-blue-light);
         }
 
-        .social-card-header {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          margin-bottom: 1.5rem;
-        }
-
-        .social-icon-large {
-          width: 60px;
-          height: 60px;
-          background: var(--calce-gray-light);
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: var(--calce-blue);
-        }
-
-        .social-card h3 {
-          font-size: 1.5rem;
-          color: #333;
-        }
-
-        .social-card-body {
-          margin-bottom: 1.5rem;
-        }
-
-        .social-description {
-          color: #666;
+        .social-card img {
+          width: 48px;
+          height: 48px;
           margin-bottom: 1rem;
         }
 
-        .social-stats {
-          display: flex;
-          gap: 1rem;
-          flex-wrap: wrap;
-        }
-
-        .social-stat {
-          font-size: 0.9rem;
-          color: var(--calce-blue);
+        .social-card span {
+          font-size: 1rem;
+          color: #111;
           font-weight: 600;
-        }
-
-        .social-card-actions {
-          display: flex;
-          gap: 1rem;
-        }
-
-        .social-visit-btn,
-        .social-copy-btn {
-          flex: 1;
-          padding: 0.75rem 1rem;
-          border-radius: 8px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          text-align: center;
-          text-decoration: none;
-        }
-
-        .social-visit-btn {
-          background: var(--calce-blue);
-          color: white;
-          border: none;
-        }
-
-        .social-visit-btn:hover {
-          background: var(--calce-blue-light);
-        }
-
-        .social-copy-btn {
-          background: white;
-          color: var(--calce-blue);
-          border: 2px solid var(--calce-blue);
-        }
-
-        .social-copy-btn:hover {
-          background: var(--calce-gray-light);
-        }
-
-        .social-cta {
-          background: var(--calce-gray-light);
-          border-radius: 12px;
-          padding: 3rem;
-          text-align: center;
-        }
-
-        .social-cta h3 {
-          font-size: 1.5rem;
-          color: var(--calce-blue);
-          margin-bottom: 2rem;
-        }
-
-        .social-benefits {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 1.5rem;
-        }
-
-        .benefit-item {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          background: white;
-          padding: 1rem 1.5rem;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .benefit-icon {
-          font-size: 1.5rem;
-        }
-
-        @media (max-width: 768px) {
-          .social-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .social-benefits {
-            grid-template-columns: 1fr;
-          }
         }
       `}</style>
     </div>
