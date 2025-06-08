@@ -21,7 +21,14 @@ function App() {
 
   useEffect(() => {
     // Reiniciar animaciones cuando se muestra la landing
-    if (!showAccount && !showTeams && !showTournaments && !showLogin) {
+    if (
+      !showAccount &&
+      !showTeams &&
+      !showTournaments &&
+      !showLogin &&
+      !showSocial &&
+      !showSupport
+    ) {
       // Quitar clases visible para reiniciar animaciones
       const animatedElements = document.querySelectorAll(".visible");
       animatedElements.forEach((el) => el.classList.remove("visible"));
@@ -55,7 +62,14 @@ function App() {
         setUsername(name);
       }
     }
-  }, [showAccount, showTeams, showTournaments, showLogin]); // Re-ejecutar cuando cambian las vistas
+  }, [
+    showAccount,
+    showTeams,
+    showTournaments,
+    showLogin,
+    showSocial,
+    showSupport,
+  ]); // Re-ejecutar cuando cambian las vistas
 
   // Función principal para inicializar el efecto de scroll tipo Apple
   const initAppleScrollEffect = () => {
@@ -180,6 +194,14 @@ function App() {
     return <Tournaments onBack={() => setShowTournaments(false)} />;
   }
 
+  if (showSocial) {
+    return <Social onBack={() => setShowSocial(false)} />;
+  }
+
+  if (showSupport) {
+    return <Support onBack={() => setShowSupport(false)} />;
+  }
+
   return (
     <div className="landing">
       {/* Header */}
@@ -298,13 +320,29 @@ function App() {
               <p>Competiciones activas</p>
             </div>
 
-            <div className="menu-item">
-              <br></br>
+            <div
+              className="menu-item"
+              onClick={() => {
+                setShowSocial(true);
+              }}
+              style={{ cursor: "pointer" }}
+            >
+              <br />
               <h3>Redes</h3>
               <p>Síguenos en redes</p>
             </div>
-            <div className="menu-item">
-              <br></br>
+            <div
+              className="menu-item"
+              onClick={() => {
+                if (isLoggedIn) {
+                  setShowSupport(true);
+                } else {
+                  setShowLogin(true);
+                }
+              }}
+              style={{ cursor: "pointer" }}
+            >
+              <br />
               <h3>Soporte</h3>
               <p>Ayuda y contacto</p>
             </div>
