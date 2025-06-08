@@ -67,7 +67,7 @@ function Support({ onBack }) {
 
     try {
       const response = await fetch(
-        "https://calceteam.eu:8080/api/support/ticket",
+        "https://www.calceteam.eu:8080/api/support/ticket",
         {
           method: "POST",
           headers: {
