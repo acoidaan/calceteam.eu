@@ -19,11 +19,15 @@ const port = process.env.PORT || 8080;
 // Middlewares
 app.use(
   cors({
-    origin: "https://www.calceteam.eu/",
+    origin: [
+      "https://www.calceteam.eu", // con www
+      "https://calceteam.eu", // sin www
+    ],
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
