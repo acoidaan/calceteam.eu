@@ -606,6 +606,19 @@
   border-color: rgba(255, 255, 255, 0.5);
 }
 
+/* Botón de salir específico - ROJO */
+.tournament-btn-leave {
+  background: #e63946 !important;
+  color: white !important;
+  border: 1px solid #d62828 !important;
+  min-width: 120px;
+}
+
+.tournament-btn-leave:hover {
+  background: #d62828 !important;
+  border-color: #b91c1c !important;
+}
+
 .tournament-btn:disabled {
   background: #555;
   color: #888;
@@ -648,13 +661,21 @@
   border: 1px solid #3B82F6;
 }
 
+/* Logos de juegos */
+.tournament-game-logo {
+  width: 40px;
+  height: 40px;
+  opacity: 0.9;
+  filter: brightness(0) invert(1); /* Convierte cualquier imagen a blanco */
+}
+
 /* SVGs de juegos */
 .game-logo-lol {
-  fill: #C8AA6E;
+  fill: white !important;
 }
 
 .game-logo-valorant {
-  fill: #FF4655;
+  fill: white !important;
 }
 
 .no-tournaments {

@@ -29,14 +29,14 @@ const Teams = ({ onBack }) => {
   const gameLogos = {
     lol: (
       <img
-        src="/lol_logo.svg"
+        src="CAMBIA AQUI - /public/game-logos/lol.png"
         alt="League of Legends"
         className="tournament-game-logo"
       />
     ),
     valorant: (
       <img
-        src="/valorant_logo.png"
+        src="CAMBIA AQUI - /public/game-logos/valorant.png"
         alt="Valorant"
         className="tournament-game-logo"
       />
@@ -469,49 +469,49 @@ const Teams = ({ onBack }) => {
   const roleIcons = {
     top: (
       <img
-        src="/Top_icon.svg"
+        src="CAMBIA AQUI - /public/role-icons/top.png"
         alt="Top"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     jungla: (
       <img
-        src="/Jungle_icon.svg"
+        src="CAMBIA AQUI - /public/role-icons/jungle.png"
         alt="Jungle"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     medio: (
       <img
-        src="/Middle_icon.svg"
+        src="CAMBIA AQUI - /public/role-icons/mid.png"
         alt="Mid"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     adc: (
       <img
-        src="/Bottom_icon.svg"
+        src="CAMBIA AQUI - /public/role-icons/adc.png"
         alt="ADC"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     support: (
       <img
-        src="/Support_icon.svg"
+        src="CAMBIA AQUI - /public/role-icons/support.png"
         alt="Support"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     staff: (
       <img
-        src="/user-icon.png"
+        src="CAMBIA AQUI - /public/role-icons/staff.png"
         alt="Staff"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     suplente: (
       <img
-        src="/user-icon.png"
+        src="CAMBIA AQUI - /public/role-icons/sub.png"
         alt="Suplente"
         style={{ width: "24px", height: "24px" }}
       />
@@ -532,7 +532,7 @@ const Teams = ({ onBack }) => {
     <div className="teams-container">
       {/* Video de fondo */}
       <video className="background-video" autoPlay muted loop>
-        <source src="/frontend/public/background_wave.mp4" type="video/mp4" />
+        <source src="/background_wave.mp4" type="video/mp4" />
       </video>
       <div className="video-overlay"></div>
 
@@ -911,7 +911,7 @@ const Teams = ({ onBack }) => {
                               }
                             )}
                           </div>
-                          <div className="tournament-region">Global</div>
+                          <div className="tournament-region">Online</div>
                           <h4 className="tournament-title">
                             {tournament.name}
                           </h4>
@@ -921,7 +921,7 @@ const Teams = ({ onBack }) => {
 
                       <div className="tournament-actions">
                         <button
-                          className="tournament-btn tournament-btn-secondary"
+                          className="tournament-btn tournament-btn-leave"
                           onClick={() => leaveTournament(tournament.id)}
                         >
                           Salir
@@ -965,7 +965,7 @@ const Teams = ({ onBack }) => {
                               }
                             )}
                           </div>
-                          <div className="tournament-region">Global</div>
+                          <div className="tournament-region">Online</div>
                           <h4 className="tournament-title">
                             {tournament.name}
                           </h4>
