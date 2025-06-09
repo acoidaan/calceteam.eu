@@ -29,14 +29,14 @@ const Teams = ({ onBack }) => {
   const gameLogos = {
     lol: (
       <img
-        src="CAMBIA AQUI - /public/game-logos/lol.png"
+        src="/lol_logo.png"
         alt="League of Legends"
         className="tournament-game-logo"
       />
     ),
     valorant: (
       <img
-        src="CAMBIA AQUI - /public/game-logos/valorant.png"
+        src="/valorant_logo.png"
         alt="Valorant"
         className="tournament-game-logo"
       />
@@ -469,35 +469,35 @@ const Teams = ({ onBack }) => {
   const roleIcons = {
     top: (
       <img
-        src="CAMBIA AQUI - /public/role-icons/top.png"
+        src="/Top_icon.svg"
         alt="Top"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     jungla: (
       <img
-        src="CAMBIA AQUI - /public/role-icons/jungle.png"
+        src="/Jungle_icon.svg"
         alt="Jungle"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     medio: (
       <img
-        src="CAMBIA AQUI - /public/role-icons/mid.png"
+        src="/Middle_icon.svg"
         alt="Mid"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     adc: (
       <img
-        src="CAMBIA AQUI - /public/role-icons/adc.png"
+        src="/Bottom_icon.svg"
         alt="ADC"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     support: (
       <img
-        src="CAMBIA AQUI - /public/role-icons/support.png"
+        src="/Support_icon.svg"
         alt="Support"
         style={{ width: "24px", height: "24px" }}
       />
