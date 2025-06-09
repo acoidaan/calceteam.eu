@@ -1,4 +1,3 @@
-// Tournaments.jsx
 import { useEffect, useState } from "react";
 import AdminPanel from "./AdminPanel";
 import "./Tournaments.css";
@@ -9,16 +8,34 @@ import { useModal } from "./useModal";
 const formatDateToSpanish = (mysqlDate) => {
   if (!mysqlDate) return "";
   const date = new Date(mysqlDate);
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
+  return date.toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "short",
+  });
 };
 
 const Tournaments = ({ onBack }) => {
   const { modalConfig, showError } = useModal();
   const [tournaments, setTournaments] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  // Logos de juegos - CAMBIA AQUI las rutas
+  const gameLogos = {
+    lol: (
+      <img
+        src="CAMBIA AQUI - /public/game-logos/lol.png"
+        alt="League of Legends"
+        className="tournament-game-logo"
+      />
+    ),
+    valorant: (
+      <img
+        src="CAMBIA AQUI - /public/game-logos/valorant.png"
+        alt="Valorant"
+        className="tournament-game-logo"
+      />
+    ),
+  };
 
   useEffect(() => {
     fetchTournaments();
@@ -44,41 +61,69 @@ const Tournaments = ({ onBack }) => {
     setIsAdmin(data.isAdmin);
   };
 
+  const handleViewMore = (tournament) => {
+    // TODO: Implementar vista detallada del torneo
+    console.log("Ver más del torneo:", tournament);
+  };
+
   return (
     <div className="tournaments-container">
       <Modal {...modalConfig} />
 
-      <button onClick={onBack} className="back-button">
-        ← Volver
-      </button>
-      <h1>Torneos Activos</h1>
+      <div className="tournaments-header">
+        <button onClick={onBack} className="back-button">
+          ← Volver
+        </button>
+        <h1>Torneos Activos</h1>
+      </div>
 
-      <div className="tournaments-list">
+      <div className="tournaments-grid">
         {tournaments.length === 0 ? (
-          <p>No hay torneos activos</p>
+          <div className="no-tournaments">No hay torneos activos</div>
         ) : (
-          tournaments.map((t) => (
-            <div key={t.id} className="tournament-card">
-              <h3>{t.name}</h3>
-              <p>Juego: {t.game.toUpperCase()}</p>
-              <p>Fecha: {formatDateToSpanish(t.date)}</p>
-              <p>
-                Estado:{" "}
-                <span className={`status-badge ${t.status}`}>{t.status}</span>
-              </p>
-              {t.description && (
-                <p className="tournament-description">{t.description}</p>
+          tournaments.map((tournament) => (
+            <div key={tournament.id} className="tournament-card">
+              <div className={`tournament-status-badge ${tournament.status}`}>
+                {tournament.status === "abierto" ? "Abierto" : "Cerrado"}
+              </div>
+
+              <div className="tournament-header">
+                <div className="tournament-info">
+                  <div className="tournament-date">
+                    {formatDateToSpanish(tournament.date)}
+                  </div>
+                  <div className="tournament-game">{tournament.game}</div>
+                  <h3 className="tournament-title">{tournament.name}</h3>
+                </div>
+                {gameLogos[tournament.game] || gameLogos.lol}
+              </div>
+
+              {tournament.description && (
+                <div className="tournament-description">
+                  {tournament.description}
+                </div>
               )}
+
+              <div className="tournament-actions">
+                <button
+                  className="tournament-btn tournament-btn-primary"
+                  onClick={() => handleViewMore(tournament)}
+                >
+                  Ver Más
+                </button>
+                <button className="tournament-btn tournament-btn-secondary">
+                  Información
+                </button>
+              </div>
             </div>
           ))
         )}
       </div>
 
       {isAdmin && (
-        <>
-          <hr style={{ margin: "40px 0", opacity: 0.3 }} />
+        <div className="admin-section">
           <AdminPanel />
-        </>
+        </div>
       )}
     </div>
   );
