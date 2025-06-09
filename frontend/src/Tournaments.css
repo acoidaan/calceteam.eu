@@ -323,6 +323,36 @@
   min-height: 60px;
 }
 
+.table-row:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--calce-blue);
+}
+
+.table-row:first-child {
+  border-color: #FFD700;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.table-row:nth-child(2) {
+  border-color: #C0C0C0;
+}
+
+.table-row:nth-child(3) {
+  border-color: #CD7F32;
+}
+
+.pos {
+  text-align: center;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.team {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
 .team-logo {
   width: 35px;
   height: 35px;
@@ -334,21 +364,21 @@
   justify-content: center;
 }
 
-.team {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+.team-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.default-logo {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--calce-blue-light);
 }
 
 .team-name {
   font-weight: 600;
   font-size: 0.95rem;
-}
-
-.pos {
-  text-align: center;
-  font-weight: 700;
-  font-size: 1rem;
 }
 
 .games,
@@ -358,6 +388,14 @@
   text-align: center;
   font-weight: 600;
   font-size: 0.9rem;
+}
+
+.wins {
+  color: #10B981;
+}
+
+.losses {
+  color: #ef4444;
 }
 
 .points {
