@@ -229,7 +229,7 @@
 }
 
 .tournament-info-section {
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   padding: 1.5rem;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 15px;
@@ -276,14 +276,22 @@
   margin: 0;
 }
 
+/* Layout principal con clasificación y jornadas */
+.tournament-content {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
 /* Tabla de clasificación estilo LaLiga */
 .tournament-classification {
   background: #1a1a1a;
   border-radius: 12px;
   padding: 20px;
-  max-width: 650px;
-  margin: 0 auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  position: sticky;
+  top: 20px;
 }
 
 .classification-header {
@@ -486,6 +494,174 @@
   background: #fbbf24;
 }
 
+/* Sección de jornadas */
+.tournament-jornadas {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.jornadas-nav {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.jornada-btn {
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #999;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.jornada-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.jornada-btn.active {
+  background: var(--calce-blue);
+  color: white;
+  border-color: var(--calce-blue);
+}
+
+.jornada-matches {
+  margin-bottom: 30px;
+}
+
+.jornada-matches h3 {
+  color: white;
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #333;
+}
+
+.matches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.match-card {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 20px;
+  padding: 15px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.match-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--calce-blue);
+  transform: translateX(5px);
+}
+
+.match-team {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.match-team.home {
+  justify-content: flex-end;
+}
+
+.match-team.away {
+  justify-content: flex-start;
+}
+
+.match-team .team-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.match-team .team-logo {
+  width: 36px;
+  height: 36px;
+  background: #2a2a2a;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.match-team .team-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.match-team .default-logo {
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #008cff;
+}
+
+.match-vs {
+  font-weight: 700;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.no-matches {
+  text-align: center;
+  color: #666;
+  padding: 40px;
+  font-size: 1rem;
+}
+
+/* Bracket preview */
+.bracket-preview {
+  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 2px solid #333;
+}
+
+.bracket-preview h3 {
+  color: white;
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+}
+
+.bracket-placeholder {
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+}
+
+.bracket-placeholder p {
+  color: #999;
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.bracket-info {
+  text-align: left;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.bracket-info p {
+  color: #777;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
 .loading,
 .no-teams {
   text-align: center;
@@ -495,6 +671,19 @@
 }
 
 /* Responsive */
+@media (max-width: 1200px) {
+  .tournament-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .tournament-classification {
+    position: static;
+    max-width: 650px;
+    margin: 0 auto;
+  }
+}
+
 @media (max-width: 768px) {
   .tournaments-container {
     padding: 1rem;
@@ -514,10 +703,7 @@
   .tournament-actions {
     flex-direction: column;
   }
-}
 
-/* Responsive para tabla de clasificación */
-@media (max-width: 768px) {
   .tournament-details {
     padding: 1rem;
   }
@@ -547,5 +733,28 @@
     width: 20px;
     height: 20px;
     font-size: 0.75rem;
+  }
+
+  .jornadas-nav {
+    justify-content: center;
+  }
+
+  .jornada-btn {
+    padding: 8px 15px;
+    font-size: 0.85rem;
+  }
+
+  .match-card {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .match-team {
+    justify-content: center !important;
+  }
+
+  .match-vs {
+    margin: 10px 0;
   }
 }
