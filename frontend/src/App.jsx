@@ -403,7 +403,7 @@ function App() {
               <img
                 height="0"
                 width="0"
-                src="/razer_logo.svg"
+                src="/Logo_Razer_2017.png"
                 style={{ position: "absolute", visibility: "hidden" }}
                 border="0"
               />
