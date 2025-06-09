@@ -1264,6 +1264,42 @@ app.get("/api/support/my-tickets", verifyToken, (req, res) => {
   });
 });
 
+// Obtener equipos inscritos en un torneo específico
+app.get("/api/tournament/:id/teams", (req, res) => {
+  const { id } = req.params;
+
+  const query = `
+    SELECT 
+      t.id,
+      t.name,
+      t.logo,
+      0 as wins,
+      0 as losses,
+      0 as points,
+      tt.registration_date
+    FROM teams t
+    INNER JOIN tournaments_teams tt ON t.id = tt.team_id
+    WHERE tt.tournament_id = ?
+    ORDER BY t.name ASC
+  `;
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error("Error obteniendo equipos del torneo:", err);
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+
+    // Convertir logos a base64 si existen
+    const teams = results.map(team => ({
+      ...team,
+      logo: team.logo ? `data:image/jpeg;base64,${team.logo.toString('base64')}` : null
+    }));
+
+    res.json({ teams });
+  });
+});
+
+
 
 // Ruta 404 para APIs
 app.all("/api/*", (req, res) => {

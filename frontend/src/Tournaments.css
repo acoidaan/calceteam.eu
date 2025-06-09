@@ -137,14 +137,23 @@
   flex: 1;
 }
 
+.tournament-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .tournament-btn-primary {
   background: var(--calce-blue);
   color: white;
 }
 
-.tournament-btn-primary:hover {
+.tournament-btn-primary:hover:not(:disabled) {
   background: var(--calce-blue-light);
   transform: translateY(-2px);
+}
+
+.tournament-btn-primary:disabled {
+  background: #666;
 }
 
 .tournament-btn-secondary {
@@ -198,6 +207,209 @@
   border-top: 2px solid #333;
 }
 
+/* Detalles del torneo */
+.tournament-details {
+  min-height: 100vh;
+  background: #0e0e0e;
+  color: white;
+  padding: 2rem;
+}
+
+.tournament-details-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.tournament-details h1 {
+  color: white;
+  font-size: 2.5rem;
+  margin: 0;
+}
+
+.tournament-info-section {
+  margin-bottom: 3rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tournament-meta {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.tournament-date-detail {
+  color: var(--calce-blue-light);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.tournament-status-detail {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.tournament-status-detail.abierto {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10B981;
+  border: 1px solid #10B981;
+}
+
+.tournament-status-detail.cerrado {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}
+
+.tournament-description-detail {
+  color: #bbb;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.tournament-classification {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tournament-classification h2 {
+  color: white;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.classification-table {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.table-header,
+.table-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 60px 60px 60px 80px;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.table-header {
+  background: rgba(255, 255, 255, 0.1);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  color: var(--calce-blue-light);
+  margin-bottom: 0.5rem;
+}
+
+.table-row {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  margin-bottom: 0.5rem;
+}
+
+.table-row:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--calce-blue);
+}
+
+.table-row:first-child {
+  border-color: #FFD700;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.table-row:nth-child(2) {
+  border-color: #C0C0C0;
+}
+
+.table-row:nth-child(3) {
+  border-color: #CD7F32;
+}
+
+.pos {
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.team {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.team-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.team-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.default-logo {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--calce-blue-light);
+}
+
+.team-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.games,
+.wins,
+.losses,
+.points {
+  text-align: center;
+  font-weight: 600;
+}
+
+.wins {
+  color: #10B981;
+}
+
+.losses {
+  color: #ef4444;
+}
+
+.points {
+  color: var(--calce-blue-light);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.loading,
+.no-teams {
+  text-align: center;
+  color: #888;
+  font-size: 1.2rem;
+  padding: 3rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .tournaments-container {
@@ -217,5 +429,34 @@
   
   .tournament-actions {
     flex-direction: column;
+  }
+}
+
+/* Responsive para tabla de clasificación */
+@media (max-width: 768px) {
+  .tournament-details {
+    padding: 1rem;
+  }
+  
+  .tournament-details-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .classification-table {
+    font-size: 0.9rem;
+  }
+  
+  .table-header,
+  .table-row {
+    grid-template-columns: 40px 1fr 40px 40px 40px 60px;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+  
+  .team-logo {
+    width: 30px;
+    height: 30px;
   }
 }

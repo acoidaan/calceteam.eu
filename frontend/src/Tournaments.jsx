@@ -15,9 +15,11 @@ const formatDateToSpanish = (mysqlDate) => {
 };
 
 const Tournaments = ({ onBack }) => {
-  const { modalConfig, showError } = useModal();
+  const { modalConfig, showError, showSuccess } = useModal();
   const [tournaments, setTournaments] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [selectedTournament, setSelectedTournament] = useState(null);
+  const [userTeam, setUserTeam] = useState(null);
 
   // Logos de juegos - mantener rutas actuales
   const gameLogos = {
@@ -40,6 +42,7 @@ const Tournaments = ({ onBack }) => {
   useEffect(() => {
     fetchTournaments();
     checkAdmin();
+    fetchUserTeam();
   }, []);
 
   const fetchTournaments = async () => {
@@ -60,6 +63,19 @@ const Tournaments = ({ onBack }) => {
     }
   };
 
+  const fetchUserTeam = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/team/my-team?game=lol", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setUserTeam(data.team);
+    } catch (err) {
+      console.log("No se pudo obtener equipo del usuario");
+    }
+  };
+
   const checkAdmin = async () => {
     const token = localStorage.getItem("token");
     const res = await fetch("/api/user/is-admin", {
@@ -69,70 +85,208 @@ const Tournaments = ({ onBack }) => {
     setIsAdmin(data.isAdmin);
   };
 
+  const handleRegister = async (tournament) => {
+    if (!userTeam) {
+      showError("Necesitas tener un equipo para inscribirte");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/tournament/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          tournamentId: tournament.id,
+          teamId: userTeam.id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        showSuccess(data.message);
+      } else {
+        showError(data.message);
+      }
+    } catch (err) {
+      showError("Error al inscribirse en el torneo");
+    }
+  };
+
   const handleViewMore = (tournament) => {
-    // TODO: Implementar vista detallada del torneo
-    console.log("Ver más del torneo:", tournament);
+    setSelectedTournament(tournament);
   };
 
   return (
     <div className="tournaments-container">
       <Modal {...modalConfig} />
 
-      <div className="tournaments-header">
+      {selectedTournament ? (
+        <TournamentDetails
+          tournament={selectedTournament}
+          onBack={() => setSelectedTournament(null)}
+        />
+      ) : (
+        <>
+          <div className="tournaments-header">
+            <button onClick={onBack} className="back-button">
+              ← Volver
+            </button>
+            <h1>Torneos Activos</h1>
+          </div>
+
+          <div className="tournaments-grid">
+            {tournaments.length === 0 ? (
+              <div className="no-tournaments">No hay torneos activos</div>
+            ) : (
+              tournaments.map((tournament) => (
+                <div key={tournament.id} className="tournament-card">
+                  <div
+                    className={`tournament-status-badge ${tournament.status}`}
+                  >
+                    {tournament.status === "abierto" ? "Abierto" : "Cerrado"}
+                  </div>
+
+                  <div className="tournament-header">
+                    <div className="tournament-info">
+                      <div className="tournament-date">
+                        {formatDateToSpanish(tournament.date)}
+                      </div>
+                      <div className="tournament-game">Online</div>
+                      <h3 className="tournament-title">{tournament.name}</h3>
+                    </div>
+                    {gameLogos[tournament.game] || gameLogos.lol}
+                  </div>
+
+                  {tournament.description && (
+                    <div className="tournament-description">
+                      {tournament.description}
+                    </div>
+                  )}
+
+                  <div className="tournament-actions">
+                    <button
+                      className="tournament-btn tournament-btn-primary"
+                      onClick={() => handleRegister(tournament)}
+                      disabled={tournament.status === "cerrado"}
+                    >
+                      {tournament.status === "cerrado"
+                        ? "Cerrado"
+                        : "Inscribirte"}
+                    </button>
+                    <button
+                      className="tournament-btn tournament-btn-secondary"
+                      onClick={() => handleViewMore(tournament)}
+                    >
+                      Ver Más
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {isAdmin && (
+            <div className="admin-section">
+              <AdminPanel />
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+// Componente para mostrar detalles del torneo
+const TournamentDetails = ({ tournament, onBack }) => {
+  const [teams, setTeams] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTournamentTeams();
+  }, [tournament.id]);
+
+  const fetchTournamentTeams = async () => {
+    try {
+      const res = await fetch(`/api/tournament/${tournament.id}/teams`);
+      const data = await res.json();
+      setTeams(data.teams || []);
+    } catch (err) {
+      console.error("Error al cargar equipos del torneo:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="tournament-details">
+      <div className="tournament-details-header">
         <button onClick={onBack} className="back-button">
-          ← Volver
+          ← Volver a Torneos
         </button>
-        <h1>Torneos Activos</h1>
+        <h1>{tournament.name}</h1>
       </div>
 
-      <div className="tournaments-grid">
-        {tournaments.length === 0 ? (
-          <div className="no-tournaments">No hay torneos activos</div>
-        ) : (
-          tournaments.map((tournament) => (
-            <div key={tournament.id} className="tournament-card">
-              <div className={`tournament-status-badge ${tournament.status}`}>
-                {tournament.status === "abierto" ? "Abierto" : "Cerrado"}
-              </div>
-
-              <div className="tournament-header">
-                <div className="tournament-info">
-                  <div className="tournament-date">
-                    {formatDateToSpanish(tournament.date)}
-                  </div>
-                  <div className="tournament-game">Online</div>
-                  <h3 className="tournament-title">{tournament.name}</h3>
-                </div>
-                {gameLogos[tournament.game] || gameLogos.lol}
-              </div>
-
-              {tournament.description && (
-                <div className="tournament-description">
-                  {tournament.description}
-                </div>
-              )}
-
-              <div className="tournament-actions">
-                <button
-                  className="tournament-btn tournament-btn-primary"
-                  onClick={() => handleViewMore(tournament)}
-                >
-                  Ver Más
-                </button>
-                <button className="tournament-btn tournament-btn-secondary">
-                  Información
-                </button>
-              </div>
-            </div>
-          ))
+      <div className="tournament-info-section">
+        <div className="tournament-meta">
+          <span className="tournament-date-detail">
+            {formatDateToSpanish(tournament.date)}
+          </span>
+          <span className={`tournament-status-detail ${tournament.status}`}>
+            {tournament.status === "abierto" ? "Abierto" : "Cerrado"}
+          </span>
+        </div>
+        {tournament.description && (
+          <p className="tournament-description-detail">
+            {tournament.description}
+          </p>
         )}
       </div>
 
-      {isAdmin && (
-        <div className="admin-section">
-          <AdminPanel />
-        </div>
-      )}
+      <div className="tournament-classification">
+        <h2>Clasificación</h2>
+        {loading ? (
+          <div className="loading">Cargando clasificación...</div>
+        ) : teams.length === 0 ? (
+          <div className="no-teams">
+            No hay equipos inscritos en este torneo
+          </div>
+        ) : (
+          <div className="classification-table">
+            <div className="table-header">
+              <span className="pos">Pos</span>
+              <span className="team">Equipo</span>
+              <span className="games">PJ</span>
+              <span className="wins">G</span>
+              <span className="losses">P</span>
+              <span className="points">Pts</span>
+            </div>
+            {teams.map((team, index) => (
+              <div key={team.id} className="table-row">
+                <span className="pos">{index + 1}</span>
+                <div className="team">
+                  <div className="team-logo">
+                    {team.logo ? (
+                      <img src={team.logo} alt={team.name} />
+                    ) : (
+                      <div className="default-logo">{team.name[0]}</div>
+                    )}
+                  </div>
+                  <span className="team-name">{team.name}</span>
+                </div>
+                <span className="games">{team.wins + team.losses}</span>
+                <span className="wins">{team.wins}</span>
+                <span className="losses">{team.losses}</span>
+                <span className="points">{team.points}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
