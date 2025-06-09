@@ -19,7 +19,7 @@ const Tournaments = ({ onBack }) => {
   const [tournaments, setTournaments] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Logos de juegos - CAMBIA AQUI las rutas
+  // Logos de juegos - mantener rutas actuales
   const gameLogos = {
     lol: (
       <img
@@ -46,7 +46,15 @@ const Tournaments = ({ onBack }) => {
     try {
       const res = await fetch("/api/tournaments");
       const data = await res.json();
-      setTournaments(data.tournaments || []);
+
+      // Ordenar torneos: primero abiertos, luego cerrados
+      const sortedTournaments = (data.tournaments || []).sort((a, b) => {
+        if (a.status === "abierto" && b.status === "cerrado") return -1;
+        if (a.status === "cerrado" && b.status === "abierto") return 1;
+        return 0;
+      });
+
+      setTournaments(sortedTournaments);
     } catch (err) {
       showError("Error al cargar torneos");
     }
@@ -92,7 +100,7 @@ const Tournaments = ({ onBack }) => {
                   <div className="tournament-date">
                     {formatDateToSpanish(tournament.date)}
                   </div>
-                  <div className="tournament-game">{tournament.game}</div>
+                  <div className="tournament-game">Online</div>
                   <h3 className="tournament-title">{tournament.name}</h3>
                 </div>
                 {gameLogos[tournament.game] || gameLogos.lol}

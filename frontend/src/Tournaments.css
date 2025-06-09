@@ -1,14 +1,22 @@
 .tournaments-container {
   min-height: 100vh;
-  background: #000;
+  background: #0e0e0e;
   color: white;
   padding: 2rem;
+  position: relative;
+}
+
+.tournaments-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
 }
 
 .tournaments-container h1 {
   color: white;
   font-size: 2.5rem;
-  margin-bottom: 2rem;
+  margin: 0;
 }
 
 .back-button {
@@ -20,7 +28,6 @@
   cursor: pointer;
   border-radius: 8px;
   transition: all 0.3s ease;
-  margin-bottom: 1rem;
 }
 
 .back-button:hover {
@@ -28,38 +35,187 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-.tournaments-list {
+.tournaments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
   margin-bottom: 3rem;
 }
 
+/* Tarjetas de torneo mejoradas */
 .tournament-card {
-  background: rgba(25, 25, 25, 0.9);
-  border: 1px solid #444;
-  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
   padding: 1.5rem;
-  margin-bottom: 1rem;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
+}
+
+.tournament-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--calce-blue), var(--calce-blue-light));
 }
 
 .tournament-card:hover {
+  transform: translateY(-5px);
   border-color: var(--calce-blue);
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0, 140, 255, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 140, 255, 0.3);
 }
 
-.tournament-card h3 {
-  color: white;
-  margin-bottom: 0.75rem;
-  font-size: 1.5rem;
+.tournament-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
 }
 
-.tournament-card p {
-  color: #bbb;
+.tournament-info {
+  flex: 1;
+}
+
+.tournament-game-logo {
+  width: 50px;
+  height: 50px;
+  opacity: 0.9;
+  filter: brightness(0) invert(1);
+}
+
+.tournament-date {
+  color: var(--calce-blue-light);
+  font-size: 0.9rem;
+  font-weight: 600;
   margin-bottom: 0.5rem;
 }
 
-.tournaments-container hr {
+.tournament-game {
+  color: #888;
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.tournament-title {
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+.tournament-description {
+  color: #bbb;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.tournament-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: auto;
+}
+
+.tournament-btn {
+  padding: 0.75rem 1.5rem;
   border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  flex: 1;
+}
+
+.tournament-btn-primary {
+  background: var(--calce-blue);
+  color: white;
+}
+
+.tournament-btn-primary:hover {
+  background: var(--calce-blue-light);
+  transform: translateY(-2px);
+}
+
+.tournament-btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.tournament-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Estado del torneo */
+.tournament-status-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tournament-status-badge.abierto {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10B981;
+  border: 1px solid #10B981;
+}
+
+.tournament-status-badge.cerrado {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}
+
+.no-tournaments {
+  text-align: center;
+  color: #888;
+  font-size: 1.2rem;
+  padding: 3rem;
+  grid-column: 1 / -1;
+}
+
+/* Admin section */
+.admin-section {
+  margin-top: 3rem;
+  padding-top: 2rem;
   border-top: 2px solid #333;
-  margin: 3rem 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .tournaments-container {
+    padding: 1rem;
+  }
+  
+  .tournaments-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .tournaments-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .tournament-actions {
+    flex-direction: column;
+  }
 }
