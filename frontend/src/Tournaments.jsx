@@ -355,7 +355,7 @@ const TournamentDetails = ({ tournament, onBack }) => {
         )}
       </div>
 
-      <div className="tournament-content">
+      <div className="tournament-content-vertical">
         {/* Clasificación a la izquierda */}
         <div className="tournament-classification">
           <div className="classification-header">
