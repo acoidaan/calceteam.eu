@@ -8,8 +8,8 @@
   overflow: hidden;
 }
 
-/* Video de fondo */
-.background-video {
+/* Video de fondo - SOLO PARA TEAMS */
+.teams-container .background-video {
   position: absolute;
   top: 0;
   left: 0;
@@ -19,7 +19,7 @@
   object-fit: cover;
 }
 
-.video-overlay {
+.teams-container .video-overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -131,6 +131,12 @@
   text-align: center;
 }
 
+.form-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .form-container input,
 .form-container select,
 .form-container textarea {
@@ -223,13 +229,13 @@
 
 /* Team Header Section - LAYOUT MEJORADO */
 .team-header-section {
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(25, 25, 25, 0.9);
+  border: 1px solid #333;
   border-radius: 15px;
   padding: 2rem;
 }
 
+/* NUEVO LAYOUT - Nombre y botones lado a lado */
 .team-main-info {
   display: flex;
   align-items: center;
@@ -334,9 +340,8 @@
 
 /* Players Section */
 .players-section {
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(25, 25, 25, 0.9);
+  border: 1px solid #333;
   border-radius: 15px;
   padding: 2rem;
 }
@@ -356,16 +361,18 @@
 .player-card {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  background: #1a1a1a;
+  justify-content: space-between;
   padding: 1rem;
-  border-radius: 10px;
-  border-left: 4px solid var(--calce-blue);
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
 }
 
 .player-card:hover {
-  background: #222;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--calce-blue-light);
   transform: translateX(5px);
 }
 
@@ -384,10 +391,9 @@
   justify-content: center;
 }
 
-.role-icon svg {
+.role-icon img {
   width: 24px;
   height: 24px;
-  fill: var(--calce-blue-light);
 }
 
 .role-name {
@@ -455,9 +461,8 @@
 
 /* Tournaments Section */
 .tournaments-section {
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(25, 25, 25, 0.9);
+  border: 1px solid #333;
   border-radius: 15px;
   padding: 2rem;
 }
@@ -475,8 +480,8 @@
 }
 
 .tournament-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #1a1a1a;
+  border: 1px solid #444;
   border-radius: 10px;
   padding: 1.5rem;
   transition: all 0.3s ease;
@@ -530,9 +535,8 @@
 
 /* Available Tournaments Section */
 .available-section {
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(25, 25, 25, 0.9);
+  border: 1px solid #333;
   border-radius: 15px;
   padding: 2rem;
 }
@@ -597,11 +601,10 @@
 }
 
 .modal {
-  background: rgba(0, 0, 0, 0.95);
-  backdrop-filter: blur(20px);
+  background: #1c1c1c;
   padding: 2rem;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid #444;
   text-align: center;
   color: white;
   max-width: 400px;
