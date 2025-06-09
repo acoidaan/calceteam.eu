@@ -657,11 +657,11 @@
 
 /* Logos de juegos */
 .tournament-game-logo {
-  width: 150px;
-  height: 150px;
+  width: 120px;
+  height: 120px;
   opacity: 0.9;
   filter: brightness(0) invert(1); /* Convierte cualquier imagen a blanco */
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 /* SVGs de juegos */
