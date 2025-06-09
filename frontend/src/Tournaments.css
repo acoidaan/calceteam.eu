@@ -276,97 +276,143 @@
   margin: 0;
 }
 
-/* Tabla de clasificación ultra compacta */
+/* Tabla de clasificación estilo LaLiga */
 .tournament-classification {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 8px;
-  padding: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  max-width: 500px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 650px;
   margin: 0 auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
-.tournament-classification h2 {
-  color: white;
-  font-size: 1rem;
-  margin-bottom: 0.75rem;
+.classification-header {
   text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #333;
+}
+
+.classification-header h2 {
+  color: white;
+  font-size: 1.3rem;
+  margin: 0;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .classification-table {
   width: 100%;
-}
-
-.table-header,
-.table-row {
-  display: grid;
-  grid-template-columns: 30px 1fr 30px 30px 30px 40px;
-  gap: 0.3rem;
-  align-items: center;
-  padding: 0.3rem 0.5rem;
-  border-radius: 4px;
+  border-collapse: collapse;
 }
 
 .table-header {
-  background: rgba(255, 255, 255, 0.06);
+  background: #0a0a0a;
+  border-top: 2px solid #333;
+  border-bottom: 2px solid #333;
+}
+
+.table-header th {
+  padding: 10px 8px;
+  text-align: center;
+  color: #777;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-  font-size: 0.6rem;
-  color: #888;
-  margin-bottom: 0.15rem;
   letter-spacing: 0.5px;
 }
 
+.table-header th:first-child {
+  text-align: center;
+  width: 40px;
+}
+
+.table-header th:nth-child(2) {
+  text-align: left;
+  padding-left: 15px;
+}
+
 .table-row {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #222;
   transition: all 0.2s ease;
-  margin-bottom: 0.15rem;
-  min-height: 32px;
+  position: relative;
 }
 
 .table-row:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(0, 140, 255, 0.3);
+  background: rgba(255, 255, 255, 0.03);
 }
 
-/* Posiciones top 3 */
-.table-row:first-child {
-  border-color: rgba(255, 215, 0, 0.4);
+/* Zonas de clasificación */
+.table-row.title-zone {
+  background: linear-gradient(to right, rgba(34, 197, 94, 0.15), transparent);
 }
 
-.table-row:nth-child(2) {
-  border-color: rgba(192, 192, 192, 0.3);
+.table-row.contender-zone {
+  background: linear-gradient(to right, rgba(251, 191, 36, 0.1), transparent);
 }
 
-.table-row:nth-child(3) {
-  border-color: rgba(205, 127, 50, 0.3);
-}
-
-.pos {
+.table-row td {
+  padding: 12px 8px;
+  color: #e0e0e0;
+  font-size: 0.85rem;
   text-align: center;
-  font-weight: 600;
-  font-size: 0.7rem;
-  color: #ccc;
 }
 
-.team {
+.table-row td:first-child {
+  width: 40px;
+  padding: 8px;
+}
+
+.table-row td:nth-child(2) {
+  text-align: left;
+  padding-left: 15px;
+}
+
+.pos-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  background: #333;
+  color: #999;
+}
+
+.pos-number.title-zone {
+  background: #22c55e;
+  color: #0a0a0a;
+  font-weight: 700;
+}
+
+.pos-number.contender-zone {
+  background: #fbbf24;
+  color: #0a0a0a;
+  font-weight: 700;
+}
+
+.team-info {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 10px;
 }
 
 .team-logo {
-  width: 20px;
-  height: 20px;
-  border-radius: 3px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.06);
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  background: #2a2a2a;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #008cff;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .team-logo img {
@@ -377,34 +423,25 @@
 
 .default-logo {
   font-weight: 600;
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: #008cff;
 }
 
 .team-name {
   font-weight: 500;
-  font-size: 0.7rem;
-  color: #e0e0e0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: #f0f0f0;
 }
 
-.games,
-.wins,
-.losses,
-.points {
-  text-align: center;
+.stat-number {
   font-weight: 500;
-  font-size: 0.65rem;
-}
-
-.games {
-  color: #999;
 }
 
 .wins {
-  color: #10B981;
+  color: #22c55e;
+}
+
+.draws {
+  color: #fbbf24;
 }
 
 .losses {
@@ -412,9 +449,45 @@
 }
 
 .points {
+  font-weight: 700;
+  font-size: 0.95rem;
   color: #008cff;
-  font-size: 0.7rem;
-  font-weight: 600;
+}
+
+/* Indicador de zonas */
+.zone-indicator {
+  margin-top: 20px;
+  padding: 15px;
+  background: #0a0a0a;
+  border-radius: 8px;
+  border: 1px solid #222;
+}
+
+.zone-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+  color: #999;
+}
+
+.zone-item:last-child {
+  margin-bottom: 0;
+}
+
+.zone-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+}
+
+.zone-color.title {
+  background: #22c55e;
+}
+
+.zone-color.contender {
+  background: #fbbf24;
 }
 
 .loading,
@@ -460,43 +533,23 @@
   }
   
   .tournament-classification {
-    padding: 0.5rem;
+    padding: 15px;
   }
-  
-  .tournament-classification h2 {
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
+
+  .table-header th,
+  .table-row td {
+    padding: 8px 4px;
+    font-size: 0.75rem;
   }
-  
-  .table-header,
-  .table-row {
-    grid-template-columns: 25px 1fr 25px 25px 25px 35px;
-    gap: 0.25rem;
-    padding: 0.25rem 0.4rem;
-  }
-  
-  .table-header {
-    font-size: 0.55rem;
-  }
-  
-  .table-row {
-    min-height: 28px;
-  }
-  
+
   .team-logo {
-    width: 18px;
-    height: 18px;
+    width: 24px;
+    height: 24px;
   }
-  
-  .team-name {
-    font-size: 0.65rem;
-  }
-  
-  .pos,
-  .games,
-  .wins,
-  .losses,
-  .points {
-    font-size: 0.6rem;
+
+  .pos-number {
+    width: 20px;
+    height: 20px;
+    font-size: 0.75rem;
   }
 }

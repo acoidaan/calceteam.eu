@@ -222,6 +222,13 @@ const TournamentDetails = ({ tournament, onBack }) => {
     }
   };
 
+  // Función para determinar la zona del equipo
+  const getPositionClass = (position) => {
+    if (position <= 5) return "title-zone";
+    if (position <= 7) return "contender-zone";
+    return "";
+  };
+
   return (
     <div className="tournament-details">
       <div className="tournament-details-header">
@@ -248,7 +255,10 @@ const TournamentDetails = ({ tournament, onBack }) => {
       </div>
 
       <div className="tournament-classification">
-        <h2>Clasificación</h2>
+        <div className="classification-header">
+          <h2>CLASIFICACIÓN</h2>
+        </div>
+
         {loading ? (
           <div className="loading">Cargando clasificación...</div>
         ) : teams.length === 0 ? (
@@ -256,35 +266,73 @@ const TournamentDetails = ({ tournament, onBack }) => {
             No hay equipos inscritos en este torneo
           </div>
         ) : (
-          <div className="classification-table">
-            <div className="table-header">
-              <span className="pos">Pos</span>
-              <span className="team">Equipo</span>
-              <span className="games">PJ</span>
-              <span className="wins">G</span>
-              <span className="losses">P</span>
-              <span className="points">Pts</span>
-            </div>
-            {teams.map((team, index) => (
-              <div key={team.id} className="table-row">
-                <span className="pos">{index + 1}</span>
-                <div className="team">
-                  <div className="team-logo">
-                    {team.logo ? (
-                      <img src={team.logo} alt={team.name} />
-                    ) : (
-                      <div className="default-logo">{team.name[0]}</div>
-                    )}
-                  </div>
-                  <span className="team-name">{team.name}</span>
-                </div>
-                <span className="games">{team.wins + team.losses}</span>
-                <span className="wins">{team.wins}</span>
-                <span className="losses">{team.losses}</span>
-                <span className="points">{team.points}</span>
+          <>
+            <table className="classification-table">
+              <thead>
+                <tr className="table-header">
+                  <th>#</th>
+                  <th>EQUIPO</th>
+                  <th>PJ</th>
+                  <th>G</th>
+                  <th>E</th>
+                  <th>P</th>
+                  <th>PTS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {teams.map((team, index) => {
+                  const position = index + 1;
+                  const gamesPlayed = team.wins + team.losses;
+                  const draws = 0; // Si no tienes empates, dejarlo en 0
+
+                  return (
+                    <tr
+                      key={team.id}
+                      className={`table-row ${getPositionClass(position)}`}
+                    >
+                      <td>
+                        <span
+                          className={`pos-number ${getPositionClass(position)}`}
+                        >
+                          {position}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="team-info">
+                          <div className="team-logo">
+                            {team.logo ? (
+                              <img src={team.logo} alt={team.name} />
+                            ) : (
+                              <span className="default-logo">
+                                {team.name.substring(0, 2).toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          <span className="team-name">{team.name}</span>
+                        </div>
+                      </td>
+                      <td className="stat-number">{gamesPlayed}</td>
+                      <td className="stat-number wins">{team.wins}</td>
+                      <td className="stat-number draws">{draws}</td>
+                      <td className="stat-number losses">{team.losses}</td>
+                      <td className="stat-number points">{team.points}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            <div className="zone-indicator">
+              <div className="zone-item">
+                <div className="zone-color title"></div>
+                <span>Lucha por el título</span>
               </div>
-            ))}
-          </div>
+              <div className="zone-item">
+                <div className="zone-color contender"></div>
+                <span>Peleando por unirse a la lucha</span>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
