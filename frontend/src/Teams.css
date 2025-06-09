@@ -517,12 +517,6 @@
   flex: 1;
 }
 
-.tournament-game-logo {
-  width: 40px;
-  height: 40px;
-  opacity: 0.8;
-}
-
 .tournament-date {
   color: var(--calce-blue-light);
   font-size: 0.9rem;
@@ -663,10 +657,11 @@
 
 /* Logos de juegos */
 .tournament-game-logo {
-  width: 40px;
-  height: 40px;
+  width: 80px;
+  height: 80px;
   opacity: 0.9;
   filter: brightness(0) invert(1); /* Convierte cualquier imagen a blanco */
+  margin-top: 10px;
 }
 
 /* SVGs de juegos */
