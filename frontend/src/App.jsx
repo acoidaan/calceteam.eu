@@ -369,6 +369,42 @@ function App() {
         </div>
       </section>
 
+      {/* Sponsors Section */}
+      <section className="sponsors parallax-wrapper">
+        <div className="container">
+          <h2>Nuestros Sponsors</h2>
+          <div className="sponsors-showcase">
+            <div className="sponsor-item">
+              <a
+                rel="sponsored"
+                href="https://razer.a9yw.net/c/6293807/1381399/10229"
+                target="_blank"
+                id="1381399"
+                className="sponsor-link"
+              >
+                <img
+                  src="//a.impactradius-go.com/display-ad/10229-1381399"
+                  border="0"
+                  alt="Razer Gaming Gear"
+                  className="sponsor-image"
+                />
+              </a>
+              <img
+                height="0"
+                width="0"
+                src="https://imp.pxf.io/i/6293807/1381399/10229"
+                style={{ position: "absolute", visibility: "hidden" }}
+                border="0"
+              />
+              <p className="sponsor-description">
+                Equipamiento gaming de alta calidad para nuestros equipos
+                profesionales
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Games Section */}
       <section className="games parallax-wrapper">
         <div className="container">

@@ -607,6 +607,190 @@ app.post("/api/team/join", verifyToken, (req, res) => {
   });
 });
 
+// Actualizar información del equipo (solo el creador puede hacerlo)
+app.put("/api/team/update", verifyToken, upload.single("teamLogo"), (req, res) => {
+  const { teamId, teamName } = req.body;
+  
+  if (!teamId) {
+    return res.status(400).json({ message: "ID del equipo requerido" });
+  }
+
+  // Verificar que el usuario es el creador del equipo
+  const checkCreatorQuery = "SELECT * FROM teams WHERE id = ? AND created_by = ?";
+  db.query(checkCreatorQuery, [teamId, req.userId], (err, results) => {
+    if (err) return res.status(500).json({ message: "Error del servidor" });
+    if (results.length === 0) {
+      return res.status(403).json({ message: "Solo el creador del equipo puede editarlo" });
+    }
+
+    // Construir la query de actualización dinámicamente
+    const fieldsToUpdate = [];
+    const values = [];
+    
+    if (teamName && teamName.trim()) {
+      fieldsToUpdate.push("name = ?");
+      values.push(teamName.trim());
+    }
+    
+    if (req.file) {
+      fieldsToUpdate.push("logo = ?");
+      values.push(req.file.buffer);
+    }
+    
+    if (fieldsToUpdate.length === 0) {
+      return res.status(400).json({ message: "No hay cambios para actualizar" });
+    }
+    
+    values.push(teamId);
+    const updateQuery = `UPDATE teams SET ${fieldsToUpdate.join(", ")} WHERE id = ?`;
+    
+    db.query(updateQuery, values, (err) => {
+      if (err) {
+        console.error("Error actualizando equipo:", err);
+        return res.status(500).json({ message: "Error al actualizar equipo" });
+      }
+      res.json({ message: "Equipo actualizado exitosamente" });
+    });
+  });
+});
+
+// Actualizar información de jugador en el equipo
+app.put("/api/team/update-player", verifyToken, (req, res) => {
+  const { teamId, playerId, nickname, role, opgg } = req.body;
+  
+  if (!teamId || !playerId) {
+    return res.status(400).json({ message: "Faltan datos requeridos" });
+  }
+
+  // Verificar que el usuario es el creador del equipo o es el mismo jugador
+  const checkPermissionQuery = `
+    SELECT t.created_by, tp.user_id 
+    FROM teams t 
+    INNER JOIN teams_players tp ON t.id = tp.team_id 
+    WHERE t.id = ? AND tp.user_id = ?
+  `;
+  
+  db.query(checkPermissionQuery, [teamId, playerId], (err, results) => {
+    if (err) return res.status(500).json({ message: "Error del servidor" });
+    if (results.length === 0) {
+      return res.status(404).json({ message: "Jugador no encontrado en el equipo" });
+    }
+
+    const playerData = results[0];
+    const isCreator = playerData.created_by === req.userId;
+    const isOwnProfile = playerId === req.userId;
+    
+    if (!isCreator && !isOwnProfile) {
+      return res.status(403).json({ message: "No tienes permisos para editar este jugador" });
+    }
+
+    // Si se cambia el rol, verificar disponibilidad
+    if (role) {
+      const checkRoleQuery = `
+        SELECT COUNT(*) as count 
+        FROM teams_players 
+        WHERE team_id = ? AND role = ? AND user_id != ?
+      `;
+      
+      db.query(checkRoleQuery, [teamId, role, playerId], (err, roleResults) => {
+        if (err) return res.status(500).json({ message: "Error del servidor" });
+        
+        const count = roleResults[0].count;
+        let limit = 1;
+        if (role === "suplente") limit = 5;
+        else if (role === "staff") limit = 2;
+        
+        if (count >= limit) {
+          return res.status(400).json({ message: `El rol ${role} ya está completo` });
+        }
+        
+        // Proceder con la actualización
+        updatePlayerInfo();
+      });
+    } else {
+      updatePlayerInfo();
+    }
+    
+    function updatePlayerInfo() {
+      const fieldsToUpdate = [];
+      const values = [];
+      
+      if (nickname && nickname.trim()) {
+        fieldsToUpdate.push("nickname = ?");
+        values.push(nickname.trim());
+      }
+      
+      if (role) {
+        fieldsToUpdate.push("role = ?");
+        values.push(role);
+      }
+      
+      if (opgg !== undefined) {
+        fieldsToUpdate.push("opgg_link = ?");
+        values.push(opgg || null);
+      }
+      
+      if (fieldsToUpdate.length === 0) {
+        return res.status(400).json({ message: "No hay cambios para actualizar" });
+      }
+      
+      values.push(teamId, playerId);
+      const updateQuery = `UPDATE teams_players SET ${fieldsToUpdate.join(", ")} WHERE team_id = ? AND user_id = ?`;
+      
+      db.query(updateQuery, values, (err) => {
+        if (err) {
+          console.error("Error actualizando jugador:", err);
+          return res.status(500).json({ message: "Error al actualizar jugador" });
+        }
+        res.json({ message: "Información del jugador actualizada" });
+      });
+    }
+  });
+});
+
+// Eliminar jugador del equipo (solo el creador puede hacerlo, excepto a sí mismo)
+app.delete("/api/team/remove-player", verifyToken, (req, res) => {
+  const { teamId, playerId } = req.body;
+  
+  if (!teamId || !playerId) {
+    return res.status(400).json({ message: "Faltan datos requeridos" });
+  }
+
+  // Verificar que el usuario es el creador del equipo
+  const checkCreatorQuery = "SELECT created_by FROM teams WHERE id = ?";
+  db.query(checkCreatorQuery, [teamId], (err, results) => {
+    if (err) return res.status(500).json({ message: "Error del servidor" });
+    if (results.length === 0) {
+      return res.status(404).json({ message: "Equipo no encontrado" });
+    }
+    
+    const creatorId = results[0].created_by;
+    if (creatorId !== req.userId) {
+      return res.status(403).json({ message: "Solo el creador puede eliminar jugadores" });
+    }
+    
+    if (playerId === req.userId) {
+      return res.status(400).json({ message: "No puedes eliminarte a ti mismo del equipo" });
+    }
+    
+    // Eliminar jugador
+    const deleteQuery = "DELETE FROM teams_players WHERE team_id = ? AND user_id = ?";
+    db.query(deleteQuery, [teamId, playerId], (err, result) => {
+      if (err) {
+        console.error("Error eliminando jugador:", err);
+        return res.status(500).json({ message: "Error al eliminar jugador" });
+      }
+      
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Jugador no encontrado en el equipo" });
+      }
+      
+      res.json({ message: "Jugador eliminado del equipo" });
+    });
+  });
+});
+
+
 // Salir del equipo
 app.post("/api/team/leave", verifyToken, (req, res) => {
   const { teamId } = req.body;
