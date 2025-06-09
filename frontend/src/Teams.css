@@ -10,7 +10,7 @@
 
 /* Video de fondo */
 .background-video {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -20,7 +20,7 @@
 }
 
 .video-overlay {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -132,65 +132,67 @@
 }
 
 .form-container input,
-.form-container select {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.form-container select,
+.form-container textarea {
+  padding: 0.75rem;
+  background: #1a1a1a;
+  border: 1px solid #444;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
   color: white;
   font-size: 1rem;
 }
 
 .form-container input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: #888;
+}
+
+.form-container input:focus,
+.form-container select:focus,
+.form-container textarea:focus {
+  outline: none;
+  border-color: var(--calce-blue-light);
 }
 
 .form-container label {
-  display: block;
-  margin-bottom: 1rem;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
+  color: #ddd;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .form-buttons {
   display: flex;
   gap: 1rem;
-  justify-content: center;
-  margin-top: 1.5rem;
+  margin-top: 1rem;
+}
+
+.submit-btn,
+.cancel-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .submit-btn {
-  background: var(--calce-blue);
+  background: #00aaff;
   color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
 }
 
 .submit-btn:hover {
-  background: var(--calce-blue-light);
-  transform: translateY(-2px);
+  background: #0088dd;
 }
 
 .cancel-btn {
-  background: transparent;
+  background: #555;
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
 }
 
 .cancel-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: #666;
 }
 
 /* Team Display */
@@ -354,18 +356,16 @@
 .player-card {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 1rem;
+  background: #1a1a1a;
   padding: 1rem;
-  margin-bottom: 0.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  border-left: 4px solid var(--calce-blue);
   transition: all 0.3s ease;
 }
 
 .player-card:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: var(--calce-blue-light);
+  background: #222;
   transform: translateX(5px);
 }
 
