@@ -532,7 +532,7 @@ const Teams = ({ onBack }) => {
     <div className="teams-container">
       {/* Video de fondo */}
       <video className="background-video" autoPlay muted loop>
-        <source src="/background_wave.mp4" type="video/mp4" />
+        <source src="/frontend/public/background_wave.mp4" type="video/mp4" />
       </video>
       <div className="video-overlay"></div>
 
