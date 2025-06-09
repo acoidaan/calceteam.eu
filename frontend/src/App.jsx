@@ -403,7 +403,7 @@ function App() {
               <img
                 height="0"
                 width="0"
-                src="https://imp.pxf.io/i/6293807/1381399/10229"
+                src="/razer_logo.svg"
                 style={{ position: "absolute", visibility: "hidden" }}
                 border="0"
               />
