@@ -25,25 +25,21 @@ const Teams = ({ onBack }) => {
   const [playerNickname, setPlayerNickname] = useState("");
   const [playerOpgg, setPlayerOpgg] = useState("");
 
-  // SVGs para los juegos
+  // Logos de juegos - CAMBIA AQUI las rutas
   const gameLogos = {
     lol: (
-      <svg
-        className="tournament-game-logo game-logo-lol"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-      >
-        <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z" />
-      </svg>
+      <img
+        src="/lol_logo.png"
+        alt="League of Legends"
+        className="tournament-game-logo"
+      />
     ),
     valorant: (
-      <svg
-        className="tournament-game-logo game-logo-valorant"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-      >
-        <path d="M3 3h6l6 18h-6L3 3zm12 0h6l-6 18h-6l6-18z" />
-      </svg>
+      <img
+        src="/valorant_logo.png"
+        alt="Valorant"
+        className="tournament-game-logo"
+      />
     ),
   };
 
@@ -469,53 +465,53 @@ const Teams = ({ onBack }) => {
     setShowEditPlayer(true);
   };
 
-  // PNGs para roles
+  // Iconos de roles - CAMBIA AQUI las rutas
   const roleIcons = {
     top: (
       <img
-        src="/icons/top.png"
+        src="/Top_icon.png"
         alt="Top"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     jungla: (
       <img
-        src="/icons/jungle.png"
+        src="/Jungle_icon.png"
         alt="Jungle"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     medio: (
       <img
-        src="/icons/mid.png"
+        src="/Middle_icon.png"
         alt="Mid"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     adc: (
       <img
-        src="/icons/adc.png"
+        src="/Bottom_icon.png"
         alt="ADC"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     support: (
       <img
-        src="/icons/support.png"
+        src="Support_icon.png"
         alt="Support"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     staff: (
       <img
-        src="/icons/staff.png"
+        src="/user-icon.png"
         alt="Staff"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     suplente: (
       <img
-        src="/icons/sub.png"
+        src="/user-icon.png"
         alt="Suplente"
         style={{ width: "24px", height: "24px" }}
       />
@@ -923,17 +919,6 @@ const Teams = ({ onBack }) => {
                         {gameLogos[tournament.game] || gameLogos.lol}
                       </div>
 
-                      <div className="tournament-stats">
-                        <div className="tournament-stat">
-                          <span className="tournament-stat-value">24</span>
-                          <span className="tournament-stat-label">Equipos</span>
-                        </div>
-                        <div className="tournament-stat">
-                          <span className="tournament-stat-value">1</span>
-                          <span className="tournament-stat-label">Premio</span>
-                        </div>
-                      </div>
-
                       <div className="tournament-actions">
                         <button
                           className="tournament-btn tournament-btn-secondary"
@@ -986,19 +971,6 @@ const Teams = ({ onBack }) => {
                           </h4>
                         </div>
                         {gameLogos[tournament.game] || gameLogos.lol}
-                      </div>
-
-                      <div className="tournament-stats">
-                        <div className="tournament-stat">
-                          <span className="tournament-stat-value">
-                            {Math.floor(Math.random() * 50) + 10}
-                          </span>
-                          <span className="tournament-stat-label">Equipos</span>
-                        </div>
-                        <div className="tournament-stat">
-                          <span className="tournament-stat-value">1</span>
-                          <span className="tournament-stat-label">Premio</span>
-                        </div>
                       </div>
 
                       <div className="tournament-actions">
