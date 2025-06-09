@@ -483,7 +483,7 @@ const Teams = ({ onBack }) => {
     ),
     medio: (
       <img
-        src="/Middle_icon.png"
+        src="/Middle_icon.svg"
         alt="Mid"
         style={{ width: "24px", height: "24px" }}
       />
@@ -497,7 +497,7 @@ const Teams = ({ onBack }) => {
     ),
     support: (
       <img
-        src="Support_icon.svg"
+        src="/Support_icon.svg"
         alt="Support"
         style={{ width: "24px", height: "24px" }}
       />
