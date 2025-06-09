@@ -465,7 +465,7 @@ const Teams = ({ onBack }) => {
     ),
     medio: (
       <img
-        src="Mid_icon.png"
+        src="Middle_icon.png"
         alt="Mid"
         style={{ width: "24px", height: "24px" }}
       />
