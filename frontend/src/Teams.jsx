@@ -29,7 +29,7 @@ const Teams = ({ onBack }) => {
   const gameLogos = {
     lol: (
       <img
-        src="/lol_logo.png"
+        src="/lol_logo.svg"
         alt="League of Legends"
         className="tournament-game-logo"
       />
@@ -469,14 +469,14 @@ const Teams = ({ onBack }) => {
   const roleIcons = {
     top: (
       <img
-        src="/Top_icon.png"
+        src="/Top_icon.svg"
         alt="Top"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     jungla: (
       <img
-        src="/Jungle_icon.png"
+        src="/Jungle_icon.svg"
         alt="Jungle"
         style={{ width: "24px", height: "24px" }}
       />
@@ -490,7 +490,7 @@ const Teams = ({ onBack }) => {
     ),
     adc: (
       <img
-        src="/Bottom_icon.png"
+        src="/Bottom_icon.svg"
         alt="ADC"
         style={{ width: "24px", height: "24px" }}
       />
