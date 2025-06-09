@@ -97,7 +97,7 @@ function App() {
 
     // Observar elementos específicos
     const animatedElements = document.querySelectorAll(
-      ".about h2, .about p, .games h2, .game-item, .footer"
+      ".about h2, .about p, .sponsors h2, .sponsor-item, .games h2, .game-item, .footer"
     );
 
     animatedElements.forEach((element) => {
@@ -117,6 +117,7 @@ function App() {
 
       // Efecto de escala sutil para elementos
       const aboutSection = document.querySelector(".about");
+      const sponsorsSection = document.querySelector(".sponsors");
       const gamesSection = document.querySelector(".games");
 
       if (aboutSection) {
@@ -128,6 +129,18 @@ function App() {
           const progress = 1 - aboutRect.top / window.innerHeight;
           const scale = 0.95 + progress * 0.05;
           aboutSection.style.transform = `scale(${Math.min(scale, 1)})`;
+        }
+      }
+
+      if (sponsorsSection) {
+        const sponsorsRect = sponsorsSection.getBoundingClientRect();
+        const sponsorsVisible =
+          sponsorsRect.top < window.innerHeight && sponsorsRect.bottom > 0;
+
+        if (sponsorsVisible) {
+          const progress = 1 - sponsorsRect.top / window.innerHeight;
+          const scale = 0.95 + progress * 0.05;
+          sponsorsSection.style.transform = `scale(${Math.min(scale, 1)})`;
         }
       }
 
@@ -379,14 +392,12 @@ function App() {
                 rel="sponsored"
                 href="https://razer.a9yw.net/c/6293807/1381399/10229"
                 target="_blank"
-                id="1381399"
                 className="sponsor-link"
               >
                 <img
-                  src="//a.impactradius-go.com/display-ad/10229-1381399"
-                  border="0"
+                  src="/razer_logo.svg"
                   alt="Razer Gaming Gear"
-                  className="sponsor-image"
+                  className="sponsor-logo"
                 />
               </a>
               <img
