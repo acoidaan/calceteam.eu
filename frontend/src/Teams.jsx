@@ -42,7 +42,6 @@ const Teams = ({ onBack }) => {
 
           if (response.ok) {
             showSuccess("Has salido del torneo");
-            // IMPORTANTE: Esperar un poco antes de actualizar
             setTimeout(() => {
               fetchTournaments();
             }, 500);
@@ -77,7 +76,6 @@ const Teams = ({ onBack }) => {
 
       if (response.ok) {
         showSuccess("Equipo inscrito exitosamente en el torneo");
-        // IMPORTANTE: Esperar un poco antes de actualizar para asegurar que la DB se actualizó
         setTimeout(() => {
           fetchTournaments();
         }, 500);
@@ -117,9 +115,7 @@ const Teams = ({ onBack }) => {
         const data = await response.json();
         setMyTeam(data.team);
 
-        // Verificar si el usuario actual es el creador del equipo
         if (data.team) {
-          // Decodificar el token para obtener el user ID actual
           const tokenPayload = JSON.parse(atob(token.split(".")[1]));
           const currentUserId = tokenPayload.id;
           setIsTeamCreator(data.team.createdBy === currentUserId);
@@ -140,7 +136,6 @@ const Teams = ({ onBack }) => {
         return;
       }
 
-      // Obtener AMBAS listas en paralelo para evitar condiciones de carrera
       const [myResponse, availableResponse] = await Promise.all([
         fetch(`/api/tournaments/my-tournaments?teamId=${myTeam.id}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -153,17 +148,14 @@ const Teams = ({ onBack }) => {
       let myTournamentsData = [];
       let availableTournamentsData = [];
 
-      // Procesar respuesta de mis torneos
       if (myResponse.ok) {
         const myData = await myResponse.json();
         myTournamentsData = myData.tournaments || [];
         setMyTournaments(myTournamentsData);
       }
 
-      // Procesar respuesta de torneos disponibles
       if (availableResponse.ok) {
         const availableData = await availableResponse.json();
-        // Filtrar usando los datos frescos, no el state anterior
         const filteredTournaments = (availableData.tournaments || [])
           .filter(
             (tournament) =>
@@ -337,7 +329,6 @@ const Teams = ({ onBack }) => {
       "Eliminar Equipo"
     );
   };
-  
 
   const handleEditTeam = async (e) => {
     e.preventDefault();
@@ -456,14 +447,43 @@ const Teams = ({ onBack }) => {
     setShowEditPlayer(true);
   };
 
+  // SVG Icons para roles - aquí puedes reemplazarlos con tus SVGs específicos
   const roleIcons = {
-    top: "🛡️",
-    jungla: "🌲",
-    medio: "🎯",
-    adc: "🏹",
-    support: "💝",
-    staff: "🎓",
-    suplente: "🪑",
+    top: (
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z" />
+      </svg>
+    ),
+    jungla: (
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11A3,3 0 0,1 22,14A3,3 0 0,1 19,17C17.21,17 15.72,15.96 15.18,14.5H8.82C8.28,15.96 6.79,17 5,17A3,3 0 0,1 2,14A3,3 0 0,1 5,11A3,3 0 0,1 8,14V15H16V14A3,3 0 0,1 19,11Z" />
+      </svg>
+    ),
+    medio: (
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z" />
+      </svg>
+    ),
+    adc: (
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M6,2A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H10A2,2 0 0,0 12,20V16L16,20L20,16V4A2,2 0 0,0 18,2H6M6,4H18V14.5L16,16.5L12,12.5V4H10V12H6V4Z" />
+      </svg>
+    ),
+    support: (
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5 2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" />
+      </svg>
+    ),
+    staff: (
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12,3L1,9L12,15L21,10.09V17H23V9M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18Z" />
+      </svg>
+    ),
+    suplente: (
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M20,18V20H4V18L6,16V10C6,7.87 7.36,6.1 9.5,5.35C9.5,5.25 9.5,5.13 9.5,5A2.5,2.5 0 0,1 12,2.5A2.5,2.5 0 0,1 14.5,5C14.5,5.13 14.5,5.25 14.5,5.35C16.64,6.1 18,7.87 18,10V16L20,18Z" />
+      </svg>
+    ),
   };
 
   const roleLabels = {
@@ -478,6 +498,12 @@ const Teams = ({ onBack }) => {
 
   return (
     <div className="teams-container">
+      {/* Video de fondo */}
+      <video className="background-video" autoPlay muted loop>
+        <source src="/background_wave.mp4" type="video/mp4" />
+      </video>
+      <div className="video-overlay"></div>
+
       <Modal {...modalConfig} />
 
       <div className="teams-header">
@@ -730,51 +756,42 @@ const Teams = ({ onBack }) => {
         <div className="team-display">
           <div className="team-column-left">
             <div className="team-header-section">
-              <div className="team-logo-name">
-                {myTeam.logo ? (
-                  <img
-                    src={myTeam.logo}
-                    alt={myTeam.name}
-                    className="team-logo"
-                  />
-                ) : (
-                  <div className="team-logo-placeholder">
-                    {myTeam.name.charAt(0)}
-                  </div>
-                )}
-                <h2>{myTeam.name}</h2>
-              </div>
-              <div className="team-actions-small">
-                <button onClick={confirmLeaveTeam} className="leave-btn">
-                  Salir del Equipo
-                </button>
-                {isTeamCreator && (
-                  <>
-                  <button onClick={openEditTeam} className="edit-btn">
-                    Editar Equipo
-                  </button>
-                  <button
-                    onClick={confirmDeleteTeam}
-                    classname="delete-btn"
-                    style={{
-                      background: '#dc2626',
-                      color: 'white',
-                      border: 'none',
-                      padding: '0.75rem 1.5rem',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      transition: 'all 0.3s ease'
-                    }}
-                    >
-                      Eliminar Equipo
-                  </button>
-                  </>
-                )}
-
-                <div className="team-code">
-                  Código: <span>{myTeam.code}</span>
+              <div className="team-main-info">
+                <div className="team-logo-name">
+                  {myTeam.logo ? (
+                    <img
+                      src={myTeam.logo}
+                      alt={myTeam.name}
+                      className="team-logo"
+                    />
+                  ) : (
+                    <div className="team-logo-placeholder">
+                      {myTeam.name.charAt(0)}
+                    </div>
+                  )}
+                  <h2>{myTeam.name}</h2>
                 </div>
+                <div className="team-actions-small">
+                  <button onClick={confirmLeaveTeam} className="leave-btn">
+                    Salir del Equipo
+                  </button>
+                  {isTeamCreator && (
+                    <>
+                      <button onClick={openEditTeam} className="edit-btn">
+                        Editar Equipo
+                      </button>
+                      <button
+                        onClick={confirmDeleteTeam}
+                        className="delete-btn"
+                      >
+                        Eliminar Equipo
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="team-code">
+                Código: <span>{myTeam.code}</span>
               </div>
             </div>
 
@@ -782,7 +799,6 @@ const Teams = ({ onBack }) => {
               <h3>Jugadores</h3>
               <div className="players-list">
                 {myTeam.players.map((player, index) => {
-                  // Obtener el ID del usuario actual desde el token
                   const token = localStorage.getItem("token");
                   const tokenPayload = JSON.parse(atob(token.split(".")[1]));
                   const currentUserId = tokenPayload.id;
@@ -794,9 +810,9 @@ const Teams = ({ onBack }) => {
                   return (
                     <div key={index} className="player-card">
                       <div className="player-role">
-                        <span className="role-icon">
+                        <div className="role-icon">
                           {roleIcons[player.role]}
-                        </span>
+                        </div>
                         <span className="role-name">
                           {roleLabels[player.role]}
                         </span>
