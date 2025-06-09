@@ -303,6 +303,42 @@ const Teams = ({ onBack }) => {
     );
   };
 
+  const handleDeleteTeam = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/team/delete", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ teamId: myTeam.id }),
+      });
+
+      if (response.ok) {
+        showSuccess("Equipo eliminado exitosamente");
+        setMyTeam(null);
+        setTimeout(() => {
+          onBack();
+        }, 1500);
+      } else {
+        const error = await response.json();
+        showError(error.message || "Error al eliminar equipo");
+      }
+    } catch (error) {
+      showError("Error de conexión");
+    }
+  };
+
+  const confirmDeleteTeam = () => {
+    showConfirm(
+      "¿Estás seguro de que quieres ELIMINAR el equipo? Esta acción no se puede deshacer.",
+      handleDeleteTeam,
+      "Eliminar Equipo"
+    );
+  };
+  
+
   const handleEditTeam = async (e) => {
     e.preventDefault();
 
@@ -713,9 +749,27 @@ const Teams = ({ onBack }) => {
                   Salir del Equipo
                 </button>
                 {isTeamCreator && (
+                  <>
                   <button onClick={openEditTeam} className="edit-btn">
                     Editar Equipo
                   </button>
+                  <button
+                    onClick={confirmDeleteTeam}
+                    classname="delete-btn"
+                    style={{
+                      background: '#dc2626',
+                      color: 'white',
+                      border: 'none',
+                      padding: '0.75rem 1.5rem',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      transition: 'all 0.3s ease'
+                    }}
+                    >
+                      Eliminar Equipo
+                  </button>
+                  </>
                 )}
 
                 <div className="team-code">

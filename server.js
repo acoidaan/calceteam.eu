@@ -461,6 +461,7 @@ app.get("/api/team/my-team", verifyToken, (req, res) => {
       name: team.name,
       game: team.game,
       code: team.invite_code,
+      createdBy: team.created_by,
       logo: team.logo
         ? `data:image/jpeg;base64,${team.logo.toString("base64")}`
         : null,
@@ -805,6 +806,54 @@ app.post("/api/team/leave", verifyToken, (req, res) => {
         .json({ message: "No eres miembro de este equipo" });
 
     res.json({ message: "Has salido del equipo" });
+  });
+});
+
+// Eliminar equipo completo (solo el creador)
+app.delete("/api/team/delete", verifyToken, (req, res) => {
+  const { teamId } = req.body;
+  
+  if (!teamId) {
+    return res.status(400).json({ message: "ID del equipo requerido" });
+  }
+
+  // Verificar que el usuario es el creador del equipo
+  const checkCreatorQuery = "SELECT created_by FROM teams WHERE id = ?";
+  db.query(checkCreatorQuery, [teamId], (err, results) => {
+    if (err) return res.status(500).json({ message: "Error del servidor" });
+    if (results.length === 0) {
+      return res.status(404).json({ message: "Equipo no encontrado" });
+    }
+    
+    if (results[0].created_by !== req.userId) {
+      return res.status(403).json({ message: "Solo el creador puede eliminar el equipo" });
+    }
+    
+    // Primero eliminar inscripciones en torneos
+    const deleteTournamentRegistrationsQuery = "DELETE FROM tournaments_teams WHERE team_id = ?";
+    db.query(deleteTournamentRegistrationsQuery, [teamId], (err) => {
+      if (err) console.error("Error eliminando inscripciones:", err);
+      
+      // Eliminar jugadores del equipo
+      const deletePlayersQuery = "DELETE FROM teams_players WHERE team_id = ?";
+      db.query(deletePlayersQuery, [teamId], (err) => {
+        if (err) {
+          console.error("Error eliminando jugadores:", err);
+          return res.status(500).json({ message: "Error al eliminar equipo" });
+        }
+        
+        // Finalmente eliminar el equipo
+        const deleteTeamQuery = "DELETE FROM teams WHERE id = ?";
+        db.query(deleteTeamQuery, [teamId], (err) => {
+          if (err) {
+            console.error("Error eliminando equipo:", err);
+            return res.status(500).json({ message: "Error al eliminar equipo" });
+          }
+          
+          res.json({ message: "Equipo eliminado exitosamente" });
+        });
+      });
+    });
   });
 });
 
