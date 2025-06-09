@@ -274,7 +274,6 @@ const TournamentDetails = ({ tournament, onBack }) => {
                   <th>EQUIPO</th>
                   <th>PJ</th>
                   <th>G</th>
-                  <th>E</th>
                   <th>P</th>
                   <th>PTS</th>
                 </tr>
@@ -283,7 +282,6 @@ const TournamentDetails = ({ tournament, onBack }) => {
                 {teams.map((team, index) => {
                   const position = index + 1;
                   const gamesPlayed = team.wins + team.losses;
-                  const draws = 0; // Si no tienes empates, dejarlo en 0
 
                   return (
                     <tr
@@ -313,9 +311,8 @@ const TournamentDetails = ({ tournament, onBack }) => {
                       </td>
                       <td className="stat-number">{gamesPlayed}</td>
                       <td className="stat-number wins">{team.wins}</td>
-                      <td className="stat-number draws">{draws}</td>
                       <td className="stat-number losses">{team.losses}</td>
-                      <td className="stat-number points">{team.points}</td>
+                      <td className="stat-number points">{team.wins}</td>
                     </tr>
                   );
                 })}
