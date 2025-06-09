@@ -13,6 +13,10 @@ const Teams = ({ onBack }) => {
   const [myTournaments, setMyTournaments] = useState([]);
   const [availableTournaments, setAvailableTournaments] = useState([]);
   const [joinCode, setJoinCode] = useState("");
+  const [showEditTeam, setShowEditTeam] = useState(false);
+  const [showEditPlayer, setShowEditPlayer] = useState(false);
+  const [currentPlayer, setCurrentPlayer] = useState(null);
+  const [isTeamCreator, setIsTeamCreator] = useState(false);
 
   // Form states
   const [teamName, setTeamName] = useState("");
@@ -112,6 +116,14 @@ const Teams = ({ onBack }) => {
       if (response.ok) {
         const data = await response.json();
         setMyTeam(data.team);
+
+        // Verificar si el usuario actual es el creador del equipo
+        if (data.team) {
+          // Decodificar el token para obtener el user ID actual
+          const tokenPayload = JSON.parse(atob(token.split(".")[1]));
+          const currentUserId = tokenPayload.id;
+          setIsTeamCreator(data.team.createdBy === currentUserId);
+        }
       }
     } catch (error) {
       console.error("Error fetching team:", error);
@@ -289,6 +301,123 @@ const Teams = ({ onBack }) => {
       handleLeaveTeam,
       "Confirmar"
     );
+  };
+
+  const handleEditTeam = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append("teamId", myTeam.id);
+    formData.append("teamName", teamName);
+    if (teamLogo) formData.append("teamLogo", teamLogo);
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/team/update", {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (response.ok) {
+        showSuccess("Equipo actualizado exitosamente");
+        setShowEditTeam(false);
+        setTeamName("");
+        setTeamLogo(null);
+        fetchMyTeam();
+      } else {
+        const error = await response.json();
+        showError(error.message || "Error al actualizar equipo");
+      }
+    } catch (error) {
+      showError("Error de conexión");
+    }
+  };
+
+  const handleEditPlayer = async (e) => {
+    e.preventDefault();
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/team/update-player", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          teamId: myTeam.id,
+          playerId: currentPlayer.userId,
+          nickname: playerNickname,
+          role: playerRole,
+          opgg: playerOpgg,
+        }),
+      });
+
+      if (response.ok) {
+        showSuccess("Jugador actualizado exitosamente");
+        setShowEditPlayer(false);
+        setCurrentPlayer(null);
+        setPlayerNickname("");
+        setPlayerRole("top");
+        setPlayerOpgg("");
+        fetchMyTeam();
+      } else {
+        const error = await response.json();
+        showError(error.message || "Error al actualizar jugador");
+      }
+    } catch (error) {
+      showError("Error de conexión");
+    }
+  };
+
+  const handleRemovePlayer = async (playerId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/team/remove-player", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          teamId: myTeam.id,
+          playerId: playerId,
+        }),
+      });
+
+      if (response.ok) {
+        showSuccess("Jugador eliminado del equipo");
+        fetchMyTeam();
+      } else {
+        const error = await response.json();
+        showError(error.message || "Error al eliminar jugador");
+      }
+    } catch (error) {
+      showError("Error de conexión");
+    }
+  };
+
+  const confirmRemovePlayer = (player) => {
+    showConfirm(
+      `¿Seguro que quieres eliminar a ${player.nickname} del equipo?`,
+      () => handleRemovePlayer(player.userId),
+      "Eliminar"
+    );
+  };
+
+  const openEditTeam = () => {
+    setTeamName(myTeam.name);
+    setTeamLogo(null);
+    setShowEditTeam(true);
+  };
+
+  const openEditPlayer = (player) => {
+    setCurrentPlayer(player);
+    setPlayerNickname(player.nickname);
+    setPlayerRole(player.role);
+    setPlayerOpgg(player.opgg || "");
+    setShowEditPlayer(true);
   };
 
   const roleIcons = {
@@ -471,6 +600,96 @@ const Teams = ({ onBack }) => {
         </div>
       )}
 
+      {showEditTeam && (
+        <div className="form-container">
+          <h2>Editar Equipo</h2>
+          <form onSubmit={handleEditTeam}>
+            <input
+              type="text"
+              placeholder="Nombre del equipo"
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
+              required
+            />
+            <label>
+              Nuevo logo del equipo (opcional):
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setTeamLogo(e.target.files[0])}
+              />
+            </label>
+            <div className="form-buttons">
+              <button type="submit" className="submit-btn">
+                Actualizar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEditTeam(false);
+                  setTeamName("");
+                  setTeamLogo(null);
+                }}
+                className="cancel-btn"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {showEditPlayer && currentPlayer && (
+        <div className="form-container">
+          <h2>Editar Jugador: {currentPlayer.nickname}</h2>
+          <form onSubmit={handleEditPlayer}>
+            <input
+              type="text"
+              placeholder="Nickname"
+              value={playerNickname}
+              onChange={(e) => setPlayerNickname(e.target.value)}
+              required
+            />
+            <select
+              value={playerRole}
+              onChange={(e) => setPlayerRole(e.target.value)}
+            >
+              <option value="top">Top</option>
+              <option value="jungla">Jungla</option>
+              <option value="medio">Medio</option>
+              <option value="adc">ADC</option>
+              <option value="support">Support</option>
+              <option value="staff">Staff</option>
+              <option value="suplente">Suplente</option>
+            </select>
+            <input
+              type="text"
+              placeholder="Link OP.GG"
+              value={playerOpgg}
+              onChange={(e) => setPlayerOpgg(e.target.value)}
+            />
+            <div className="form-buttons">
+              <button type="submit" className="submit-btn">
+                Actualizar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEditPlayer(false);
+                  setCurrentPlayer(null);
+                  setPlayerNickname("");
+                  setPlayerRole("top");
+                  setPlayerOpgg("");
+                }}
+                className="cancel-btn"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {myTeam && (
         <div className="team-display">
           <div className="team-column-left">
@@ -493,6 +712,11 @@ const Teams = ({ onBack }) => {
                 <button onClick={confirmLeaveTeam} className="leave-btn">
                   Salir del Equipo
                 </button>
+                {isTeamCreator && (
+                  <button onClick={openEditTeam} className="edit-btn">
+                    Editar Equipo
+                  </button>
+                )}
 
                 <div className="team-code">
                   Código: <span>{myTeam.code}</span>
@@ -503,31 +727,62 @@ const Teams = ({ onBack }) => {
             <div className="players-section">
               <h3>Jugadores</h3>
               <div className="players-list">
-                {myTeam.players.map((player, index) => (
-                  <div key={index} className="player-card">
-                    <div className="player-role">
-                      <span className="role-icon">
-                        {roleIcons[player.role]}
-                      </span>
-                      <span className="role-name">
-                        {roleLabels[player.role]}
-                      </span>
+                {myTeam.players.map((player, index) => {
+                  // Obtener el ID del usuario actual desde el token
+                  const token = localStorage.getItem("token");
+                  const tokenPayload = JSON.parse(atob(token.split(".")[1]));
+                  const currentUserId = tokenPayload.id;
+
+                  const isCurrentUser = player.userId === currentUserId;
+                  const canEdit = isTeamCreator || isCurrentUser;
+                  const canRemove = isTeamCreator && !isCurrentUser;
+
+                  return (
+                    <div key={index} className="player-card">
+                      <div className="player-role">
+                        <span className="role-icon">
+                          {roleIcons[player.role]}
+                        </span>
+                        <span className="role-name">
+                          {roleLabels[player.role]}
+                        </span>
+                      </div>
+                      <div className="player-info">
+                        <span className="player-name">{player.nickname}</span>
+                        {player.opgg && (
+                          <a
+                            href={formatOpggLink(player.opgg)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="opgg-link"
+                          >
+                            OP.GG
+                          </a>
+                        )}
+                      </div>
+                      <div className="player-actions">
+                        {canEdit && (
+                          <button
+                            onClick={() => openEditPlayer(player)}
+                            className="edit-player-btn"
+                            title="Editar jugador"
+                          >
+                            ✏️
+                          </button>
+                        )}
+                        {canRemove && (
+                          <button
+                            onClick={() => confirmRemovePlayer(player)}
+                            className="remove-player-btn"
+                            title="Eliminar jugador"
+                          >
+                            🗑️
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div className="player-info">
-                      <span className="player-name">{player.nickname}</span>
-                      {player.opgg && (
-                        <a
-                          href={formatOpggLink(player.opgg)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="opgg-link"
-                        >
-                          OP.GG
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>

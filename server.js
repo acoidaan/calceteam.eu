@@ -790,7 +790,6 @@ app.delete("/api/team/remove-player", verifyToken, (req, res) => {
   });
 });
 
-
 // Salir del equipo
 app.post("/api/team/leave", verifyToken, (req, res) => {
   const { teamId } = req.body;
