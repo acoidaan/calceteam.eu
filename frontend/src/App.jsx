@@ -351,6 +351,24 @@ function App() {
         </div>
       </section>
 
+      {/* Sponsors Section - Versión Minimalista */}
+      <section className="sponsors-carousel">
+        <div className="sponsors-single">
+          <span className="sponsor-label">Partner Oficial</span>
+          <a
+            href="https://razer.a9yw.net/c/6293807/1381399/10229"
+            target="_blank"
+            rel="sponsored"
+          >
+            <img
+              src="/razer_logo.svg"
+              alt="Razer"
+              className="sponsor-logo-single"
+            />
+          </a>
+        </div>
+      </section>
+
       {/* About Section */}
       <section className="about parallax-wrapper">
         <div className="container">
@@ -379,40 +397,6 @@ function App() {
             generación de esports: jóvenes, ambiciosos y con{" "}
             <b>gran proyección</b>.
           </p>
-        </div>
-      </section>
-
-      {/* Sponsors Section */}
-      <section className="sponsors parallax-wrapper">
-        <div className="container">
-          <h2>Nuestros Sponsors</h2>
-          <div className="sponsors-showcase">
-            <div className="sponsor-item">
-              <a
-                rel="sponsored"
-                href="https://razer.a9yw.net/c/6293807/1381399/10229"
-                target="_blank"
-                className="sponsor-link"
-              >
-                <img
-                  src="/razer_logo.svg"
-                  alt="Razer Gaming Gear"
-                  className="sponsor-logo"
-                />
-              </a>
-              <img
-                height="0"
-                width="0"
-                src="/Logo_Razer_2017.png"
-                style={{ position: "absolute", visibility: "hidden" }}
-                border="0"
-              />
-              <p className="sponsor-description">
-                Equipamiento gaming de alta calidad para nuestros equipos
-                profesionales
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
