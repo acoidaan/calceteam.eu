@@ -25,6 +25,28 @@ const Teams = ({ onBack }) => {
   const [playerNickname, setPlayerNickname] = useState("");
   const [playerOpgg, setPlayerOpgg] = useState("");
 
+  // SVGs para los juegos
+  const gameLogos = {
+    lol: (
+      <svg
+        className="tournament-game-logo game-logo-lol"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+      >
+        <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z" />
+      </svg>
+    ),
+    valorant: (
+      <svg
+        className="tournament-game-logo game-logo-valorant"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+      >
+        <path d="M3 3h6l6 18h-6L3 3zm12 0h6l-6 18h-6l6-18z" />
+      </svg>
+    ),
+  };
+
   const leaveTournament = async (tournamentId) => {
     showConfirm(
       "¿Estás seguro de que quieres salir de este torneo?",
@@ -447,39 +469,39 @@ const Teams = ({ onBack }) => {
     setShowEditPlayer(true);
   };
 
-  // SVG Icons para roles - aquí puedes reemplazarlos con tus SVGs específicos
+  // PNGs para roles
   const roleIcons = {
     top: (
       <img
-        src="/Top_icon.png"
+        src="/icons/top.png"
         alt="Top"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     jungla: (
       <img
-        src="Jungle_icon.png"
+        src="/icons/jungle.png"
         alt="Jungle"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     medio: (
       <img
-        src="Middle_icon.png"
+        src="/icons/mid.png"
         alt="Mid"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     adc: (
       <img
-        src="Bottom_icon.png"
+        src="/icons/adc.png"
         alt="ADC"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     support: (
       <img
-        src="Support_icon.png"
+        src="/icons/support.png"
         alt="Support"
         style={{ width: "24px", height: "24px" }}
       />
@@ -878,18 +900,51 @@ const Teams = ({ onBack }) => {
                 {myTournaments.length > 0 ? (
                   myTournaments.map((tournament) => (
                     <div key={tournament.id} className="tournament-card">
-                      <h4 className="tournament-title">{tournament.name}</h4>
-                      <p>Juego: {tournament.game.toUpperCase()}</p>
-                      <p>
-                        Fecha: {new Date(tournament.date).toLocaleDateString()}
-                      </p>
-                      <div className="tournament-status inscrito">Inscrito</div>
-                      <button
-                        className="leave-tournament-btn"
-                        onClick={() => leaveTournament(tournament.id)}
-                      >
-                        Salir del Torneo
-                      </button>
+                      <div className="tournament-status-badge inscrito">
+                        Inscrito
+                      </div>
+
+                      <div className="tournament-header">
+                        <div className="tournament-info">
+                          <div className="tournament-date">
+                            {new Date(tournament.date).toLocaleDateString(
+                              "es-ES",
+                              {
+                                day: "numeric",
+                                month: "short",
+                              }
+                            )}
+                          </div>
+                          <div className="tournament-region">Global</div>
+                          <h4 className="tournament-title">
+                            {tournament.name}
+                          </h4>
+                        </div>
+                        {gameLogos[tournament.game] || gameLogos.lol}
+                      </div>
+
+                      <div className="tournament-stats">
+                        <div className="tournament-stat">
+                          <span className="tournament-stat-value">24</span>
+                          <span className="tournament-stat-label">Equipos</span>
+                        </div>
+                        <div className="tournament-stat">
+                          <span className="tournament-stat-value">1</span>
+                          <span className="tournament-stat-label">Premio</span>
+                        </div>
+                      </div>
+
+                      <div className="tournament-actions">
+                        <button
+                          className="tournament-btn tournament-btn-secondary"
+                          onClick={() => leaveTournament(tournament.id)}
+                        >
+                          Salir
+                        </button>
+                        <button className="tournament-btn tournament-btn-secondary">
+                          Ver Más
+                        </button>
+                      </div>
                     </div>
                   ))
                 ) : (
@@ -904,21 +959,51 @@ const Teams = ({ onBack }) => {
               <h3>Otros torneos de {selectedGame.toUpperCase()}</h3>
               <div className="tournaments-grid">
                 {availableTournaments.length > 0 ? (
-                  availableTournaments.map((tournament) => {
-                    return (
-                      <div key={tournament.id} className="tournament-card">
-                        <h4 className="tournament-title">{tournament.name}</h4>
-                        <p>
-                          Fecha:{" "}
-                          {new Date(tournament.date).toLocaleDateString()}
-                        </p>
-                        {tournament.description && (
-                          <p className="tournament-description">
-                            {tournament.description}
-                          </p>
-                        )}
+                  availableTournaments.map((tournament) => (
+                    <div key={tournament.id} className="tournament-card">
+                      <div
+                        className={`tournament-status-badge ${tournament.status}`}
+                      >
+                        {tournament.status === "abierto"
+                          ? "Abierto"
+                          : "Cerrado"}
+                      </div>
+
+                      <div className="tournament-header">
+                        <div className="tournament-info">
+                          <div className="tournament-date">
+                            {new Date(tournament.date).toLocaleDateString(
+                              "es-ES",
+                              {
+                                day: "numeric",
+                                month: "short",
+                              }
+                            )}
+                          </div>
+                          <div className="tournament-region">Global</div>
+                          <h4 className="tournament-title">
+                            {tournament.name}
+                          </h4>
+                        </div>
+                        {gameLogos[tournament.game] || gameLogos.lol}
+                      </div>
+
+                      <div className="tournament-stats">
+                        <div className="tournament-stat">
+                          <span className="tournament-stat-value">
+                            {Math.floor(Math.random() * 50) + 10}
+                          </span>
+                          <span className="tournament-stat-label">Equipos</span>
+                        </div>
+                        <div className="tournament-stat">
+                          <span className="tournament-stat-value">1</span>
+                          <span className="tournament-stat-label">Premio</span>
+                        </div>
+                      </div>
+
+                      <div className="tournament-actions">
                         <button
-                          className="register-btn"
+                          className="tournament-btn tournament-btn-primary"
                           onClick={() => registerToTournament(tournament.id)}
                           disabled={tournament.status === "cerrado"}
                         >
@@ -926,9 +1011,12 @@ const Teams = ({ onBack }) => {
                             ? "Cerrado"
                             : "Inscribir Equipo"}
                         </button>
+                        <button className="tournament-btn tournament-btn-secondary">
+                          Más Info
+                        </button>
                       </div>
-                    );
-                  })
+                    </div>
+                  ))
                 ) : (
                   <p className="no-tournaments">
                     No hay torneos disponibles actualmente
