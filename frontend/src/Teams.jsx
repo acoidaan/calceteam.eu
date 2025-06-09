@@ -497,7 +497,7 @@ const Teams = ({ onBack }) => {
     ),
     support: (
       <img
-        src="Support_icon.png"
+        src="Support_icon.svg"
         alt="Support"
         style={{ width: "24px", height: "24px" }}
       />
