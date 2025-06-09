@@ -716,18 +716,18 @@ html {
   transition: all 0.3s ease;
 }
 
-.sponsor-image {
-  width: 100%;
-  max-width: 500px;
+.sponsor-logo {
+  width: 200px;
   height: auto;
-  border-radius: 10px;
+  max-height: 80px;
+  object-fit: contain;
   transition: all 0.4s ease;
-  filter: brightness(0.95);
+  filter: brightness(0.9);
 }
 
-.sponsor-item:hover .sponsor-image {
-  filter: brightness(1.05);
-  transform: scale(1.02);
+.sponsor-item:hover .sponsor-logo {
+  filter: brightness(1.1);
+  transform: scale(1.05);
 }
 
 .sponsor-description {
@@ -736,3 +736,5 @@ html {
   color: var(--calce-gray);
   line-height: 1.6;
 }
+
+/* Games Section - Efectos Apple */
