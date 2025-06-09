@@ -29,7 +29,7 @@ const Teams = ({ onBack }) => {
   const gameLogos = {
     lol: (
       <img
-        src="/lol_logo.png"
+        src="/lol_logo.svg"
         alt="League of Legends"
         className="tournament-game-logo"
       />
