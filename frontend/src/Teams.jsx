@@ -450,39 +450,53 @@ const Teams = ({ onBack }) => {
   // SVG Icons para roles - aquí puedes reemplazarlos con tus SVGs específicos
   const roleIcons = {
     top: (
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z" />
-      </svg>
+      <img
+        src="/Top_icon.png"
+        alt="Top"
+        style={{ width: "24px", height: "24px" }}
+      />
     ),
     jungla: (
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11A3,3 0 0,1 22,14A3,3 0 0,1 19,17C17.21,17 15.72,15.96 15.18,14.5H8.82C8.28,15.96 6.79,17 5,17A3,3 0 0,1 2,14A3,3 0 0,1 5,11A3,3 0 0,1 8,14V15H16V14A3,3 0 0,1 19,11Z" />
-      </svg>
+      <img
+        src="Jungle_icon.png"
+        alt="Jungle"
+        style={{ width: "24px", height: "24px" }}
+      />
     ),
     medio: (
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z" />
-      </svg>
+      <img
+        src="Mid_icon.png"
+        alt="Mid"
+        style={{ width: "24px", height: "24px" }}
+      />
     ),
     adc: (
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M6,2A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H10A2,2 0 0,0 12,20V16L16,20L20,16V4A2,2 0 0,0 18,2H6M6,4H18V14.5L16,16.5L12,12.5V4H10V12H6V4Z" />
-      </svg>
+      <img
+        src="Bottom_icon.png"
+        alt="ADC"
+        style={{ width: "24px", height: "24px" }}
+      />
     ),
     support: (
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5 2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" />
-      </svg>
+      <img
+        src="Support_icon.png"
+        alt="Support"
+        style={{ width: "24px", height: "24px" }}
+      />
     ),
     staff: (
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12,3L1,9L12,15L21,10.09V17H23V9M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18Z" />
-      </svg>
+      <img
+        src="/icons/staff.png"
+        alt="Staff"
+        style={{ width: "24px", height: "24px" }}
+      />
     ),
     suplente: (
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M20,18V20H4V18L6,16V10C6,7.87 7.36,6.1 9.5,5.35C9.5,5.25 9.5,5.13 9.5,5A2.5,2.5 0 0,1 12,2.5A2.5,2.5 0 0,1 14.5,5C14.5,5.13 14.5,5.25 14.5,5.35C16.64,6.1 18,7.87 18,10V16L20,18Z" />
-      </svg>
+      <img
+        src="/icons/sub.png"
+        alt="Suplente"
+        style={{ width: "24px", height: "24px" }}
+      />
     ),
   };
 
