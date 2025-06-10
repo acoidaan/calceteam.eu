@@ -954,11 +954,15 @@ const Teams = ({ onBack }) => {
                           <span>{formatDateToSpanish(match.date)}</span>
                           <span className="match-time">{match.time}</span>
                         </div>
-                        <span className="match-tournament-name">
-                          {match.tournament}
-                        </span>
-                        <span className="match-format">{match.format}</span>
+
+                        <div className="match-tournament-info">
+                          <span className="match-tournament-name">
+                            {match.tournament}
+                          </span>
+                          <span className="match-format">{match.format}</span>
+                        </div>
                       </div>
+
                       <div className="match-content">
                         <div className="match-team home">
                           <span className="team-name">{match.home.name}</span>
@@ -975,7 +979,9 @@ const Teams = ({ onBack }) => {
                             )}
                           </div>
                         </div>
+
                         <div className="match-vs">VS</div>
+
                         <div className="match-team away">
                           <div className="team-logo">
                             {match.away.logo ? (
