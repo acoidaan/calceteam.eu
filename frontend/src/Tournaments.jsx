@@ -355,7 +355,7 @@ const TournamentDetails = ({ tournament, onBack }) => {
         )}
       </div>
 
-      <div className="tournament-content-vertical">
+      <div className="tournament-content">
         {/* Clasificación a la izquierda */}
         <div className="tournament-classification">
           <div className="classification-header">
@@ -437,64 +437,80 @@ const TournamentDetails = ({ tournament, onBack }) => {
         </div>
 
         {/* Jornadas a la derecha */}
-        <div className="tournament-jornadas" style={{ justifyContent: 'space-between' }}>
-          <button className="jornada-btn" onClick={() => setSelectedJornada((prev) => Math.max(prev - 1, 1))} disabled={selectedJornada === 1}>
-            ← Anterior
-          </button>
-          <span style={{ color: "white", fontWeight: "600" }}> Jornada {selectedJornada} de {totalJornadas}</span>
-          <button className="jornada-btn" onClick={() => setSelectedJornada((prev) => Math.min(prev + 1, totalJornadas)
-          )
-          } disabled={selectedJornada === totalJornadas}>Siguiente →</button>
-        </div>
+        <div className="tournament-jornadas">
+          <div className="jornadas-nav">
+            <button
+              className="jornada-btn"
+              onClick={() =>
+                setSelectedJornada((prev) => Math.max(prev - 1, 1))
+              }
+              disabled={selectedJornada === 1}
+            >
+              ← Anterior
+            </button>
+            <span className="jornada-title">
+              Jornada {selectedJornada} de {totalJornadas}
+            </span>
+            <button
+              className="jornada-btn"
+              onClick={() =>
+                setSelectedJornada((prev) => Math.min(prev + 1, totalJornadas))
+              }
+              disabled={selectedJornada === totalJornadas}
+            >
+              Siguiente →
+            </button>
+          </div>
 
-        <div className="jornada-matches">
-          <h3>Jornada {selectedJornada}</h3>
-          {matches[selectedJornada] && matches[selectedJornada].length > 0 ? (
-            <div className="matches-list">
-              {matches[selectedJornada].map((match, index) => (
-                <div key={index} className="match-card">
-                  <div className="match-team home">
-                    <span className="team-name">{match.home.name}</span>
-                    <div className="team-logo">
-                      {match.home.logo ? (
-                        <img src={match.home.logo} alt={match.home.name} />
-                      ) : (
-                        <span className="default-logo">
-                          {match.home.name.substring(0, 2).toUpperCase()}
-                        </span>
-                      )}
+          <div className="jornada-matches">
+            <h3>Jornada {selectedJornada}</h3>
+            {matches[selectedJornada] && matches[selectedJornada].length > 0 ? (
+              <div className="matches-list">
+                {matches[selectedJornada].map((match, index) => (
+                  <div key={index} className="match-card">
+                    <div className="match-team home">
+                      <span className="team-name">{match.home.name}</span>
+                      <div className="team-logo">
+                        {match.home.logo ? (
+                          <img src={match.home.logo} alt={match.home.name} />
+                        ) : (
+                          <span className="default-logo">
+                            {match.home.name.substring(0, 2).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="match-vs">VS</div>
+                    <div className="match-team away">
+                      <div className="team-logo">
+                        {match.away.logo ? (
+                          <img src={match.away.logo} alt={match.away.name} />
+                        ) : (
+                          <span className="default-logo">
+                            {match.away.name.substring(0, 2).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <span className="team-name">{match.away.name}</span>
                     </div>
                   </div>
-                  <div className="match-vs">VS</div>
-                  <div className="match-team away">
-                    <div className="team-logo">
-                      {match.away.logo ? (
-                        <img src={match.away.logo} alt={match.away.name} />
-                      ) : (
-                        <span className="default-logo">
-                          {match.away.name.substring(0, 2).toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    <span className="team-name">{match.away.name}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="no-matches">No hay partidos programados</div>
-          )}
-        </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-matches">No hay partidos programados</div>
+            )}
+          </div>
 
-        {/* Placeholder para el bracket */}
-        <div className="bracket-preview">
-          <h3>Bracket de Playoffs</h3>
-          <div className="bracket-placeholder">
-            <p>El bracket se generará al finalizar la fase regular</p>
-            <div className="bracket-info">
-              <p>• Top 6 equipos clasifican a playoffs</p>
-              <p>• 1° y 2° avanzan directamente a semifinales</p>
-              <p>• 3° vs 6° y 4° vs 5° en cuartos de final</p>
+          {/* Placeholder para el bracket */}
+          <div className="bracket-preview">
+            <h3>Bracket de Playoffs</h3>
+            <div className="bracket-placeholder">
+              <p>El bracket se generará al finalizar la fase regular</p>
+              <div className="bracket-info">
+                <p>• Top 6 equipos clasifican a playoffs</p>
+                <p>• 1° y 2° avanzan directamente a semifinales</p>
+                <p>• 3° vs 6° y 4° vs 5° en cuartos de final</p>
+              </div>
             </div>
           </div>
         </div>

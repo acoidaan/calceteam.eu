@@ -279,7 +279,7 @@
 /* Layout principal con clasificación y jornadas */
 .tournament-content {
   display: grid;
-  grid-template-columns: 600px 1fr;
+  grid-template-columns: 550px 1fr;
   gap: 2rem;
   align-items: start;
 }
@@ -503,9 +503,22 @@
 
 .jornadas-nav {
   display: flex;
-  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
   margin-bottom: 25px;
-  flex-wrap: wrap;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.jornada-title {
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-align: center;
+  flex: 1;
 }
 
 .jornada-btn {
@@ -520,16 +533,15 @@
   font-size: 0.9rem;
 }
 
-.jornada-btn:hover {
+.jornada-btn:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.1);
   color: white;
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-.jornada-btn.active {
-  background: var(--calce-blue);
-  color: white;
-  border-color: var(--calce-blue);
+.jornada-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .jornada-matches {
@@ -736,12 +748,18 @@
   }
 
   .jornadas-nav {
-    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
   }
 
   .jornada-btn {
     padding: 8px 15px;
     font-size: 0.85rem;
+    width: 100%;
+  }
+
+  .jornada-title {
+    font-size: 1rem;
   }
 
   .match-card {
@@ -757,10 +775,4 @@
   .match-vs {
     margin: 10px 0;
   }
-}
-
-.tournament-content-vertical {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
 }
