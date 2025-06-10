@@ -246,11 +246,19 @@ const TournamentDetails = ({ tournament, onBack }) => {
         matchPairs.push({
           home: teamsCopy[i],
           away: teamsCopy[j],
+          time: `${Math.floor(Math.random() * (22 - 16) + 16)}:00`, // Random entre 16:00 y 22:00
+          format: "BO3",
+          scoreHome: 0,
+          scoreAway: 0,
         });
         // Partido de vuelta
         matchPairs.push({
           home: teamsCopy[j],
           away: teamsCopy[i],
+          time: `${Math.floor(Math.random() * (22 - 16) + 16)}:00`,
+          format: "BO3",
+          scoreHome: 0,
+          scoreAway: 0,
         });
       }
     }
@@ -468,6 +476,7 @@ const TournamentDetails = ({ tournament, onBack }) => {
               <div className="matches-list">
                 {matches[selectedJornada].map((match, index) => (
                   <div key={index} className="match-card">
+                    <div className="match-time">{match.time || "TBD"}</div>
                     <div className="match-team home">
                       <span className="team-name">{match.home.name}</span>
                       <div className="team-logo">
@@ -480,7 +489,11 @@ const TournamentDetails = ({ tournament, onBack }) => {
                         )}
                       </div>
                     </div>
-                    <div className="match-vs">VS</div>
+                    <div className="match-score">
+                      <span className="score">{match.scoreHome || 0}</span>
+                      <span className="score-separator">-</span>
+                      <span className="score">{match.scoreAway || 0}</span>
+                    </div>
                     <div className="match-team away">
                       <div className="team-logo">
                         {match.away.logo ? (
@@ -493,6 +506,7 @@ const TournamentDetails = ({ tournament, onBack }) => {
                       </div>
                       <span className="team-name">{match.away.name}</span>
                     </div>
+                    <div className="match-format">{match.format || "BO3"}</div>
                   </div>
                 ))}
               </div>
