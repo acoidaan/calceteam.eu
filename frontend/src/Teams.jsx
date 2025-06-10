@@ -18,6 +18,8 @@ const Teams = ({ onBack }) => {
   const [currentPlayer, setCurrentPlayer] = useState(null);
   const [isTeamCreator, setIsTeamCreator] = useState(false);
   const [upcomingMatches, setUpcomingMatches] = useState([]);
+  const [selectedJornada, setSelectedJornada] = useState(1);
+  const [totalJornadas, setTotalJornadas] = useState(0);
 
   // Form states
   const [teamName, setTeamName] = useState("");
@@ -76,37 +78,6 @@ const Teams = ({ onBack }) => {
     );
   };
 
-  const registerToTournament = async (tournamentId) => {
-    if (!myTeam) {
-      showError("Necesitas tener un equipo para inscribirte");
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/tournament/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ tournamentId, teamId: myTeam.id }),
-      });
-
-      if (response.ok) {
-        showSuccess("Equipo inscrito exitosamente en el torneo");
-        setTimeout(() => {
-          fetchTournaments();
-        }, 500);
-      } else {
-        const error = await response.json();
-        showError(error.message || "Error al inscribir el equipo");
-      }
-    } catch (error) {
-      showError("Error de conexión");
-    }
-  };
-
   const formatOpggLink = (url) => {
     if (!url) return "";
     return url.startsWith("http://") || url.startsWith("https://")
@@ -128,7 +99,7 @@ const Teams = ({ onBack }) => {
     if (myTournaments.length > 0 && myTeam) {
       generateUpcomingMatches();
     }
-  }, [myTournaments, myTeam]);
+  }, [myTournaments, myTeam, selectedJornada]);
 
   const fetchMyTeam = async () => {
     try {
@@ -161,49 +132,30 @@ const Teams = ({ onBack }) => {
         return;
       }
 
-      const [myResponse, availableResponse] = await Promise.all([
-        fetch(`/api/tournaments/my-tournaments?teamId=${myTeam.id}`, {
+      const myResponse = await fetch(
+        `/api/tournaments/my-tournaments?teamId=${myTeam.id}`,
+        {
           headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`/api/tournaments/available?game=${selectedGame}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
+        }
+      );
 
       let myTournamentsData = [];
-      let availableTournamentsData = [];
 
       if (myResponse.ok) {
         const myData = await myResponse.json();
         myTournamentsData = myData.tournaments || [];
         setMyTournaments(myTournamentsData);
       }
-
-      if (availableResponse.ok) {
-        const availableData = await availableResponse.json();
-        const filteredTournaments = (availableData.tournaments || [])
-          .filter(
-            (tournament) =>
-              !myTournamentsData.some((myT) => myT.id === tournament.id)
-          )
-          .sort((a, b) => {
-            if (a.status === "abierto" && b.status === "cerrado") return -1;
-            if (a.status === "cerrado" && b.status === "abierto") return 1;
-            return 0;
-          });
-
-        setAvailableTournaments(filteredTournaments);
-      }
     } catch (error) {
       console.error("Error fetching tournaments:", error);
       setMyTournaments([]);
-      setAvailableTournaments([]);
     }
   };
 
   // Generar partidos próximos de todos los torneos
   const generateUpcomingMatches = async () => {
-    const allMatches = [];
+    const allMatchesByJornada = {};
+    let maxJornada = 0;
 
     for (const tournament of myTournaments) {
       try {
@@ -215,26 +167,32 @@ const Teams = ({ onBack }) => {
         const teams = data.teams || [];
 
         if (teams.length >= 2) {
-          // Generar algunos partidos de ejemplo para este torneo
+          // Generar partidos para este torneo
           const myTeamInTournament = teams.find((t) => t.id === myTeam.id);
           if (myTeamInTournament) {
-            // Simular próximos partidos (jornada 1)
-            const otherTeams = teams.filter((t) => t.id !== myTeam.id);
-            if (otherTeams.length > 0) {
-              const randomOpponent =
-                otherTeams[Math.floor(Math.random() * otherTeams.length)];
-              allMatches.push({
-                tournament: tournament.name,
-                tournamentId: tournament.id,
-                home: myTeam,
-                away: randomOpponent,
-                time: `${Math.floor(Math.random() * (22 - 16) + 16)}:00`,
-                format: "BO3",
-                jornada: 1,
-                date: new Date(
-                  Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000
-                ), // Próximos 7 días
-              });
+            // Simular partidos por jornadas
+            for (let jornada = 1; jornada <= 5; jornada++) {
+              if (!allMatchesByJornada[jornada]) {
+                allMatchesByJornada[jornada] = [];
+              }
+
+              const otherTeams = teams.filter((t) => t.id !== myTeam.id);
+              if (otherTeams.length > 0 && jornada <= otherTeams.length) {
+                const opponent = otherTeams[(jornada - 1) % otherTeams.length];
+                allMatchesByJornada[jornada].push({
+                  tournament: tournament.name,
+                  tournamentId: tournament.id,
+                  home: jornada % 2 === 0 ? opponent : myTeam,
+                  away: jornada % 2 === 0 ? myTeam : opponent,
+                  time: `${Math.floor(Math.random() * (22 - 16) + 16)}:00`,
+                  format: "BO3",
+                  date: new Date(
+                    Date.now() + (jornada - 1) * 7 * 24 * 60 * 60 * 1000
+                  ),
+                  jornada: jornada,
+                });
+                maxJornada = Math.max(maxJornada, jornada);
+              }
             }
           }
         }
@@ -247,9 +205,8 @@ const Teams = ({ onBack }) => {
       }
     }
 
-    // Ordenar por fecha
-    allMatches.sort((a, b) => a.date - b.date);
-    setUpcomingMatches(allMatches);
+    setTotalJornadas(maxJornada);
+    setUpcomingMatches(allMatchesByJornada[selectedJornada] || []);
   };
 
   const isRoleAvailable = (role) => {
@@ -959,6 +916,35 @@ const Teams = ({ onBack }) => {
             {/* NUEVA SECCIÓN: Próximos partidos */}
             <div className="upcoming-matches-section">
               <h3>Próximos partidos</h3>
+
+              {totalJornadas > 0 && (
+                <div className="jornadas-nav">
+                  <button
+                    className="jornada-btn"
+                    onClick={() =>
+                      setSelectedJornada((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={selectedJornada === 1}
+                  >
+                    ← Anterior
+                  </button>
+                  <span className="jornada-title">
+                    Jornada {selectedJornada}
+                  </span>
+                  <button
+                    className="jornada-btn"
+                    onClick={() =>
+                      setSelectedJornada((prev) =>
+                        Math.min(prev + 1, totalJornadas)
+                      )
+                    }
+                    disabled={selectedJornada === totalJornadas}
+                  >
+                    Siguiente →
+                  </button>
+                </div>
+              )}
+
               {upcomingMatches.length > 0 ? (
                 <div className="matches-list">
                   {upcomingMatches.map((match, index) => (
@@ -967,12 +953,9 @@ const Teams = ({ onBack }) => {
                         <span className="match-tournament-name">
                           {match.tournament}
                         </span>
-                        <span className="match-jornada">
-                          Jornada {match.jornada}
+                        <span className="match-date">
+                          {formatDateToSpanish(match.date)}
                         </span>
-                      </div>
-                      <div className="match-date">
-                        {formatDateToSpanish(match.date)}
                       </div>
                       <div className="match-content">
                         <div className="match-time">{match.time}</div>
@@ -1016,12 +999,12 @@ const Teams = ({ onBack }) => {
                 <p className="no-matches">
                   {myTournaments.length === 0
                     ? "Inscríbete en torneos para ver tus próximos partidos"
-                    : "No hay partidos programados aún"}
+                    : "No hay partidos programados para esta jornada"}
                 </p>
               )}
             </div>
 
-            {/* Torneos inscritos (movido abajo) */}
+            {/* Torneos inscritos */}
             <div className="tournaments-section">
               <h3>Torneos en los que estás inscrito</h3>
               <div className="tournaments-grid">
@@ -1064,60 +1047,6 @@ const Teams = ({ onBack }) => {
                 ) : (
                   <p className="no-tournaments">
                     No estás inscrito en ningún torneo
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="available-section">
-              <h3>Otros torneos de {selectedGame.toUpperCase()}</h3>
-              <div className="tournaments-grid">
-                {availableTournaments.length > 0 ? (
-                  availableTournaments.map((tournament) => (
-                    <div key={tournament.id} className="tournament-card">
-                      <div
-                        className={`tournament-status-badge ${tournament.status}`}
-                      >
-                        {tournament.status === "abierto"
-                          ? "Abierto"
-                          : "Cerrado"}
-                      </div>
-
-                      <div className="tournament-header">
-                        <div className="tournament-info">
-                          <div className="tournament-date">
-                            {new Date(tournament.date).toLocaleDateString(
-                              "es-ES",
-                              {
-                                day: "numeric",
-                                month: "short",
-                              }
-                            )}
-                          </div>
-                          <div className="tournament-region">Online</div>
-                          <h4 className="tournament-title">
-                            {tournament.name}
-                          </h4>
-                        </div>
-                        {gameLogos[tournament.game] || gameLogos.lol}
-                      </div>
-
-                      <div className="tournament-actions">
-                        <button
-                          className="tournament-btn tournament-btn-primary"
-                          onClick={() => registerToTournament(tournament.id)}
-                          disabled={tournament.status === "cerrado"}
-                        >
-                          {tournament.status === "cerrado"
-                            ? "Cerrado"
-                            : "Inscribir Equipo"}
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="no-tournaments">
-                    No hay torneos disponibles actualmente
                   </p>
                 )}
               </div>
