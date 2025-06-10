@@ -949,16 +949,17 @@ const Teams = ({ onBack }) => {
                 <div className="matches-list">
                   {upcomingMatches.map((match, index) => (
                     <div key={index} className="match-card">
-                      <div className="match-tournament-info">
+                      <div className="match-header">
+                        <div className="match-date-info">
+                          <span>{formatDateToSpanish(match.date)}</span>
+                          <span className="match-time">{match.time}</span>
+                        </div>
                         <span className="match-tournament-name">
                           {match.tournament}
                         </span>
-                        <span className="match-date">
-                          {formatDateToSpanish(match.date)}
-                        </span>
+                        <span className="match-format">{match.format}</span>
                       </div>
                       <div className="match-content">
-                        <div className="match-time">{match.time}</div>
                         <div className="match-team home">
                           <span className="team-name">{match.home.name}</span>
                           <div className="team-logo">
@@ -990,7 +991,6 @@ const Teams = ({ onBack }) => {
                           </div>
                           <span className="team-name">{match.away.name}</span>
                         </div>
-                        <div className="match-format">{match.format}</div>
                       </div>
                     </div>
                   ))}
