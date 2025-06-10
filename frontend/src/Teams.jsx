@@ -913,93 +913,105 @@ const Teams = ({ onBack }) => {
           </div>
 
           <div className="team-column-right">
-            {/* NUEVA SECCIÓN: Próximos partidos */}
+            {/* SECCIÓN CORREGIDA: Próximos partidos */}
             <div className="upcoming-matches-section">
               <h3>Próximos partidos</h3>
 
-              {totalJornadas > 0 && (
-                <div className="jornadas-nav">
-                  <button
-                    className="jornada-btn"
-                    onClick={() =>
-                      setSelectedJornada((prev) => Math.max(prev - 1, 1))
-                    }
-                    disabled={selectedJornada === 1}
-                  >
-                    ← Anterior
-                  </button>
-                  <span className="jornada-title">
-                    Jornada {selectedJornada}
-                  </span>
-                  <button
-                    className="jornada-btn"
-                    onClick={() =>
-                      setSelectedJornada((prev) =>
-                        Math.min(prev + 1, totalJornadas)
-                      )
-                    }
-                    disabled={selectedJornada === totalJornadas}
-                  >
-                    Siguiente →
-                  </button>
-                </div>
-              )}
+              {totalJornadas > 0 ? (
+                <>
+                  <div className="jornadas-nav">
+                    <button
+                      className="jornada-btn"
+                      onClick={() =>
+                        setSelectedJornada((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={selectedJornada === 1}
+                    >
+                      ← Anterior
+                    </button>
+                    <span className="jornada-title">
+                      Jornada {selectedJornada}
+                    </span>
+                    <button
+                      className="jornada-btn"
+                      onClick={() =>
+                        setSelectedJornada((prev) =>
+                          Math.min(prev + 1, totalJornadas)
+                        )
+                      }
+                      disabled={selectedJornada === totalJornadas}
+                    >
+                      Siguiente →
+                    </button>
+                  </div>
 
-              {upcomingMatches.length > 0 ? (
-                <div className="matches-list">
-                  {upcomingMatches.map((match, index) => (
-                    <div key={index} className="match-card">
-                      <div className="match-tournament-info">
-                        <span className="match-tournament-name">
-                          {match.tournament}
-                        </span>
-                        <span className="match-date">
-                          {formatDateToSpanish(match.date)}
-                        </span>
-                      </div>
-                      <div className="match-content">
-                        <div className="match-time">{match.time}</div>
-                        <div className="match-team home">
-                          <span className="team-name">{match.home.name}</span>
-                          <div className="team-logo">
-                            {match.home.logo ? (
-                              <img
-                                src={match.home.logo}
-                                alt={match.home.name}
-                              />
-                            ) : (
-                              <span className="default-logo">
-                                {match.home.name.substring(0, 2).toUpperCase()}
+                  {upcomingMatches.length > 0 ? (
+                    <div className="matches-list">
+                      {upcomingMatches.map((match, index) => (
+                        <div key={index} className="match-card">
+                          <div className="match-tournament-info">
+                            <span className="match-tournament-name">
+                              {match.tournament}
+                            </span>
+                            <span className="match-date">
+                              {formatDateToSpanish(match.date)}
+                            </span>
+                          </div>
+                          <div className="match-content">
+                            <div className="match-time">{match.time}</div>
+                            <div className="match-team home">
+                              <span className="team-name">
+                                {match.home.name}
                               </span>
-                            )}
+                              <div className="team-logo">
+                                {match.home.logo ? (
+                                  <img
+                                    src={match.home.logo}
+                                    alt={match.home.name}
+                                  />
+                                ) : (
+                                  <span className="default-logo">
+                                    {match.home.name
+                                      .substring(0, 2)
+                                      .toUpperCase()}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="match-vs">VS</div>
+                            <div className="match-team away">
+                              <div className="team-logo">
+                                {match.away.logo ? (
+                                  <img
+                                    src={match.away.logo}
+                                    alt={match.away.name}
+                                  />
+                                ) : (
+                                  <span className="default-logo">
+                                    {match.away.name
+                                      .substring(0, 2)
+                                      .toUpperCase()}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="team-name">
+                                {match.away.name}
+                              </span>
+                            </div>
+                            <div className="match-format">{match.format}</div>
                           </div>
                         </div>
-                        <div className="match-vs">VS</div>
-                        <div className="match-team away">
-                          <div className="team-logo">
-                            {match.away.logo ? (
-                              <img
-                                src={match.away.logo}
-                                alt={match.away.name}
-                              />
-                            ) : (
-                              <span className="default-logo">
-                                {match.away.name.substring(0, 2).toUpperCase()}
-                              </span>
-                            )}
-                          </div>
-                          <span className="team-name">{match.away.name}</span>
-                        </div>
-                        <div className="match-format">{match.format}</div>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  ) : (
+                    <p className="no-matches">
+                      No hay partidos programados para esta jornada
+                    </p>
+                  )}
+                </>
               ) : (
                 <p className="no-matches">
-                  {myTournaments.length === 0
-                    ? "Inscríbete en torneos para ver tus próximos partidos"
-                    : "No hay partidos programados para esta jornada"}
+                  Inscríbete en torneos para ver tus próximos partidos
                 </p>
               )}
             </div>
