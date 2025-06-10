@@ -279,8 +279,8 @@
 /* Layout principal con clasificación y jornadas */
 .tournament-content {
   display: grid;
-  grid-template-columns: 550px 1fr;
-  gap: 2rem;
+  grid-template-columns: 700px 1fr;
+  gap: 1.5rem;
   align-items: start;
 }
 
