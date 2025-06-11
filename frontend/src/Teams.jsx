@@ -507,14 +507,14 @@ const Teams = ({ onBack }) => {
     ),
     staff: (
       <img
-        src="CAMBIA AQUI - /public/role-icons/staff.png"
+        src="/role-icons/staff.png"
         alt="Staff"
         style={{ width: "24px", height: "24px" }}
       />
     ),
     suplente: (
       <img
-        src="CAMBIA AQUI - /public/role-icons/sub.png"
+        src="/role-icons/sub.png"
         alt="Suplente"
         style={{ width: "24px", height: "24px" }}
       />
@@ -556,8 +556,8 @@ const Teams = ({ onBack }) => {
 
       <Header
         onBack={onBack}
-        titleImage="/equipos-title.png" // Cambia por tu PNG
-        logoImage="/team-logo.png" // Cambia por tu PNG del logo
+        titleImage="/equipos-title.png"
+        logoImage="/team-logo.png"
       />
 
       <div className="teams-content">
@@ -605,7 +605,7 @@ const Teams = ({ onBack }) => {
                 required
               />
               <label>
-                Logo del equipo:
+                Imagen del equipo:
                 <input
                   type="file"
                   accept="image/*"
@@ -722,7 +722,7 @@ const Teams = ({ onBack }) => {
                 required
               />
               <label>
-                Nuevo logo del equipo (opcional):
+                Nueva imagen del equipo (opcional):
                 <input
                   type="file"
                   accept="image/*"

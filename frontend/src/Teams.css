@@ -1,5 +1,5 @@
 .teams-container {
-  padding: 2rem;
+  padding: 1rem;
   color: white;
   background-color: #0e0e0e;
   font-family: 'Segoe UI', sans-serif;
@@ -647,22 +647,12 @@
   border: 1px solid #3B82F6;
 }
 
-/* Logos de juegos */
+/* Logos de juegos - SIN FILTRO, NORMAL */
 .tournament-game-logo {
-  width: 120px;
-  height: 120px;
-  opacity: 0.9;
-  filter: brightness(0) invert(1); /* Convierte cualquier imagen a blanco */
-  margin-top: 10px;
-}
-
-/* SVGs de juegos */
-.game-logo-lol {
-  fill: white !important;
-}
-
-.game-logo-valorant {
-  fill: white !important;
+  width: 80px;
+  height: 80px;
+  opacity: 1;
+  margin-left: auto;
 }
 
 .no-tournaments {
@@ -986,10 +976,8 @@
 
 @media (max-width: 768px) {
   .teams-container {
-    padding: 1rem;
+    padding: 0.5rem;
   }
-  
-
   
   .game-selector {
     width: 100%;
@@ -1078,9 +1066,9 @@
 }
 
 .teams-container {
-  padding: 0; /* quitar padding superior */
+  padding: 0;
 }
 
 .tournaments-container {
-  padding: 0; /* quitar padding superior */
+  padding: 0;
 }

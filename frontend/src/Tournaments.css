@@ -2,10 +2,9 @@
   min-height: 100vh;
   background: #0e0e0e;
   color: white;
-  padding: 2rem;
+  padding: 1rem;
   position: relative;
 }
-
 
 .tournaments-grid {
   display: grid;
@@ -56,10 +55,10 @@
 }
 
 .tournament-game-logo {
-  width: 120px;
-  height: 120px;
-  opacity: 0.9;
-  filter: brightness(0) invert(1);
+  width: 80px;
+  height: 80px;
+  opacity: 1;
+  margin-left: auto;
 }
 
 .tournament-date {
@@ -184,7 +183,7 @@
   min-height: 100vh;
   background: #0e0e0e;
   color: white;
-  padding: 2rem;
+  padding: 1rem;
 }
 
 .tournament-info-section {
@@ -743,9 +742,8 @@
 
 @media (max-width: 768px) {
   .tournaments-container {
-    padding: 1rem;
+    padding: 0.5rem;
   }
-  
   
   .tournaments-grid {
     grid-template-columns: 1fr;
@@ -757,7 +755,7 @@
   }
 
   .tournament-details {
-    padding: 1rem;
+    padding: 0.5rem;
   }
   
   .tournament-details-header {
@@ -833,9 +831,9 @@
 }
 
 .teams-container {
-  padding: 0; /* quitar padding superior */
+  padding: 0;
 }
 
 .tournaments-container {
-  padding: 0; /* quitar padding superior */
+  padding: 0;
 }

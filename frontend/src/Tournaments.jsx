@@ -96,7 +96,7 @@ const Tournaments = ({ onBack }) => {
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [userTeam, setUserTeam] = useState(null);
 
-  // Logos de juegos - mantener rutas actuales
+  // Logos de juegos - sin filtro, normales
   const gameLogos = {
     lol: (
       <img
@@ -107,7 +107,7 @@ const Tournaments = ({ onBack }) => {
     ),
     valorant: (
       <img
-        src="CAMBIA AQUI - /public/game-logos/valorant.png"
+        src="/valorant_logo.png"
         alt="Valorant"
         className="tournament-game-logo"
       />
@@ -211,8 +211,8 @@ const Tournaments = ({ onBack }) => {
         <>
           <Header
             onBack={onBack}
-            titleImage="/torneos-title.png" // Cambia por tu PNG
-            logoImage="/team-logo.png" // Cambia por tu PNG del logo
+            titleImage="/torneos-title.png"
+            logoImage="/team-logo.png"
           />
 
           <div className="tournaments-content">
@@ -417,7 +417,7 @@ const TournamentDetails = ({ tournament, onBack }) => {
     <div className="tournament-details">
       <Header
         onBack={onBack}
-        titleImage="/torneo-detail-title.png" // PNG específico para detalles
+        titleImage="/torneo-detail-title.png"
         logoImage="/team-logo.png"
       />
 
