@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./Teams.css";
 import Modal from "./Modal";
 import { useModal } from "./useModal";
+import Header from "./Header";
 
 const Teams = ({ onBack }) => {
   const { modalConfig, showAlert, showSuccess, showError, showConfirm } =
@@ -553,527 +554,530 @@ const Teams = ({ onBack }) => {
 
       <Modal {...modalConfig} />
 
-      <div className="teams-header">
-        <button onClick={onBack} className="back-button">
-          ← Volver
-        </button>
-        <h1>Equipos</h1>
-      </div>
+      <Header
+        onBack={onBack}
+        titleImage="/equipos-title.png" // Cambia por tu PNG
+        logoImage="/team-logo.png" // Cambia por tu PNG del logo
+      />
 
-      <div className="game-selector">
-        <button
-          className={`game-btn ${selectedGame === "lol" ? "active" : ""}`}
-          onClick={() => setSelectedGame("lol")}
-        >
-          League of Legends
-        </button>
-        <button
-          className={`game-btn ${selectedGame === "valorant" ? "active" : ""}`}
-          onClick={() => setSelectedGame("valorant")}
-        >
-          Valorant
-        </button>
-      </div>
-
-      {!myTeam && !showCreateForm && !showJoinForm && (
-        <div className="team-actions">
+      <div className="teams-content">
+        <div className="game-selector">
           <button
-            onClick={() => setShowCreateForm(true)}
-            className="action-btn create-btn"
+            className={`game-btn ${selectedGame === "lol" ? "active" : ""}`}
+            onClick={() => setSelectedGame("lol")}
           >
-            Crear Equipo
+            League of Legends
           </button>
           <button
-            onClick={() => setShowJoinForm(true)}
-            className="action-btn join-btn"
+            className={`game-btn ${selectedGame === "valorant" ? "active" : ""}`}
+            onClick={() => setSelectedGame("valorant")}
           >
-            Unirse al Equipo
+            Valorant
           </button>
         </div>
-      )}
 
-      {showCreateForm && (
-        <div className="form-container">
-          <h2>Crear Equipo</h2>
-          <form onSubmit={handleCreateTeam}>
-            <input
-              type="text"
-              placeholder="Nombre del equipo"
-              value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
-              required
-            />
-            <label>
-              Logo del equipo:
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setTeamLogo(e.target.files[0])}
-              />
-            </label>
-            <select
-              value={playerRole}
-              onChange={(e) => setPlayerRole(e.target.value)}
+        {!myTeam && !showCreateForm && !showJoinForm && (
+          <div className="team-actions">
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="action-btn create-btn"
             >
-              <option value="top">Top</option>
-              <option value="jungla">Jungla</option>
-              <option value="medio">Medio</option>
-              <option value="adc">ADC</option>
-              <option value="support">Support</option>
-              <option value="staff">Staff</option>
-              <option value="suplente">Suplente</option>
-            </select>
-            <input
-              type="text"
-              placeholder="Tu nickname"
-              value={playerNickname}
-              onChange={(e) => setPlayerNickname(e.target.value)}
-              required
-            />
-            <input
-              type="text"
-              placeholder="Link OP.GG"
-              value={playerOpgg}
-              onChange={(e) => setPlayerOpgg(e.target.value)}
-            />
-            <div className="form-buttons">
-              <button type="submit" className="submit-btn">
-                Crear
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowCreateForm(false)}
-                className="cancel-btn"
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {showJoinForm && (
-        <div className="form-container">
-          <h2>Unirse a un Equipo</h2>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleJoinTeam();
-            }}
-          >
-            <input
-              type="text"
-              placeholder="Código del equipo"
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value)}
-              required
-            />
-            <select
-              value={playerRole}
-              onChange={(e) => setPlayerRole(e.target.value)}
+              Crear Equipo
+            </button>
+            <button
+              onClick={() => setShowJoinForm(true)}
+              className="action-btn join-btn"
             >
-              <option value="top">Top</option>
-              <option value="jungla">Jungla</option>
-              <option value="medio">Medio</option>
-              <option value="adc">ADC</option>
-              <option value="support">Support</option>
-              <option value="staff">Staff</option>
-              <option value="suplente">Suplente</option>
-            </select>
-            <input
-              type="text"
-              placeholder="Tu nickname"
-              value={playerNickname}
-              onChange={(e) => setPlayerNickname(e.target.value)}
-              required
-            />
-            <input
-              type="text"
-              placeholder="Link OP.GG"
-              value={playerOpgg}
-              onChange={(e) => setPlayerOpgg(e.target.value)}
-            />
-            <div className="form-buttons">
-              <button type="submit" className="submit-btn">
-                Unirse
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowJoinForm(false)}
-                className="cancel-btn"
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {showEditTeam && (
-        <div className="form-container">
-          <h2>Editar Equipo</h2>
-          <form onSubmit={handleEditTeam}>
-            <input
-              type="text"
-              placeholder="Nombre del equipo"
-              value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
-              required
-            />
-            <label>
-              Nuevo logo del equipo (opcional):
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setTeamLogo(e.target.files[0])}
-              />
-            </label>
-            <div className="form-buttons">
-              <button type="submit" className="submit-btn">
-                Actualizar
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowEditTeam(false);
-                  setTeamName("");
-                  setTeamLogo(null);
-                }}
-                className="cancel-btn"
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {showEditPlayer && currentPlayer && (
-        <div className="form-container">
-          <h2>Editar Jugador: {currentPlayer.nickname}</h2>
-          <form onSubmit={handleEditPlayer}>
-            <input
-              type="text"
-              placeholder="Nickname"
-              value={playerNickname}
-              onChange={(e) => setPlayerNickname(e.target.value)}
-              required
-            />
-            <select
-              value={playerRole}
-              onChange={(e) => setPlayerRole(e.target.value)}
-            >
-              <option value="top">Top</option>
-              <option value="jungla">Jungla</option>
-              <option value="medio">Medio</option>
-              <option value="adc">ADC</option>
-              <option value="support">Support</option>
-              <option value="staff">Staff</option>
-              <option value="suplente">Suplente</option>
-            </select>
-            <input
-              type="text"
-              placeholder="Link OP.GG"
-              value={playerOpgg}
-              onChange={(e) => setPlayerOpgg(e.target.value)}
-            />
-            <div className="form-buttons">
-              <button type="submit" className="submit-btn">
-                Actualizar
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowEditPlayer(false);
-                  setCurrentPlayer(null);
-                  setPlayerNickname("");
-                  setPlayerRole("top");
-                  setPlayerOpgg("");
-                }}
-                className="cancel-btn"
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {myTeam && (
-        <div className="team-display">
-          <div className="team-column-left">
-            <div className="team-header-section">
-              <div className="team-main-info">
-                <div className="team-logo-name">
-                  {myTeam.logo ? (
-                    <img
-                      src={myTeam.logo}
-                      alt={myTeam.name}
-                      className="team-logo"
-                    />
-                  ) : (
-                    <div className="team-logo-placeholder">
-                      {myTeam.name.charAt(0)}
-                    </div>
-                  )}
-                  <h2>{myTeam.name}</h2>
-                </div>
-                <div className="team-actions-small">
-                  <button onClick={confirmLeaveTeam} className="leave-btn">
-                    Salir del Equipo
-                  </button>
-                  {isTeamCreator && (
-                    <>
-                      <button onClick={openEditTeam} className="edit-btn">
-                        Editar Equipo
-                      </button>
-                      <button
-                        onClick={confirmDeleteTeam}
-                        className="delete-btn"
-                      >
-                        Eliminar Equipo
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-              <div className="team-code">
-                Código: <span>{myTeam.code}</span>
-              </div>
-            </div>
-
-            <div className="players-section">
-              <h3>Jugadores</h3>
-              <div className="players-list">
-                {myTeam.players.map((player, index) => {
-                  const token = localStorage.getItem("token");
-                  const tokenPayload = JSON.parse(atob(token.split(".")[1]));
-                  const currentUserId = tokenPayload.id;
-
-                  const isCurrentUser = player.userId === currentUserId;
-                  const canEdit = isTeamCreator || isCurrentUser;
-                  const canRemove = isTeamCreator && !isCurrentUser;
-
-                  return (
-                    <div key={index} className="player-card">
-                      <div className="player-role">
-                        <div className="role-icon">
-                          {roleIcons[player.role]}
-                        </div>
-                        <span className="role-name">
-                          {roleLabels[player.role]}
-                        </span>
-                      </div>
-                      <div className="player-info">
-                        <span className="player-name">{player.nickname}</span>
-                        {player.opgg && (
-                          <a
-                            href={formatOpggLink(player.opgg)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="opgg-link"
-                          >
-                            OP.GG
-                          </a>
-                        )}
-                      </div>
-                      <div className="player-actions">
-                        {canEdit && (
-                          <button
-                            onClick={() => openEditPlayer(player)}
-                            className="edit-player-btn"
-                            title="Editar jugador"
-                          >
-                            ✏️
-                          </button>
-                        )}
-                        {canRemove && (
-                          <button
-                            onClick={() => confirmRemovePlayer(player)}
-                            className="remove-player-btn"
-                            title="Eliminar jugador"
-                          >
-                            🗑️
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+              Unirse al Equipo
+            </button>
           </div>
+        )}
 
-          <div className="team-column-right">
-            {/* Sección de próximos partidos */}
-            <div className="upcoming-matches-section">
-              <h3>Próximos partidos</h3>
+        {showCreateForm && (
+          <div className="form-container">
+            <h2>Crear Equipo</h2>
+            <form onSubmit={handleCreateTeam}>
+              <input
+                type="text"
+                placeholder="Nombre del equipo"
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                required
+              />
+              <label>
+                Logo del equipo:
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setTeamLogo(e.target.files[0])}
+                />
+              </label>
+              <select
+                value={playerRole}
+                onChange={(e) => setPlayerRole(e.target.value)}
+              >
+                <option value="top">Top</option>
+                <option value="jungla">Jungla</option>
+                <option value="medio">Medio</option>
+                <option value="adc">ADC</option>
+                <option value="support">Support</option>
+                <option value="staff">Staff</option>
+                <option value="suplente">Suplente</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Tu nickname"
+                value={playerNickname}
+                onChange={(e) => setPlayerNickname(e.target.value)}
+                required
+              />
+              <input
+                type="text"
+                placeholder="Link OP.GG"
+                value={playerOpgg}
+                onChange={(e) => setPlayerOpgg(e.target.value)}
+              />
+              <div className="form-buttons">
+                <button type="submit" className="submit-btn">
+                  Crear
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateForm(false)}
+                  className="cancel-btn"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
-              {totalJornadas > 0 ? (
-                <>
-                  <div className="jornadas-nav">
-                    <button
-                      className="jornada-btn"
-                      onClick={() =>
-                        setSelectedJornada((prev) => Math.max(prev - 1, 1))
-                      }
-                      disabled={selectedJornada === 1}
-                    >
-                      ← Anterior
-                    </button>
-                    <span className="jornada-title">
-                      Jornada {selectedJornada}
-                    </span>
-                    <button
-                      className="jornada-btn"
-                      onClick={() =>
-                        setSelectedJornada((prev) =>
-                          Math.min(prev + 1, totalJornadas)
-                        )
-                      }
-                      disabled={selectedJornada === totalJornadas}
-                    >
-                      Siguiente →
-                    </button>
+        {showJoinForm && (
+          <div className="form-container">
+            <h2>Unirse a un Equipo</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleJoinTeam();
+              }}
+            >
+              <input
+                type="text"
+                placeholder="Código del equipo"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value)}
+                required
+              />
+              <select
+                value={playerRole}
+                onChange={(e) => setPlayerRole(e.target.value)}
+              >
+                <option value="top">Top</option>
+                <option value="jungla">Jungla</option>
+                <option value="medio">Medio</option>
+                <option value="adc">ADC</option>
+                <option value="support">Support</option>
+                <option value="staff">Staff</option>
+                <option value="suplente">Suplente</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Tu nickname"
+                value={playerNickname}
+                onChange={(e) => setPlayerNickname(e.target.value)}
+                required
+              />
+              <input
+                type="text"
+                placeholder="Link OP.GG"
+                value={playerOpgg}
+                onChange={(e) => setPlayerOpgg(e.target.value)}
+              />
+              <div className="form-buttons">
+                <button type="submit" className="submit-btn">
+                  Unirse
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowJoinForm(false)}
+                  className="cancel-btn"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {showEditTeam && (
+          <div className="form-container">
+            <h2>Editar Equipo</h2>
+            <form onSubmit={handleEditTeam}>
+              <input
+                type="text"
+                placeholder="Nombre del equipo"
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                required
+              />
+              <label>
+                Nuevo logo del equipo (opcional):
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setTeamLogo(e.target.files[0])}
+                />
+              </label>
+              <div className="form-buttons">
+                <button type="submit" className="submit-btn">
+                  Actualizar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditTeam(false);
+                    setTeamName("");
+                    setTeamLogo(null);
+                  }}
+                  className="cancel-btn"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {showEditPlayer && currentPlayer && (
+          <div className="form-container">
+            <h2>Editar Jugador: {currentPlayer.nickname}</h2>
+            <form onSubmit={handleEditPlayer}>
+              <input
+                type="text"
+                placeholder="Nickname"
+                value={playerNickname}
+                onChange={(e) => setPlayerNickname(e.target.value)}
+                required
+              />
+              <select
+                value={playerRole}
+                onChange={(e) => setPlayerRole(e.target.value)}
+              >
+                <option value="top">Top</option>
+                <option value="jungla">Jungla</option>
+                <option value="medio">Medio</option>
+                <option value="adc">ADC</option>
+                <option value="support">Support</option>
+                <option value="staff">Staff</option>
+                <option value="suplente">Suplente</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Link OP.GG"
+                value={playerOpgg}
+                onChange={(e) => setPlayerOpgg(e.target.value)}
+              />
+              <div className="form-buttons">
+                <button type="submit" className="submit-btn">
+                  Actualizar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditPlayer(false);
+                    setCurrentPlayer(null);
+                    setPlayerNickname("");
+                    setPlayerRole("top");
+                    setPlayerOpgg("");
+                  }}
+                  className="cancel-btn"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {myTeam && (
+          <div className="team-display">
+            <div className="team-column-left">
+              <div className="team-header-section">
+                <div className="team-main-info">
+                  <div className="team-logo-name">
+                    {myTeam.logo ? (
+                      <img
+                        src={myTeam.logo}
+                        alt={myTeam.name}
+                        className="team-logo"
+                      />
+                    ) : (
+                      <div className="team-logo-placeholder">
+                        {myTeam.name.charAt(0)}
+                      </div>
+                    )}
+                    <h2>{myTeam.name}</h2>
                   </div>
+                  <div className="team-actions-small">
+                    <button onClick={confirmLeaveTeam} className="leave-btn">
+                      Salir del Equipo
+                    </button>
+                    {isTeamCreator && (
+                      <>
+                        <button onClick={openEditTeam} className="edit-btn">
+                          Editar Equipo
+                        </button>
+                        <button
+                          onClick={confirmDeleteTeam}
+                          className="delete-btn"
+                        >
+                          Eliminar Equipo
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="team-code">
+                  Código: <span>{myTeam.code}</span>
+                </div>
+              </div>
 
-                  {upcomingMatches.length > 0 ? (
-                    <div className="matches-list">
-                      {upcomingMatches.map((match, index) => {
-                        const isHome = match.home_team_id === myTeam.id;
-                        const homeTeam = {
-                          id: match.home_team_id,
-                          name: match.home_team_name,
-                          logo: match.home_team_logo,
-                        };
-                        const awayTeam = {
-                          id: match.away_team_id,
-                          name: match.away_team_name,
-                          logo: match.away_team_logo,
-                        };
+              <div className="players-section">
+                <h3>Jugadores</h3>
+                <div className="players-list">
+                  {myTeam.players.map((player, index) => {
+                    const token = localStorage.getItem("token");
+                    const tokenPayload = JSON.parse(atob(token.split(".")[1]));
+                    const currentUserId = tokenPayload.id;
 
-                        return (
-                          <div key={index} className="match-card">
-                            <div className="match-tournament-info">
-                              <span className="match-tournament-name">
-                                {match.tournament_name}
-                              </span>
-                              <span className="match-date">
-                                {formatDateToSpanish(match.match_date)}
-                              </span>
-                            </div>
-                            <div className="match-content">
-                              <div className="match-time">
-                                {formatTime(match.match_time)}
-                              </div>
-                              <div className="match-team home">
-                                <span className="team-name">
-                                  {homeTeam.name}
-                                </span>
-                                <div className="team-logo">
-                                  {homeTeam.logo ? (
-                                    <img
-                                      src={homeTeam.logo}
-                                      alt={homeTeam.name}
-                                    />
-                                  ) : (
-                                    <span className="default-logo">
-                                      {homeTeam.name
-                                        .substring(0, 2)
-                                        .toUpperCase()}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="match-vs">VS</div>
-                              <div className="match-team away">
-                                <div className="team-logo">
-                                  {awayTeam.logo ? (
-                                    <img
-                                      src={awayTeam.logo}
-                                      alt={awayTeam.name}
-                                    />
-                                  ) : (
-                                    <span className="default-logo">
-                                      {awayTeam.name
-                                        .substring(0, 2)
-                                        .toUpperCase()}
-                                    </span>
-                                  )}
-                                </div>
-                                <span className="team-name">
-                                  {awayTeam.name}
-                                </span>
-                              </div>
-                              <div className="match-format">{match.format}</div>
-                            </div>
+                    const isCurrentUser = player.userId === currentUserId;
+                    const canEdit = isTeamCreator || isCurrentUser;
+                    const canRemove = isTeamCreator && !isCurrentUser;
+
+                    return (
+                      <div key={index} className="player-card">
+                        <div className="player-role">
+                          <div className="role-icon">
+                            {roleIcons[player.role]}
                           </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="no-matches">
-                      No hay partidos programados para esta jornada
-                    </p>
-                  )}
-                </>
-              ) : (
-                <p className="no-matches">
-                  Inscríbete en torneos para ver tus próximos partidos
-                </p>
-              )}
+                          <span className="role-name">
+                            {roleLabels[player.role]}
+                          </span>
+                        </div>
+                        <div className="player-info">
+                          <span className="player-name">{player.nickname}</span>
+                          {player.opgg && (
+                            <a
+                              href={formatOpggLink(player.opgg)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="opgg-link"
+                            >
+                              OP.GG
+                            </a>
+                          )}
+                        </div>
+                        <div className="player-actions">
+                          {canEdit && (
+                            <button
+                              onClick={() => openEditPlayer(player)}
+                              className="edit-player-btn"
+                              title="Editar jugador"
+                            >
+                              ✏️
+                            </button>
+                          )}
+                          {canRemove && (
+                            <button
+                              onClick={() => confirmRemovePlayer(player)}
+                              className="remove-player-btn"
+                              title="Eliminar jugador"
+                            >
+                              🗑️
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
-            {/* Torneos inscritos */}
-            <div className="tournaments-section">
-              <h3>Torneos en los que estás inscrito</h3>
-              <div className="tournaments-grid">
-                {myTournaments.length > 0 ? (
-                  myTournaments.map((tournament) => (
-                    <div key={tournament.id} className="tournament-card">
-                      <div className="tournament-status-badge inscrito">
-                        Inscrito
-                      </div>
+            <div className="team-column-right">
+              {/* Sección de próximos partidos */}
+              <div className="upcoming-matches-section">
+                <h3>Próximos partidos</h3>
 
-                      <div className="tournament-header">
-                        <div className="tournament-info">
-                          <div className="tournament-date">
-                            {new Date(tournament.date).toLocaleDateString(
-                              "es-ES",
-                              {
-                                day: "numeric",
-                                month: "short",
-                              }
-                            )}
-                          </div>
-                          <div className="tournament-region">Online</div>
-                          <h4 className="tournament-title">
-                            {tournament.name}
-                          </h4>
-                        </div>
-                        {gameLogos[tournament.game] || gameLogos.lol}
-                      </div>
-
-                      <div className="tournament-actions">
-                        <button
-                          className="tournament-btn tournament-btn-leave"
-                          onClick={() => leaveTournament(tournament.id)}
-                        >
-                          Salir
-                        </button>
-                      </div>
+                {totalJornadas > 0 ? (
+                  <>
+                    <div className="jornadas-nav">
+                      <button
+                        className="jornada-btn"
+                        onClick={() =>
+                          setSelectedJornada((prev) => Math.max(prev - 1, 1))
+                        }
+                        disabled={selectedJornada === 1}
+                      >
+                        ← Anterior
+                      </button>
+                      <span className="jornada-title">
+                        Jornada {selectedJornada}
+                      </span>
+                      <button
+                        className="jornada-btn"
+                        onClick={() =>
+                          setSelectedJornada((prev) =>
+                            Math.min(prev + 1, totalJornadas)
+                          )
+                        }
+                        disabled={selectedJornada === totalJornadas}
+                      >
+                        Siguiente →
+                      </button>
                     </div>
-                  ))
+
+                    {upcomingMatches.length > 0 ? (
+                      <div className="matches-list">
+                        {upcomingMatches.map((match, index) => {
+                          const isHome = match.home_team_id === myTeam.id;
+                          const homeTeam = {
+                            id: match.home_team_id,
+                            name: match.home_team_name,
+                            logo: match.home_team_logo,
+                          };
+                          const awayTeam = {
+                            id: match.away_team_id,
+                            name: match.away_team_name,
+                            logo: match.away_team_logo,
+                          };
+
+                          return (
+                            <div key={index} className="match-card">
+                              <div className="match-tournament-info">
+                                <span className="match-tournament-name">
+                                  {match.tournament_name}
+                                </span>
+                                <span className="match-date">
+                                  {formatDateToSpanish(match.match_date)}
+                                </span>
+                              </div>
+                              <div className="match-content">
+                                <div className="match-time">
+                                  {formatTime(match.match_time)}
+                                </div>
+                                <div className="match-team home">
+                                  <span className="team-name">
+                                    {homeTeam.name}
+                                  </span>
+                                  <div className="team-logo">
+                                    {homeTeam.logo ? (
+                                      <img
+                                        src={homeTeam.logo}
+                                        alt={homeTeam.name}
+                                      />
+                                    ) : (
+                                      <span className="default-logo">
+                                        {homeTeam.name
+                                          .substring(0, 2)
+                                          .toUpperCase()}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="match-vs">VS</div>
+                                <div className="match-team away">
+                                  <div className="team-logo">
+                                    {awayTeam.logo ? (
+                                      <img
+                                        src={awayTeam.logo}
+                                        alt={awayTeam.name}
+                                      />
+                                    ) : (
+                                      <span className="default-logo">
+                                        {awayTeam.name
+                                          .substring(0, 2)
+                                          .toUpperCase()}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="team-name">
+                                    {awayTeam.name}
+                                  </span>
+                                </div>
+                                <div className="match-format">
+                                  {match.format}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="no-matches">
+                        No hay partidos programados para esta jornada
+                      </p>
+                    )}
+                  </>
                 ) : (
-                  <p className="no-tournaments">
-                    No estás inscrito en ningún torneo
+                  <p className="no-matches">
+                    Inscríbete en torneos para ver tus próximos partidos
                   </p>
                 )}
               </div>
+
+              {/* Torneos inscritos */}
+              <div className="tournaments-section">
+                <h3>Torneos en los que estás inscrito</h3>
+                <div className="tournaments-grid">
+                  {myTournaments.length > 0 ? (
+                    myTournaments.map((tournament) => (
+                      <div key={tournament.id} className="tournament-card">
+                        <div className="tournament-status-badge inscrito">
+                          Inscrito
+                        </div>
+
+                        <div className="tournament-header">
+                          <div className="tournament-info">
+                            <div className="tournament-date">
+                              {new Date(tournament.date).toLocaleDateString(
+                                "es-ES",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                }
+                              )}
+                            </div>
+                            <div className="tournament-region">Online</div>
+                            <h4 className="tournament-title">
+                              {tournament.name}
+                            </h4>
+                          </div>
+                          {gameLogos[tournament.game] || gameLogos.lol}
+                        </div>
+
+                        <div className="tournament-actions">
+                          <button
+                            className="tournament-btn tournament-btn-leave"
+                            onClick={() => leaveTournament(tournament.id)}
+                          >
+                            Salir
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="no-tournaments">
+                      No estás inscrito en ningún torneo
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

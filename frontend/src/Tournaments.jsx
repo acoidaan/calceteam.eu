@@ -3,6 +3,7 @@ import AdminPanel from "./AdminPanel";
 import "./Tournaments.css";
 import Modal from "./Modal";
 import { useModal } from "./useModal";
+import Header from "./Header";
 
 // Funciones de utilidad para fechas
 const formatDateToSpanish = (mysqlDate) => {
@@ -208,69 +209,70 @@ const Tournaments = ({ onBack }) => {
         />
       ) : (
         <>
-          <div className="tournaments-header">
-            <button onClick={onBack} className="back-button">
-              ← Volver
-            </button>
-            <h1>Torneos Activos</h1>
-          </div>
+          <Header
+            onBack={onBack}
+            titleImage="/torneos-title.png" // Cambia por tu PNG
+            logoImage="/team-logo.png" // Cambia por tu PNG del logo
+          />
 
-          <div className="tournaments-grid">
-            {tournaments.length === 0 ? (
-              <div className="no-tournaments">No hay torneos activos</div>
-            ) : (
-              tournaments.map((tournament) => (
-                <div key={tournament.id} className="tournament-card">
-                  <div
-                    className={`tournament-status-badge ${tournament.status}`}
-                  >
-                    {tournament.status === "abierto" ? "Abierto" : "Cerrado"}
-                  </div>
+          <div className="tournaments-content">
+            <div className="tournaments-grid">
+              {tournaments.length === 0 ? (
+                <div className="no-tournaments">No hay torneos activos</div>
+              ) : (
+                tournaments.map((tournament) => (
+                  <div key={tournament.id} className="tournament-card">
+                    <div
+                      className={`tournament-status-badge ${tournament.status}`}
+                    >
+                      {tournament.status === "abierto" ? "Abierto" : "Cerrado"}
+                    </div>
 
-                  <div className="tournament-header">
-                    <div className="tournament-info">
-                      <div className="tournament-date">
-                        {formatDateToSpanish(tournament.date)}
+                    <div className="tournament-header">
+                      <div className="tournament-info">
+                        <div className="tournament-date">
+                          {formatDateToSpanish(tournament.date)}
+                        </div>
+                        <div className="tournament-game">Online</div>
+                        <h3 className="tournament-title">{tournament.name}</h3>
                       </div>
-                      <div className="tournament-game">Online</div>
-                      <h3 className="tournament-title">{tournament.name}</h3>
+                      {gameLogos[tournament.game] || gameLogos.lol}
                     </div>
-                    {gameLogos[tournament.game] || gameLogos.lol}
-                  </div>
 
-                  {tournament.description && (
-                    <div className="tournament-description">
-                      {tournament.description}
+                    {tournament.description && (
+                      <div className="tournament-description">
+                        {tournament.description}
+                      </div>
+                    )}
+
+                    <div className="tournament-actions">
+                      <button
+                        className="tournament-btn tournament-btn-primary"
+                        onClick={() => handleRegister(tournament)}
+                        disabled={tournament.status === "cerrado"}
+                      >
+                        {tournament.status === "cerrado"
+                          ? "Cerrado"
+                          : "Inscribirte"}
+                      </button>
+                      <button
+                        className="tournament-btn tournament-btn-secondary"
+                        onClick={() => handleViewMore(tournament)}
+                      >
+                        Ver Más
+                      </button>
                     </div>
-                  )}
-
-                  <div className="tournament-actions">
-                    <button
-                      className="tournament-btn tournament-btn-primary"
-                      onClick={() => handleRegister(tournament)}
-                      disabled={tournament.status === "cerrado"}
-                    >
-                      {tournament.status === "cerrado"
-                        ? "Cerrado"
-                        : "Inscribirte"}
-                    </button>
-                    <button
-                      className="tournament-btn tournament-btn-secondary"
-                      onClick={() => handleViewMore(tournament)}
-                    >
-                      Ver Más
-                    </button>
                   </div>
-                </div>
-              ))
+                ))
+              )}
+            </div>
+
+            {isAdmin && (
+              <div className="admin-section">
+                <AdminPanel />
+              </div>
             )}
           </div>
-
-          {isAdmin && (
-            <div className="admin-section">
-              <AdminPanel />
-            </div>
-          )}
         </>
       )}
     </div>
@@ -413,12 +415,11 @@ const TournamentDetails = ({ tournament, onBack }) => {
 
   return (
     <div className="tournament-details">
-      <div className="tournament-details-header">
-        <button onClick={onBack} className="back-button">
-          ← Volver a Torneos
-        </button>
-        <h1>{tournament.name}</h1>
-      </div>
+      <Header
+        onBack={onBack}
+        titleImage="/torneo-detail-title.png" // PNG específico para detalles
+        logoImage="/team-logo.png"
+      />
 
       <div className="tournament-info-section">
         <div className="tournament-meta">
