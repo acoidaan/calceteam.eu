@@ -89,10 +89,15 @@ function isAdmin(req, res, next) {
 // ALGORITMO DE CALENDARIO TIPO FÚTBOL
 // ==========================================
 function generateTournamentMatches(tournamentId, teams, startDate, callback) {
-  console.log(`🎯 Generando partidos para torneo ${tournamentId} con ${teams.length} equipos`);
-  
+  console.log(`🎯 [DEBUG] Generando partidos para torneo ${tournamentId}`);
+  console.log(
+    `🎯 [DEBUG] Equipos recibidos:`,
+    teams.map((t) => `${t.id}: ${t.name}`)
+  );
+  console.log(`🎯 [DEBUG] Fecha inicio: ${startDate}`);
+
   if (teams.length < 2) {
-    console.log("⚠️ Se necesitan al menos 2 equipos");
+    console.log("⚠️ [DEBUG] Error: Se necesitan al menos 2 equipos");
     return callback(new Error("Se necesitan al menos 2 equipos"));
   }
 
@@ -115,30 +120,56 @@ function generateTournamentMatches(tournamentId, teams, startDate, callback) {
 
   db.query(createMatchesTable, (err) => {
     if (err) {
-      console.error("❌ Error creando tabla tournament_matches:", err);
+      console.error("❌ [DEBUG] Error creando tabla tournament_matches:", err);
+    } else {
+      console.log("✅ [DEBUG] Tabla tournament_matches verificada/creada");
     }
+
+    console.log("🔄 [DEBUG] Iniciando generación de calendario...");
 
     // Generar calendario tipo liga de fútbol
     const matches = generateFootballSchedule(teams, tournamentId, startDate);
-    
-    console.log(`✅ Generado calendario con ${matches.length} partidos`);
+
+    console.log(
+      `✅ [DEBUG] Calendario generado con ${matches.length} partidos`
+    );
+    console.log(
+      "📋 [DEBUG] Partidos generados:",
+      matches.map(
+        (m) =>
+          `J${m.jornada}: Team${m.team1_id} vs Team${m.team2_id} (${m.match_date})`
+      )
+    );
 
     if (matches.length === 0) {
+      console.log("⚠️ [DEBUG] No se generaron partidos, retornando 0");
       return callback(null, 0);
     }
 
     // Insertar partidos
+    console.log("💾 [DEBUG] Iniciando inserción de partidos...");
     insertMatches(matches, (err, insertedCount) => {
-      if (err) return callback(err);
-      
+      if (err) {
+        console.error("❌ [DEBUG] Error en inserción:", err);
+        return callback(err);
+      }
+
+      console.log(
+        `✅ [DEBUG] ${insertedCount} partidos insertados exitosamente`
+      );
+
       // Inicializar estadísticas
+      console.log("📊 [DEBUG] Inicializando estadísticas...");
       initializeStats(tournamentId, teams, callback, insertedCount);
     });
   });
 }
 
-// Generar calendario estilo liga de fútbol
+// Generar calendario estilo liga de fútbol con debug
 function generateFootballSchedule(teams, tournamentId, startDate) {
+  console.log("🏈 [DEBUG] === INICIO GENERACIÓN CALENDARIO ===");
+  console.log(`🏈 [DEBUG] Input - ${teams.length} equipos, torneo ${tournamentId}`);
+  
   const matches = [];
   const numTeams = teams.length;
   const defaultTime = "20:00:00";
@@ -146,33 +177,54 @@ function generateFootballSchedule(teams, tournamentId, startDate) {
   // Si hay número impar de equipos, agregar "descanso"
   let teamsArray = [...teams];
   if (numTeams % 2 !== 0) {
+    console.log("🏈 [DEBUG] Número impar de equipos, añadiendo descanso");
     teamsArray.push({ id: null, name: "DESCANSO" });
   }
   
   const totalTeams = teamsArray.length;
   const totalJornadas = (totalTeams - 1) * 2; // Ida y vuelta
   
-  console.log(`📅 Generando ${totalJornadas} jornadas para ${numTeams} equipos`);
+  console.log(`🏈 [DEBUG] Configuración:`);
+  console.log(`🏈 [DEBUG] - Equipos originales: ${numTeams}`);
+  console.log(`🏈 [DEBUG] - Equipos totales (con descanso): ${totalTeams}`);
+  console.log(`🏈 [DEBUG] - Jornadas totales: ${totalJornadas}`);
+  console.log(`🏈 [DEBUG] - Equipos array:`, teamsArray.map(t => `${t.id || 'NULL'}: ${t.name}`));
 
   // Generar ida
+  console.log("🏈 [DEBUG] === GENERANDO IDA ===");
   for (let jornada = 1; jornada <= totalTeams - 1; jornada++) {
+    console.log(`🏈 [DEBUG] Generando jornada ${jornada} (IDA)`);
     const jornadaMatches = generateJornadaMatches(teamsArray, jornada, false);
+    console.log(`🏈 [DEBUG] Jornada ${jornada} generó ${jornadaMatches.length} partidos`);
     addMatchesToList(matches, jornadaMatches, tournamentId, startDate, jornada, defaultTime);
   }
 
   // Generar vuelta (invertir equipos)
+  console.log("🏈 [DEBUG] === GENERANDO VUELTA ===");
   for (let jornada = 1; jornada <= totalTeams - 1; jornada++) {
+    const jornadaVuelta = jornada + (totalTeams - 1);
+    console.log(`🏈 [DEBUG] Generando jornada ${jornadaVuelta} (VUELTA de jornada ${jornada})`);
     const jornadaMatches = generateJornadaMatches(teamsArray, jornada, true);
-    addMatchesToList(matches, jornadaMatches, tournamentId, startDate, jornada + (totalTeams - 1), defaultTime);
+    console.log(`🏈 [DEBUG] Jornada ${jornadaVuelta} generó ${jornadaMatches.length} partidos`);
+    addMatchesToList(matches, jornadaMatches, tournamentId, startDate, jornadaVuelta, defaultTime);
   }
 
-  return matches.filter(match => match.team1_id !== null && match.team2_id !== null);
+  const finalMatches = matches.filter(match => match.team1_id !== null && match.team2_id !== null);
+  console.log(`🏈 [DEBUG] === RESULTADO FINAL ===`);
+  console.log(`🏈 [DEBUG] Partidos antes de filtrar: ${matches.length}`);
+  console.log(`🏈 [DEBUG] Partidos después de filtrar: ${finalMatches.length}`);
+  
+  return finalMatches;
 }
-
-// Generar partidos para una jornada específica
+// Generar partidos para una jornada específica con debug
 function generateJornadaMatches(teams, jornada, isVuelta) {
+  console.log(`⚽ [DEBUG] === GENERANDO JORNADA ${jornada} (${isVuelta ? 'VUELTA' : 'IDA'}) ===`);
+  console.log(`⚽ [DEBUG] Teams input:`, teams.map(t => `${t.id || 'NULL'}: ${t.name}`));
+  
   const matches = [];
   const totalTeams = teams.length;
+  
+  console.log(`⚽ [DEBUG] Total teams: ${totalTeams}`);
   
   // Algoritmo round-robin
   const homeTeams = [];
@@ -182,45 +234,69 @@ function generateJornadaMatches(teams, jornada, isVuelta) {
   if (jornada % 2 === 1) {
     homeTeams.push(teams[0]);
     awayTeams.push(teams[jornada]);
+    console.log(`⚽ [DEBUG] Equipo fijo: ${teams[0].name} vs ${teams[jornada].name}`);
   } else {
     homeTeams.push(teams[jornada]);
     awayTeams.push(teams[0]);
+    console.log(`⚽ [DEBUG] Equipo fijo: ${teams[jornada].name} vs ${teams[0].name}`);
   }
   
   // Rotar el resto de equipos
+  console.log(`⚽ [DEBUG] Rotando equipos restantes...`);
   for (let i = 1; i < totalTeams / 2; i++) {
     const homeIndex = (jornada + i - 1) % (totalTeams - 1) + 1;
     const awayIndex = (jornada - i - 1 + totalTeams - 1) % (totalTeams - 1) + 1;
     
-    homeTeams.push(teams[homeIndex]);
-    awayTeams.push(teams[awayIndex]);
+    console.log(`⚽ [DEBUG] Rotación ${i}: homeIndex=${homeIndex}, awayIndex=${awayIndex}`);
+    
+    if (homeIndex < teams.length && awayIndex < teams.length) {
+      homeTeams.push(teams[homeIndex]);
+      awayTeams.push(teams[awayIndex]);
+      console.log(`⚽ [DEBUG] Añadido: ${teams[homeIndex].name} vs ${teams[awayIndex].name}`);
+    } else {
+      console.log(`⚽ [DEBUG] ⚠️ Índices fuera de rango: homeIndex=${homeIndex}, awayIndex=${awayIndex}, teams.length=${teams.length}`);
+    }
   }
+  
+  console.log(`⚽ [DEBUG] Equipos locales:`, homeTeams.map(t => t.name));
+  console.log(`⚽ [DEBUG] Equipos visitantes:`, awayTeams.map(t => t.name));
   
   // Crear partidos
   for (let i = 0; i < homeTeams.length; i++) {
     let team1 = homeTeams[i];
     let team2 = awayTeams[i];
     
+    console.log(`⚽ [DEBUG] Creando partido ${i + 1}: ${team1.name} vs ${team2.name} (antes de vuelta)`);
+    
     // En vuelta, invertir local/visitante
     if (isVuelta) {
       [team1, team2] = [team2, team1];
+      console.log(`⚽ [DEBUG] Partido ${i + 1} invertido (vuelta): ${team1.name} vs ${team2.name}`);
     }
     
     if (team1.id && team2.id) {
       matches.push({ team1, team2 });
+      console.log(`⚽ [DEBUG] ✅ Partido válido añadido: ID${team1.id} vs ID${team2.id}`);
+    } else {
+      console.log(`⚽ [DEBUG] ❌ Partido con descanso omitido: ${team1.name} vs ${team2.name}`);
     }
   }
   
+  console.log(`⚽ [DEBUG] Jornada ${jornada} completada. Partidos válidos: ${matches.length}`);
   return matches;
 }
 
-// Agregar partidos a la lista con fecha y jornada
+// Agregar partidos a la lista con fecha y jornada con debug
 function addMatchesToList(matches, jornadaMatches, tournamentId, startDate, jornada, defaultTime) {
+  console.log(`📅 [DEBUG] Añadiendo ${jornadaMatches.length} partidos a jornada ${jornada}`);
+  
   const matchDate = new Date(startDate);
   matchDate.setDate(matchDate.getDate() + (jornada - 1) * 7); // Una semana entre jornadas
   
-  jornadaMatches.forEach(match => {
-    matches.push({
+  console.log(`📅 [DEBUG] Fecha calculada para jornada ${jornada}: ${matchDate.toISOString().split('T')[0]}`);
+  
+  jornadaMatches.forEach((match, index) => {
+    const matchObj = {
       tournament_id: tournamentId,
       team1_id: match.team1.id,
       team2_id: match.team2.id,
@@ -231,31 +307,51 @@ function addMatchesToList(matches, jornadaMatches, tournamentId, startDate, jorn
       score_team1: 0,
       score_team2: 0,
       status: 'pending'
-    });
+    };
+    
+    matches.push(matchObj);
+    console.log(`📅 [DEBUG] Partido ${index + 1} añadido:`, matchObj);
   });
+  
+  console.log(`📅 [DEBUG] Total partidos en lista: ${matches.length}`);
 }
 
-// Insertar partidos con mejor manejo de errores
+// Insertar partidos con debug mejorado
 function insertMatches(matches, callback) {
+  console.log(`💾 [DEBUG] === INSERTANDO ${matches.length} PARTIDOS ===`);
+  
   const insertQuery = `
     INSERT INTO tournament_matches 
     (tournament_id, team1_id, team2_id, match_date, match_time, match_format, jornada, score_team1, score_team2, status)
     VALUES ?
   `;
 
-  const values = matches.map(m => [
-    m.tournament_id, m.team1_id, m.team2_id,
-    m.match_date, m.match_time, m.match_format, m.jornada,
-    m.score_team1, m.score_team2, m.status
-  ]);
+  const values = matches.map((m, index) => {
+    const row = [
+      m.tournament_id, m.team1_id, m.team2_id,
+      m.match_date, m.match_time, m.match_format, m.jornada,
+      m.score_team1, m.score_team2, m.status
+    ];
+    
+    console.log(`💾 [DEBUG] Fila ${index + 1}:`, row);
+    return row;
+  });
+
+  console.log(`💾 [DEBUG] Query SQL:`, insertQuery);
+  console.log(`💾 [DEBUG] Total valores a insertar: ${values.length}`);
 
   db.query(insertQuery, [values], (err, result) => {
     if (err) {
-      console.error("❌ Error insertando partidos:", err);
+      console.error("❌ [DEBUG] Error en query de inserción:", err);
+      console.error("❌ [DEBUG] Query que falló:", insertQuery);
+      console.error("❌ [DEBUG] Valores que causaron error:", values);
       return callback(err);
     }
 
-    console.log(`✅ ${matches.length} partidos insertados correctamente`);
+    console.log(`✅ [DEBUG] Inserción exitosa. Resultado:`, result);
+    console.log(`✅ [DEBUG] Filas afectadas: ${result.affectedRows}`);
+    console.log(`✅ [DEBUG] ID de inserción: ${result.insertId}`);
+    
     callback(null, matches.length);
   });
 }
