@@ -1605,6 +1605,484 @@ app.get("/api/support/my-tickets", verifyToken, (req, res) => {
   });
 });
 
+// ==========================================
+// NUEVOS ENDPOINTS PARA SISTEMA DE PARTIDOS
+// ==========================================
+
+// Función para generar partidos automáticamente
+function generateTournamentMatches(tournamentId, teams, startDate, callback) {
+  if (teams.length < 4) {
+    return callback(new Error("Se necesitan al menos 4 equipos"));
+  }
+
+  const matches = [];
+  let jornada = 1;
+  let currentDate = new Date(startDate);
+  const matchTimes = ["16:00:00", "17:30:00", "19:00:00", "20:30:00"];
+  let timeIndex = 0;
+  let matchesInDay = 0;
+  const maxMatchesPerDay = 4;
+
+  // Generar todos vs todos (ida y vuelta)
+  // Fase ida
+  for (let i = 0; i < teams.length; i++) {
+    for (let j = i + 1; j < teams.length; j++) {
+      matches.push({
+        tournament_id: tournamentId,
+        home_team_id: teams[i].id,
+        away_team_id: teams[j].id,
+        match_date: new Date(currentDate).toISOString().split('T')[0],
+        match_time: matchTimes[timeIndex],
+        format: 'BO3',
+        jornada: jornada,
+        home_score: 0,
+        away_score: 0,
+        status: 'scheduled'
+      });
+
+      timeIndex = (timeIndex + 1) % matchTimes.length;
+      matchesInDay++;
+
+      if (matchesInDay >= maxMatchesPerDay) {
+        currentDate.setDate(currentDate.getDate() + 7); // Siguiente semana
+        timeIndex = 0;
+        matchesInDay = 0;
+        jornada++;
+      }
+    }
+  }
+
+  // Fase vuelta (después de una semana de descanso)
+  currentDate.setDate(currentDate.getDate() + 7);
+  jornada++;
+
+  for (let i = 0; i < teams.length; i++) {
+    for (let j = i + 1; j < teams.length; j++) {
+      matches.push({
+        tournament_id: tournamentId,
+        home_team_id: teams[j].id, // Invertido para la vuelta
+        away_team_id: teams[i].id,
+        match_date: new Date(currentDate).toISOString().split('T')[0],
+        match_time: matchTimes[timeIndex],
+        format: 'BO3',
+        jornada: jornada,
+        home_score: 0,
+        away_score: 0,
+        status: 'scheduled'
+      });
+
+      timeIndex = (timeIndex + 1) % matchTimes.length;
+      matchesInDay++;
+
+      if (matchesInDay >= maxMatchesPerDay) {
+        currentDate.setDate(currentDate.getDate() + 7);
+        timeIndex = 0;
+        matchesInDay = 0;
+        jornada++;
+      }
+    }
+  }
+
+  // Insertar partidos en la base de datos
+  if (matches.length === 0) {
+    return callback(null, 0);
+  }
+
+  const insertQuery = `
+    INSERT INTO tournament_matches 
+    (tournament_id, home_team_id, away_team_id, match_date, match_time, format, jornada, home_score, away_score, status)
+    VALUES ?
+  `;
+
+  const values = matches.map(m => [
+    m.tournament_id, m.home_team_id, m.away_team_id, 
+    m.match_date, m.match_time, m.format, m.jornada, 
+    m.home_score, m.away_score, m.status
+  ]);
+
+  db.query(insertQuery, [values], (err, result) => {
+    if (err) {
+      console.error("Error insertando partidos:", err);
+      return callback(err);
+    }
+
+    // Crear estadísticas iniciales para todos los equipos
+    const statsQuery = `
+      INSERT IGNORE INTO tournament_stats (tournament_id, team_id, wins, losses, points, games_played)
+      VALUES ?
+    `;
+
+    const statsValues = teams.map(team => [tournamentId, team.id, 0, 0, 0, 0]);
+
+    db.query(statsQuery, [statsValues], (err) => {
+      if (err) {
+        console.error("Error creando estadísticas:", err);
+        return callback(err);
+      }
+      callback(null, matches.length);
+    });
+  });
+}
+
+// MODIFICAR EL ENDPOINT DE REGISTRO EXISTENTE
+// Reemplaza tu endpoint actual de registro por este:
+app.post("/api/tournament/register", verifyToken, (req, res) => {
+  const { tournamentId, teamId } = req.body;
+
+  if (!tournamentId || !teamId) {
+    return res.status(400).json({ message: "Faltan datos requeridos" });
+  }
+
+  const checkMemberQuery = "SELECT * FROM teams_players WHERE team_id = ? AND user_id = ?";
+  db.query(checkMemberQuery, [teamId, req.userId], (err, memberResults) => {
+    if (err || memberResults.length === 0) {
+      return res.status(403).json({ message: "No eres miembro de este equipo" });
+    }
+
+    const checkTournamentQuery = "SELECT * FROM tournaments WHERE id = ? AND status = 'abierto'";
+    db.query(checkTournamentQuery, [tournamentId], (err, tournamentResults) => {
+      if (err || tournamentResults.length === 0) {
+        return res.status(404).json({ message: "Torneo no disponible" });
+      }
+
+      const tournament = tournamentResults[0];
+
+      const checkRegistrationQuery = "SELECT * FROM tournaments_teams WHERE tournament_id = ? AND team_id = ?";
+      db.query(checkRegistrationQuery, [tournamentId, teamId], (err, regResults) => {
+        if (err) {
+          return res.status(500).json({ message: "Error del servidor" });
+        }
+
+        if (regResults.length > 0) {
+          return res.status(400).json({ message: "El equipo ya está inscrito en este torneo" });
+        }
+
+        // Inscribir el equipo
+        const insertQuery = "INSERT INTO tournaments_teams (tournament_id, team_id, registration_date) VALUES (?, ?, NOW())";
+        db.query(insertQuery, [tournamentId, teamId], (err) => {
+          if (err) {
+            console.error("Error inscribiendo equipo:", err);
+            return res.status(500).json({ message: "Error al inscribir equipo" });
+          }
+
+          // Verificar si hay suficientes equipos para generar partidos
+          const countTeamsQuery = "SELECT COUNT(*) as count FROM tournaments_teams WHERE tournament_id = ?";
+          db.query(countTeamsQuery, [tournamentId], (err, countResults) => {
+            if (err) {
+              console.log("Error contando equipos, pero inscripción exitosa");
+              return res.json({ message: "Equipo inscrito exitosamente" });
+            }
+
+            const teamCount = countResults[0].count;
+
+            // Si hay 4 o más equipos, generar partidos automáticamente
+            if (teamCount >= 4) {
+              // Verificar si ya existen partidos
+              const checkMatchesQuery = "SELECT COUNT(*) as count FROM tournament_matches WHERE tournament_id = ?";
+              db.query(checkMatchesQuery, [tournamentId], (err, matchResults) => {
+                if (err || matchResults[0].count > 0) {
+                  // Ya hay partidos o error, no generar
+                  return res.json({ message: "Equipo inscrito exitosamente" });
+                }
+
+                // Obtener todos los equipos inscritos
+                const getTeamsQuery = `
+                  SELECT t.id, t.name 
+                  FROM teams t
+                  INNER JOIN tournaments_teams tt ON t.id = tt.team_id
+                  WHERE tt.tournament_id = ?
+                `;
+
+                db.query(getTeamsQuery, [tournamentId], (err, teams) => {
+                  if (err) {
+                    console.log("Error obteniendo equipos");
+                    return res.json({ message: "Equipo inscrito exitosamente" });
+                  }
+
+                  // Generar partidos automáticamente
+                  generateTournamentMatches(tournamentId, teams, tournament.date, (err, matchesCreated) => {
+                    if (err) {
+                      console.error("Error generando partidos:", err);
+                      return res.json({ 
+                        message: "Equipo inscrito exitosamente, pero hubo un error generando el calendario" 
+                      });
+                    }
+
+                    res.json({ 
+                      message: `Equipo inscrito exitosamente. Se generaron ${matchesCreated} partidos automáticamente.`,
+                      matchesGenerated: matchesCreated
+                    });
+                  });
+                });
+              });
+            } else {
+              res.json({ 
+                message: `Equipo inscrito exitosamente. Se necesitan ${4 - teamCount} equipos más para generar el calendario.` 
+              });
+            }
+          });
+        });
+      });
+    });
+  });
+});
+
+// Obtener partidos de un torneo
+app.get("/api/tournament/:id/matches", (req, res) => {
+  const { id } = req.params;
+
+  const query = `
+    SELECT 
+      m.*,
+      home.name as home_team_name,
+      home.logo as home_team_logo,
+      away.name as away_team_name,
+      away.logo as away_team_logo
+    FROM tournament_matches m
+    INNER JOIN teams home ON m.home_team_id = home.id
+    INNER JOIN teams away ON m.away_team_id = away.id
+    WHERE m.tournament_id = ?
+    ORDER BY m.jornada ASC, m.match_date ASC, m.match_time ASC
+  `;
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error("Error obteniendo partidos:", err);
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+
+    const matches = results.map(match => ({
+      ...match,
+      home_team: {
+        id: match.home_team_id,
+        name: match.home_team_name,
+        logo: match.home_team_logo ? `data:image/jpeg;base64,${match.home_team_logo.toString('base64')}` : null
+      },
+      away_team: {
+        id: match.away_team_id,
+        name: match.away_team_name,
+        logo: match.away_team_logo ? `data:image/jpeg;base64,${match.away_team_logo.toString('base64')}` : null
+      }
+    }));
+
+    res.json({ matches });
+  });
+});
+
+// Obtener estadísticas de un torneo
+app.get("/api/tournament/:id/stats", (req, res) => {
+  const { id } = req.params;
+
+  const query = `
+    SELECT 
+      ts.*,
+      t.name as team_name,
+      t.logo as team_logo
+    FROM tournament_stats ts
+    INNER JOIN teams t ON ts.team_id = t.id
+    WHERE ts.tournament_id = ?
+    ORDER BY ts.points DESC, ts.wins DESC, (ts.wins - ts.losses) DESC
+  `;
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error("Error obteniendo estadísticas:", err);
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+
+    const stats = results.map(stat => ({
+      ...stat,
+      team_logo: stat.team_logo ? `data:image/jpeg;base64,${stat.team_logo.toString('base64')}` : null
+    }));
+
+    res.json({ stats });
+  });
+});
+
+// Editar partido (admin)
+app.put("/api/tournament/match/:matchId", verifyToken, isAdmin, (req, res) => {
+  const { matchId } = req.params;
+  const { match_date, match_time, format, home_score, away_score, status } = req.body;
+
+  const fieldsToUpdate = [];
+  const values = [];
+
+  if (match_date) {
+    fieldsToUpdate.push("match_date = ?");
+    values.push(match_date);
+  }
+
+  if (match_time) {
+    fieldsToUpdate.push("match_time = ?");
+    values.push(match_time);
+  }
+
+  if (format) {
+    fieldsToUpdate.push("format = ?");
+    values.push(format);
+  }
+
+  if (home_score !== undefined) {
+    fieldsToUpdate.push("home_score = ?");
+    values.push(home_score);
+  }
+
+  if (away_score !== undefined) {
+    fieldsToUpdate.push("away_score = ?");
+    values.push(away_score);
+  }
+
+  if (status) {
+    fieldsToUpdate.push("status = ?");
+    values.push(status);
+  }
+
+  if (fieldsToUpdate.length === 0) {
+    return res.status(400).json({ message: "No hay cambios para actualizar" });
+  }
+
+  values.push(matchId);
+  const updateQuery = `UPDATE tournament_matches SET ${fieldsToUpdate.join(", ")} WHERE id = ?`;
+
+  db.query(updateQuery, values, (err, result) => {
+    if (err) {
+      console.error("Error actualizando partido:", err);
+      return res.status(500).json({ message: "Error al actualizar partido" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Partido no encontrado" });
+    }
+
+    // Si se actualizó el resultado, actualizar estadísticas
+    if (home_score !== undefined && away_score !== undefined && status === 'finished') {
+      updateTournamentStats(matchId, (err) => {
+        if (err) {
+          console.error("Error actualizando estadísticas:", err);
+        }
+      });
+    }
+
+    res.json({ message: "Partido actualizado exitosamente" });
+  });
+});
+
+// Función para actualizar estadísticas después de un partido
+function updateTournamentStats(matchId, callback) {
+  const getMatchQuery = `
+    SELECT tournament_id, home_team_id, away_team_id, home_score, away_score 
+    FROM tournament_matches 
+    WHERE id = ? AND status = 'finished'
+  `;
+
+  db.query(getMatchQuery, [matchId], (err, matches) => {
+    if (err || matches.length === 0) {
+      return callback(err || new Error("Partido no encontrado"));
+    }
+
+    const match = matches[0];
+    const { tournament_id, home_team_id, away_team_id, home_score, away_score } = match;
+
+    let homeWins = 0, homeLosses = 0, awayWins = 0, awayLosses = 0;
+    let homePoints = 0, awayPoints = 0;
+
+    if (home_score > away_score) {
+      homeWins = 1;
+      awayLosses = 1;
+      homePoints = 3; // 3 puntos por victoria
+    } else if (away_score > home_score) {
+      awayWins = 1;
+      homeLosses = 1;
+      awayPoints = 3;
+    } else {
+      // Empate (si aplica)
+      homePoints = 1;
+      awayPoints = 1;
+    }
+
+    // Actualizar estadísticas del equipo local
+    const updateHomeQuery = `
+      UPDATE tournament_stats 
+      SET wins = wins + ?, losses = losses + ?, points = points + ?, games_played = games_played + 1
+      WHERE tournament_id = ? AND team_id = ?
+    `;
+
+    db.query(updateHomeQuery, [homeWins, homeLosses, homePoints, tournament_id, home_team_id], (err) => {
+      if (err) return callback(err);
+
+      // Actualizar estadísticas del equipo visitante
+      db.query(updateHomeQuery, [awayWins, awayLosses, awayPoints, tournament_id, away_team_id], callback);
+    });
+  });
+}
+
+// Regenerar partidos de un torneo (admin)
+app.post("/api/tournament/:id/regenerate-matches", verifyToken, isAdmin, (req, res) => {
+  const { id } = req.params;
+
+  // Eliminar partidos existentes
+  const deleteMatchesQuery = "DELETE FROM tournament_matches WHERE tournament_id = ?";
+  db.query(deleteMatchesQuery, [id], (err) => {
+    if (err) {
+      console.error("Error eliminando partidos:", err);
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+
+    // Resetear estadísticas
+    const resetStatsQuery = `
+      UPDATE tournament_stats 
+      SET wins = 0, losses = 0, points = 0, games_played = 0 
+      WHERE tournament_id = ?
+    `;
+
+    db.query(resetStatsQuery, [id], (err) => {
+      if (err) {
+        console.error("Error reseteando estadísticas:", err);
+      }
+
+      // Obtener datos del torneo y equipos
+      const getTournamentQuery = "SELECT * FROM tournaments WHERE id = ?";
+      db.query(getTournamentQuery, [id], (err, tournaments) => {
+        if (err || tournaments.length === 0) {
+          return res.status(404).json({ message: "Torneo no encontrado" });
+        }
+
+        const tournament = tournaments[0];
+
+        const getTeamsQuery = `
+          SELECT t.id, t.name 
+          FROM teams t
+          INNER JOIN tournaments_teams tt ON t.id = tt.team_id
+          WHERE tt.tournament_id = ?
+        `;
+
+        db.query(getTeamsQuery, [id], (err, teams) => {
+          if (err) {
+            return res.status(500).json({ message: "Error obteniendo equipos" });
+          }
+
+          if (teams.length < 4) {
+            return res.status(400).json({ message: "Se necesitan al menos 4 equipos" });
+          }
+
+          generateTournamentMatches(id, teams, tournament.date, (err, matchesCreated) => {
+            if (err) {
+              console.error("Error generando partidos:", err);
+              return res.status(500).json({ message: "Error regenerando partidos" });
+            }
+
+            res.json({ 
+              message: `Partidos regenerados exitosamente. Se crearon ${matchesCreated} partidos.`,
+              matchesCreated 
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+
 // Ruta 404 para APIs
 app.all("/api/*", (req, res) => {
   res.status(404).json({ message: "Ruta API no encontrada" });
