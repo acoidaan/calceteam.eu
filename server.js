@@ -925,38 +925,40 @@ app.post("/api/tournament/register", verifyToken, (req, res) => {
 });
 
 // ==========================================
-// OBTENER DATOS DEL TORNEO
+// OBTENER EQUIPOS DE UN TORNEO - CORREGIDO
 // ==========================================
-
-// Obtener equipos de un torneo
 app.get("/api/tournament/:id/teams", (req, res) => {
   const { id } = req.params;
 
+  console.log(`📋 Obteniendo equipos para torneo ${id}`);
+
+  // Consulta simplificada sin JOIN con tournament_stats (por si no existe)
   const query = `
     SELECT 
       t.id,
       t.name,
       t.logo,
-      COALESCE(ts.wins, 0) as wins,
-      COALESCE(ts.losses, 0) as losses,
-      COALESCE(ts.points, 0) as points,
-      COALESCE(ts.games_played, 0) as games_played,
       tt.registration_date
     FROM teams t
     INNER JOIN tournaments_teams tt ON t.id = tt.team_id
-    LEFT JOIN tournament_stats ts ON t.id = ts.team_id AND ts.tournament_id = ?
     WHERE tt.tournament_id = ?
-    ORDER BY ts.points DESC, ts.wins DESC, ts.losses ASC, t.name ASC
+    ORDER BY t.name ASC
   `;
 
-  db.query(query, [id, id], (err, results) => {
+  db.query(query, [id], (err, results) => {
     if (err) {
-      console.error("Error obteniendo equipos del torneo:", err);
-      return res.status(500).json({ message: "Error del servidor" });
+      console.error("❌ Error obteniendo equipos del torneo:", err);
+      return res.status(500).json({ message: "Error del servidor", error: err.message });
     }
+
+    console.log(`✅ Encontrados ${results.length} equipos`);
 
     const teams = results.map((team) => ({
       ...team,
+      wins: 0,
+      losses: 0,
+      points: 0,
+      games_played: 0,
       logo: team.logo
         ? `data:image/jpeg;base64,${team.logo.toString("base64")}`
         : null,
@@ -966,9 +968,13 @@ app.get("/api/tournament/:id/teams", (req, res) => {
   });
 });
 
-// Obtener partidos de un torneo
+// ==========================================
+// OBTENER PARTIDOS DE UN TORNEO - CORREGIDO  
+// ==========================================
 app.get("/api/tournament/:id/matches", (req, res) => {
   const { id } = req.params;
+
+  console.log(`🏆 Obteniendo partidos para torneo ${id}`);
 
   const query = `
     SELECT 
@@ -986,56 +992,259 @@ app.get("/api/tournament/:id/matches", (req, res) => {
 
   db.query(query, [id], (err, results) => {
     if (err) {
-      console.error("Error obteniendo partidos:", err);
-      return res.status(500).json({ message: "Error del servidor" });
+      console.error("❌ Error obteniendo partidos:", err);
+      return res.status(500).json({ message: "Error del servidor", error: err.message });
     }
 
-    const matches = results.map((match) => ({
+    console.log(`✅ Encontrados ${results.length} partidos`);
+
+    const matches = results.map(match => ({
       ...match,
-      team1_logo: match.team1_logo
-        ? `data:image/jpeg;base64,${match.team1_logo.toString("base64")}`
-        : null,
-      team2_logo: match.team2_logo
-        ? `data:image/jpeg;base64,${match.team2_logo.toString("base64")}`
-        : null,
+      team1_logo: match.team1_logo ? `data:image/jpeg;base64,${match.team1_logo.toString('base64')}` : null,
+      team2_logo: match.team2_logo ? `data:image/jpeg;base64,${match.team2_logo.toString('base64')}` : null,
     }));
 
-    console.log(`✅ Devolviendo ${matches.length} partidos para torneo ${id}`);
     res.json({ matches });
   });
 });
 
-// Obtener estadísticas de un torneo
+// ==========================================
+// OBTENER ESTADÍSTICAS - CORREGIDO
+// ==========================================
 app.get("/api/tournament/:id/stats", (req, res) => {
   const { id } = req.params;
 
-  const query = `
-    SELECT 
-      ts.*,
-      t.name as team_name,
-      t.logo as team_logo
-    FROM tournament_stats ts
-    INNER JOIN teams t ON ts.team_id = t.id
-    WHERE ts.tournament_id = ?
-    ORDER BY ts.points DESC, ts.wins DESC, (ts.wins - ts.losses) DESC
+  console.log(`📊 Obteniendo estadísticas para torneo ${id}`);
+
+  // Crear tabla tournament_stats si no existe
+  const createStatsTable = `
+    CREATE TABLE IF NOT EXISTS tournament_stats (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      tournament_id INT NOT NULL,
+      team_id INT NOT NULL,
+      wins INT DEFAULT 0,
+      losses INT DEFAULT 0,
+      points INT DEFAULT 0,
+      games_played INT DEFAULT 0,
+      UNIQUE KEY unique_tournament_team (tournament_id, team_id),
+      FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
+      FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
+    )
   `;
 
-  db.query(query, [id], (err, results) => {
+  db.query(createStatsTable, (err) => {
     if (err) {
-      console.error("Error obteniendo estadísticas:", err);
-      return res.status(500).json({ message: "Error del servidor" });
+      console.error("❌ Error creando tabla tournament_stats:", err);
     }
 
-    const stats = results.map((stat) => ({
-      ...stat,
-      team_logo: stat.team_logo
-        ? `data:image/jpeg;base64,${stat.team_logo.toString("base64")}`
-        : null,
-    }));
+    const query = `
+      SELECT 
+        COALESCE(ts.tournament_id, ?) as tournament_id,
+        t.id as team_id,
+        t.name as team_name,
+        t.logo as team_logo,
+        COALESCE(ts.wins, 0) as wins,
+        COALESCE(ts.losses, 0) as losses,
+        COALESCE(ts.points, 0) as points,
+        COALESCE(ts.games_played, 0) as games_played
+      FROM teams t
+      INNER JOIN tournaments_teams tt ON t.id = tt.team_id
+      LEFT JOIN tournament_stats ts ON t.id = ts.team_id AND ts.tournament_id = ?
+      WHERE tt.tournament_id = ?
+      ORDER BY COALESCE(ts.points, 0) DESC, COALESCE(ts.wins, 0) DESC
+    `;
 
-    res.json({ stats });
+    db.query(query, [id, id, id], (err, results) => {
+      if (err) {
+        console.error("❌ Error obteniendo estadísticas:", err);
+        return res.status(500).json({ message: "Error del servidor", error: err.message });
+      }
+
+      console.log(`✅ Estadísticas obtenidas para ${results.length} equipos`);
+
+      const stats = results.map(stat => ({
+        ...stat,
+        team_logo: stat.team_logo ? `data:image/jpeg;base64,${stat.team_logo.toString('base64')}` : null
+      }));
+
+      res.json({ stats });
+    });
   });
 });
+
+// ==========================================
+// FUNCIÓN DE GENERACIÓN MEJORADA
+// ==========================================
+function generateTournamentMatches(tournamentId, teams, startDate, callback) {
+  console.log(`🎯 Generando partidos para torneo ${tournamentId} con ${teams.length} equipos`);
+  
+  if (teams.length < 2) {
+    console.log("⚠️ Se necesitan al menos 2 equipos");
+    return callback(new Error("Se necesitan al menos 2 equipos"));
+  }
+
+  // Crear tabla tournament_matches si no existe
+  const createMatchesTable = `
+    CREATE TABLE IF NOT EXISTS tournament_matches (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      tournament_id INT NOT NULL,
+      team1_id INT NOT NULL,
+      team2_id INT NOT NULL,
+      match_date DATE,
+      match_time TIME,
+      match_format VARCHAR(10) DEFAULT 'BO3',
+      jornada INT DEFAULT 1,
+      score_team1 INT DEFAULT 0,
+      score_team2 INT DEFAULT 0,
+      status ENUM('pending', 'completed', 'live', 'cancelled') DEFAULT 'pending',
+      FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
+      FOREIGN KEY (team1_id) REFERENCES teams(id) ON DELETE CASCADE,
+      FOREIGN KEY (team2_id) REFERENCES teams(id) ON DELETE CASCADE
+    )
+  `;
+
+  db.query(createMatchesTable, (err) => {
+    if (err) {
+      console.error("❌ Error creando tabla tournament_matches:", err);
+    }
+
+    const matches = [];
+    const defaultTime = "20:00:00";
+    let currentDate = new Date(startDate);
+    let jornada = 1;
+
+    // Generar partidos todos contra todos (ida)
+    for (let i = 0; i < teams.length; i++) {
+      for (let j = i + 1; j < teams.length; j++) {
+        matches.push({
+          tournament_id: tournamentId,
+          team1_id: teams[i].id,
+          team2_id: teams[j].id,
+          match_date: new Date(currentDate).toISOString().split('T')[0],
+          match_time: defaultTime,
+          match_format: 'BO3',
+          jornada: jornada,
+          score_team1: 0,
+          score_team2: 0,
+          status: 'pending'
+        });
+      }
+    }
+
+    // Generar partidos de vuelta
+    for (let i = 0; i < teams.length; i++) {
+      for (let j = i + 1; j < teams.length; j++) {
+        const fechaVuelta = new Date(currentDate);
+        fechaVuelta.setDate(fechaVuelta.getDate() + 14); // 2 semanas después
+        
+        matches.push({
+          tournament_id: tournamentId,
+          team1_id: teams[j].id,  // Invertido para vuelta
+          team2_id: teams[i].id,
+          match_date: fechaVuelta.toISOString().split('T')[0],
+          match_time: defaultTime,
+          match_format: 'BO3',
+          jornada: jornada + 1,
+          score_team1: 0,
+          score_team2: 0,
+          status: 'pending'
+        });
+      }
+    }
+
+    console.log(`✅ Preparados ${matches.length} partidos para insertar`);
+
+    if (matches.length === 0) {
+      return callback(null, 0);
+    }
+
+    // Insertar partidos uno por uno para mejor debugging
+    let insertedCount = 0;
+    let insertErrors = [];
+
+    const insertMatch = (match, index) => {
+      const insertQuery = `
+        INSERT INTO tournament_matches 
+        (tournament_id, team1_id, team2_id, match_date, match_time, match_format, jornada, score_team1, score_team2, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      const values = [
+        match.tournament_id, match.team1_id, match.team2_id,
+        match.match_date, match.match_time, match.match_format, match.jornada,
+        match.score_team1, match.score_team2, match.status
+      ];
+
+      db.query(insertQuery, values, (err, result) => {
+        if (err) {
+          console.error(`❌ Error insertando partido ${index + 1}:`, err);
+          insertErrors.push(err);
+        } else {
+          insertedCount++;
+          console.log(`✅ Partido ${index + 1}/${matches.length} insertado`);
+        }
+
+        // Si es el último partido
+        if (index === matches.length - 1) {
+          if (insertErrors.length > 0) {
+            console.error(`❌ ${insertErrors.length} errores al insertar partidos`);
+            return callback(insertErrors[0]);
+          }
+
+          console.log(`✅ Todos los ${insertedCount} partidos insertados correctamente`);
+
+          // Crear estadísticas iniciales
+          initializeStats(tournamentId, teams, callback, insertedCount);
+        }
+      });
+    };
+
+    // Insertar todos los partidos
+    matches.forEach((match, index) => {
+      insertMatch(match, index);
+    });
+  });
+}
+
+// Función auxiliar para inicializar estadísticas
+function initializeStats(tournamentId, teams, callback, matchesCreated) {
+  const createStatsTable = `
+    CREATE TABLE IF NOT EXISTS tournament_stats (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      tournament_id INT NOT NULL,
+      team_id INT NOT NULL,
+      wins INT DEFAULT 0,
+      losses INT DEFAULT 0,
+      points INT DEFAULT 0,
+      games_played INT DEFAULT 0,
+      UNIQUE KEY unique_tournament_team (tournament_id, team_id)
+    )
+  `;
+
+  db.query(createStatsTable, (err) => {
+    if (err) {
+      console.error("❌ Error creando tabla de estadísticas:", err);
+    }
+
+    const statsQuery = `
+      INSERT INTO tournament_stats (tournament_id, team_id, wins, losses, points, games_played)
+      VALUES ?
+      ON DUPLICATE KEY UPDATE
+      wins = 0, losses = 0, points = 0, games_played = 0
+    `;
+
+    const statsValues = teams.map(team => [tournamentId, team.id, 0, 0, 0, 0]);
+
+    db.query(statsQuery, [statsValues], (err) => {
+      if (err) {
+        console.error("❌ Error inicializando estadísticas:", err);
+        return callback(err);
+      }
+      console.log(`✅ Estadísticas inicializadas para ${teams.length} equipos`);
+      callback(null, matchesCreated);
+    });
+  });
+}
 
 // ==========================================
 // ADMIN: GESTIÓN DE PARTIDOS
