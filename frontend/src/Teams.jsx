@@ -20,6 +20,7 @@ const Teams = ({ onBack }) => {
   const [upcomingMatches, setUpcomingMatches] = useState([]);
   const [selectedJornada, setSelectedJornada] = useState(1);
   const [totalJornadas, setTotalJornadas] = useState(0);
+  const [matchesByJornada, setMatchesByJornada] = useState({});
 
   // Form states
   const [teamName, setTeamName] = useState("");
@@ -65,6 +66,7 @@ const Teams = ({ onBack }) => {
             showSuccess("Has salido del torneo");
             setTimeout(() => {
               fetchTournaments();
+              fetchUpcomingMatches();
             }, 500);
           } else {
             const error = await response.json();
@@ -92,14 +94,9 @@ const Teams = ({ onBack }) => {
   useEffect(() => {
     if (myTeam) {
       fetchTournaments();
+      fetchUpcomingMatches();
     }
   }, [myTeam, selectedGame]);
-
-  useEffect(() => {
-    if (myTournaments.length > 0 && myTeam) {
-      generateUpcomingMatches();
-    }
-  }, [myTournaments, myTeam, selectedJornada]);
 
   const fetchMyTeam = async () => {
     try {
@@ -152,62 +149,52 @@ const Teams = ({ onBack }) => {
     }
   };
 
-  // Generar partidos próximos de todos los torneos
-  const generateUpcomingMatches = async () => {
-    const allMatchesByJornada = {};
-    let maxJornada = 0;
+  // Obtener partidos reales de la base de datos
+  const fetchUpcomingMatches = async () => {
+    if (!myTeam) return;
 
-    for (const tournament of myTournaments) {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`/api/tournament/${tournament.id}/teams`, {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `/api/matches/my-team-matches?teamId=${myTeam.id}`,
+        {
           headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        const teams = data.teams || [];
-
-        if (teams.length >= 2) {
-          // Generar partidos para este torneo
-          const myTeamInTournament = teams.find((t) => t.id === myTeam.id);
-          if (myTeamInTournament) {
-            // Simular partidos por jornadas
-            for (let jornada = 1; jornada <= 5; jornada++) {
-              if (!allMatchesByJornada[jornada]) {
-                allMatchesByJornada[jornada] = [];
-              }
-
-              const otherTeams = teams.filter((t) => t.id !== myTeam.id);
-              if (otherTeams.length > 0 && jornada <= otherTeams.length) {
-                const opponent = otherTeams[(jornada - 1) % otherTeams.length];
-                allMatchesByJornada[jornada].push({
-                  tournament: tournament.name,
-                  tournamentId: tournament.id,
-                  home: jornada % 2 === 0 ? opponent : myTeam,
-                  away: jornada % 2 === 0 ? myTeam : opponent,
-                  time: `${Math.floor(Math.random() * (22 - 16) + 16)}:00`,
-                  format: "BO3",
-                  date: new Date(
-                    Date.now() + (jornada - 1) * 7 * 24 * 60 * 60 * 1000
-                  ),
-                  jornada: jornada,
-                });
-                maxJornada = Math.max(maxJornada, jornada);
-              }
-            }
-          }
         }
-      } catch (error) {
-        console.error(
-          "Error generando partidos para torneo:",
-          tournament.id,
-          error
-        );
-      }
-    }
+      );
 
-    setTotalJornadas(maxJornada);
-    setUpcomingMatches(allMatchesByJornada[selectedJornada] || []);
+      if (response.ok) {
+        const data = await response.json();
+        const matches = data.matches || [];
+
+        // Organizar partidos por jornada
+        const organizedMatches = {};
+        let maxJornada = 0;
+
+        matches.forEach((match) => {
+          const jornada = match.jornada;
+          if (!organizedMatches[jornada]) {
+            organizedMatches[jornada] = [];
+          }
+          organizedMatches[jornada].push(match);
+          maxJornada = Math.max(maxJornada, jornada);
+        });
+
+        setMatchesByJornada(organizedMatches);
+        setTotalJornadas(maxJornada);
+        setUpcomingMatches(organizedMatches[selectedJornada] || []);
+      }
+    } catch (error) {
+      console.error("Error fetching matches:", error);
+    }
   };
+
+  useEffect(() => {
+    if (matchesByJornada[selectedJornada]) {
+      setUpcomingMatches(matchesByJornada[selectedJornada]);
+    } else {
+      setUpcomingMatches([]);
+    }
+  }, [selectedJornada, matchesByJornada]);
 
   const isRoleAvailable = (role) => {
     if (!myTeam || !myTeam.players) return true;
@@ -544,11 +531,16 @@ const Teams = ({ onBack }) => {
   };
 
   const formatDateToSpanish = (date) => {
-    return date.toLocaleDateString("es-ES", {
+    const d = new Date(date);
+    return d.toLocaleDateString("es-ES", {
       weekday: "long",
       day: "numeric",
       month: "short",
     });
+  };
+
+  const formatTime = (time) => {
+    return time.substring(0, 5);
   };
 
   return (
@@ -913,7 +905,7 @@ const Teams = ({ onBack }) => {
           </div>
 
           <div className="team-column-right">
-            {/* SECCIÓN CORREGIDA: Próximos partidos */}
+            {/* Sección de próximos partidos */}
             <div className="upcoming-matches-section">
               <h3>Próximos partidos</h3>
 
@@ -947,61 +939,77 @@ const Teams = ({ onBack }) => {
 
                   {upcomingMatches.length > 0 ? (
                     <div className="matches-list">
-                      {upcomingMatches.map((match, index) => (
-                        <div key={index} className="match-card">
-                          <div className="match-tournament-info">
-                            <span className="match-tournament-name">
-                              {match.tournament}
-                            </span>
-                            <span className="match-date">
-                              {formatDateToSpanish(match.date)}
-                            </span>
-                          </div>
-                          <div className="match-content">
-                            <div className="match-time">{match.time}</div>
-                            <div className="match-team home">
-                              <span className="team-name">
-                                {match.home.name}
+                      {upcomingMatches.map((match, index) => {
+                        const isHome = match.home_team_id === myTeam.id;
+                        const homeTeam = {
+                          id: match.home_team_id,
+                          name: match.home_team_name,
+                          logo: match.home_team_logo,
+                        };
+                        const awayTeam = {
+                          id: match.away_team_id,
+                          name: match.away_team_name,
+                          logo: match.away_team_logo,
+                        };
+
+                        return (
+                          <div key={index} className="match-card">
+                            <div className="match-tournament-info">
+                              <span className="match-tournament-name">
+                                {match.tournament_name}
                               </span>
-                              <div className="team-logo">
-                                {match.home.logo ? (
-                                  <img
-                                    src={match.home.logo}
-                                    alt={match.home.name}
-                                  />
-                                ) : (
-                                  <span className="default-logo">
-                                    {match.home.name
-                                      .substring(0, 2)
-                                      .toUpperCase()}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="match-vs">VS</div>
-                            <div className="match-team away">
-                              <div className="team-logo">
-                                {match.away.logo ? (
-                                  <img
-                                    src={match.away.logo}
-                                    alt={match.away.name}
-                                  />
-                                ) : (
-                                  <span className="default-logo">
-                                    {match.away.name
-                                      .substring(0, 2)
-                                      .toUpperCase()}
-                                  </span>
-                                )}
-                              </div>
-                              <span className="team-name">
-                                {match.away.name}
+                              <span className="match-date">
+                                {formatDateToSpanish(match.match_date)}
                               </span>
                             </div>
-                            <div className="match-format">{match.format}</div>
+                            <div className="match-content">
+                              <div className="match-time">
+                                {formatTime(match.match_time)}
+                              </div>
+                              <div className="match-team home">
+                                <span className="team-name">
+                                  {homeTeam.name}
+                                </span>
+                                <div className="team-logo">
+                                  {homeTeam.logo ? (
+                                    <img
+                                      src={homeTeam.logo}
+                                      alt={homeTeam.name}
+                                    />
+                                  ) : (
+                                    <span className="default-logo">
+                                      {homeTeam.name
+                                        .substring(0, 2)
+                                        .toUpperCase()}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="match-vs">VS</div>
+                              <div className="match-team away">
+                                <div className="team-logo">
+                                  {awayTeam.logo ? (
+                                    <img
+                                      src={awayTeam.logo}
+                                      alt={awayTeam.name}
+                                    />
+                                  ) : (
+                                    <span className="default-logo">
+                                      {awayTeam.name
+                                        .substring(0, 2)
+                                        .toUpperCase()}
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="team-name">
+                                  {awayTeam.name}
+                                </span>
+                              </div>
+                              <div className="match-format">{match.format}</div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     <p className="no-matches">
