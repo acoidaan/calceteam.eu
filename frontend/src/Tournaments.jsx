@@ -15,8 +15,26 @@ const formatDateToSpanish = (mysqlDate) => {
 };
 
 const formatDateTime = (date, time) => {
+  console.log("DEBUG formatDateTime:", { date, time });
+
   if (!date || !time) return "TBD";
-  const dateObj = new Date(`${date}T${time}`);
+
+  // Limpiar la hora si tiene segundos
+  const cleanTime = time.includes(":")
+    ? time.split(":").slice(0, 2).join(":")
+    : time;
+
+  const dateTimeString = `${date}T${cleanTime}`;
+  console.log("DEBUG dateTimeString:", dateTimeString);
+
+  const dateObj = new Date(dateTimeString);
+  console.log("DEBUG dateObj:", dateObj);
+
+  if (isNaN(dateObj.getTime())) {
+    console.log("DEBUG: Fecha inválida detectada");
+    return "Fecha inválida";
+  }
+
   return dateObj.toLocaleDateString("es-ES", {
     weekday: "short",
     day: "numeric",
