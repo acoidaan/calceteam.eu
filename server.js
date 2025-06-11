@@ -1299,7 +1299,7 @@ app.get("/api/admin/matches", verifyToken, isAdmin, (req, res) => {
   });
 });
 
-// Editar partido (admin)
+// Editar partido (admin) - CORREGIDO
 app.put("/api/admin/matches/:matchId", verifyToken, isAdmin, (req, res) => {
   const { matchId } = req.params;
   const {
@@ -1315,8 +1315,10 @@ app.put("/api/admin/matches/:matchId", verifyToken, isAdmin, (req, res) => {
   const values = [];
 
   if (match_date) {
+    // Convertir fecha ISO a formato MySQL
+    const mysqlDate = match_date.includes('T') ? match_date.split('T')[0] : match_date;
     fieldsToUpdate.push("match_date = ?");
-    values.push(match_date);
+    values.push(mysqlDate);
   }
 
   if (match_time) {
