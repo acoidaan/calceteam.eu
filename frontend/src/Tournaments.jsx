@@ -15,21 +15,77 @@ const formatDateToSpanish = (mysqlDate) => {
 };
 
 const formatDateTime = (date, time) => {
+  console.log("formatDateTime input:", { date, time }); // Debug
+
   if (!date || !time) return "TBD";
 
-  // Parsear fecha manualmente para evitar problemas de zona horaria
-  const [year, month, day] = date.split("-");
-  const [hour, minute] = time.split(":");
+  try {
+    // Convertir date a string si es un objeto Date
+    let dateStr = date;
+    if (date instanceof Date) {
+      dateStr = date.toISOString().split("T")[0];
+    } else if (typeof date === "string" && date.includes("T")) {
+      // Si viene como ISO string, extraer solo la fecha
+      dateStr = date.split("T")[0];
+    }
 
-  const dateObj = new Date(year, month - 1, day, hour, minute);
+    console.log("dateStr procesado:", dateStr); // Debug
 
-  return dateObj.toLocaleDateString("es-ES", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+    // Verificar formato YYYY-MM-DD
+    if (
+      !dateStr ||
+      typeof dateStr !== "string" ||
+      !dateStr.match(/^\d{4}-\d{2}-\d{2}$/)
+    ) {
+      console.warn("Formato de fecha inválido:", dateStr);
+      return "Fecha inválida";
+    }
+
+    // Parsear fecha manualmente
+    const [year, month, day] = dateStr.split("-");
+
+    // Verificar que time tenga el formato correcto
+    if (!time || typeof time !== "string" || !time.includes(":")) {
+      console.warn("Formato de hora inválido:", time);
+      return "Hora inválida";
+    }
+
+    const [hour, minute] = time.split(":");
+
+    // Crear objeto Date
+    const dateObj = new Date(
+      parseInt(year),
+      parseInt(month) - 1,
+      parseInt(day),
+      parseInt(hour),
+      parseInt(minute) || 0
+    );
+
+    // Verificar que la fecha sea válida
+    if (isNaN(dateObj.getTime())) {
+      console.warn("Fecha inválida creada:", {
+        year,
+        month,
+        day,
+        hour,
+        minute,
+      });
+      return "Fecha inválida";
+    }
+
+    console.log("Fecha creada exitosamente:", dateObj); // Debug
+
+    return dateObj.toLocaleDateString("es-ES", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch (error) {
+    console.error("Error en formatDateTime:", error);
+    return "Error de fecha";
+  }
 };
 
 const Tournaments = ({ onBack }) => {
