@@ -15,25 +15,13 @@ const formatDateToSpanish = (mysqlDate) => {
 };
 
 const formatDateTime = (date, time) => {
-  console.log("DEBUG formatDateTime:", { date, time });
-
   if (!date || !time) return "TBD";
 
-  // Limpiar la hora si tiene segundos
-  const cleanTime = time.includes(":")
-    ? time.split(":").slice(0, 2).join(":")
-    : time;
+  // Parsear fecha manualmente para evitar problemas de zona horaria
+  const [year, month, day] = date.split("-");
+  const [hour, minute] = time.split(":");
 
-  const dateTimeString = `${date}T${cleanTime}`;
-  console.log("DEBUG dateTimeString:", dateTimeString);
-
-  const dateObj = new Date(dateTimeString);
-  console.log("DEBUG dateObj:", dateObj);
-
-  if (isNaN(dateObj.getTime())) {
-    console.log("DEBUG: Fecha inválida detectada");
-    return "Fecha inválida";
-  }
+  const dateObj = new Date(year, month - 1, day, hour, minute);
 
   return dateObj.toLocaleDateString("es-ES", {
     weekday: "short",
