@@ -91,17 +91,41 @@ function generateTournamentMatches(tournamentId, teams, startDate, callback) {
   );
 
   if (teams.length < 2) {
+    console.log("⚠️ Se necesitan al menos 2 equipos");
     return callback(new Error("Se necesitan al menos 2 equipos"));
   }
 
-  const matches = [];
-  const defaultTime = "20:00:00";
-  let currentDate = new Date(startDate);
-  let jornada = 1;
+  // Crear tabla tournament_matches si no existe
+  const createMatchesTable = `
+    CREATE TABLE IF NOT EXISTS tournament_matches (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      tournament_id INT NOT NULL,
+      team1_id INT NOT NULL,
+      team2_id INT NOT NULL,
+      match_date DATE,
+      match_time TIME,
+      match_format VARCHAR(10) DEFAULT 'BO3',
+      jornada INT DEFAULT 1,
+      score_team1 INT DEFAULT 0,
+      score_team2 INT DEFAULT 0,
+      status ENUM('pending', 'completed', 'live', 'cancelled') DEFAULT 'pending',
+      FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
+      FOREIGN KEY (team1_id) REFERENCES teams(id) ON DELETE CASCADE,
+      FOREIGN KEY (team2_id) REFERENCES teams(id) ON DELETE CASCADE
+    )
+  `;
 
-  // Función simple de todos contra todos
-  function createRoundRobinMatches() {
-    // Ida
+  db.query(createMatchesTable, (err) => {
+    if (err) {
+      console.error("❌ Error creando tabla tournament_matches:", err);
+    }
+
+    const matches = [];
+    const defaultTime = "20:00:00";
+    let currentDate = new Date(startDate);
+    let jornada = 1;
+
+    // Generar partidos todos contra todos (ida)
     for (let i = 0; i < teams.length; i++) {
       for (let j = i + 1; j < teams.length; j++) {
         matches.push({
@@ -119,14 +143,17 @@ function generateTournamentMatches(tournamentId, teams, startDate, callback) {
       }
     }
 
-    // Vuelta (cambiar orden de equipos)
+    // Generar partidos de vuelta
     for (let i = 0; i < teams.length; i++) {
       for (let j = i + 1; j < teams.length; j++) {
+        const fechaVuelta = new Date(currentDate);
+        fechaVuelta.setDate(fechaVuelta.getDate() + 14); // 2 semanas después
+
         matches.push({
           tournament_id: tournamentId,
           team1_id: teams[j].id, // Invertido para vuelta
           team2_id: teams[i].id,
-          match_date: new Date(currentDate).toISOString().split("T")[0],
+          match_date: fechaVuelta.toISOString().split("T")[0],
           match_time: defaultTime,
           match_format: "BO3",
           jornada: jornada + 1,
@@ -136,83 +163,68 @@ function generateTournamentMatches(tournamentId, teams, startDate, callback) {
         });
       }
     }
-  }
 
-  // Generar todos los partidos
-  createRoundRobinMatches();
+    console.log(`✅ Preparados ${matches.length} partidos para insertar`);
 
-  // Distribuir en jornadas de manera simple
-  const partidosPorJornada = Math.max(1, Math.floor(teams.length / 2));
-  matches.forEach((match, index) => {
-    const jornadaCalculada = Math.floor(index / partidosPorJornada) + 1;
-    match.jornada = jornadaCalculada;
-
-    // Calcular fecha para cada jornada (1 semana de diferencia)
-    const fechaJornada = new Date(currentDate);
-    fechaJornada.setDate(fechaJornada.getDate() + (jornadaCalculada - 1) * 7);
-    match.match_date = fechaJornada.toISOString().split("T")[0];
-  });
-
-  console.log(
-    `✅ Generados ${matches.length} partidos distribuidos en jornadas`
-  );
-
-  if (matches.length === 0) {
-    return callback(null, 0);
-  }
-
-  // Insertar partidos
-  const insertQuery = `
-    INSERT INTO tournament_matches 
-    (tournament_id, team1_id, team2_id, match_date, match_time, match_format, jornada, score_team1, score_team2, status)
-    VALUES ?
-  `;
-
-  const values = matches.map((m) => [
-    m.tournament_id,
-    m.team1_id,
-    m.team2_id,
-    m.match_date,
-    m.match_time,
-    m.match_format,
-    m.jornada,
-    m.score_team1,
-    m.score_team2,
-    m.status,
-  ]);
-
-  db.query(insertQuery, [values], (err, result) => {
-    if (err) {
-      console.error("❌ Error insertando partidos:", err);
-      return callback(err);
+    if (matches.length === 0) {
+      return callback(null, 0);
     }
 
-    console.log(`✅ Insertados ${matches.length} partidos`);
+    // Insertar partidos uno por uno para mejor debugging
+    let insertedCount = 0;
+    let insertErrors = [];
 
-    // Crear estadísticas iniciales
-    const statsQuery = `
-      INSERT INTO tournament_stats (tournament_id, team_id, wins, losses, points, games_played)
-      VALUES ?
-      ON DUPLICATE KEY UPDATE
-      wins = 0, losses = 0, points = 0, games_played = 0
-    `;
+    const insertMatch = (match, index) => {
+      const insertQuery = `
+        INSERT INTO tournament_matches 
+        (tournament_id, team1_id, team2_id, match_date, match_time, match_format, jornada, score_team1, score_team2, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
 
-    const statsValues = teams.map((team) => [
-      tournamentId,
-      team.id,
-      0,
-      0,
-      0,
-      0,
-    ]);
+      const values = [
+        match.tournament_id,
+        match.team1_id,
+        match.team2_id,
+        match.match_date,
+        match.match_time,
+        match.match_format,
+        match.jornada,
+        match.score_team1,
+        match.score_team2,
+        match.status,
+      ];
 
-    db.query(statsQuery, [statsValues], (err) => {
-      if (err) {
-        console.error("❌ Error creando estadísticas:", err);
-        return callback(err);
-      }
-      console.log(`✅ Estadísticas inicializadas para ${teams.length} equipos`);
-      callback(null, matches.length);
+      db.query(insertQuery, values, (err, result) => {
+        if (err) {
+          console.error(`❌ Error insertando partido ${index + 1}:`, err);
+          insertErrors.push(err);
+        } else {
+          insertedCount++;
+          console.log(`✅ Partido ${index + 1}/${matches.length} insertado`);
+        }
+
+        // Si es el último partido
+        if (index === matches.length - 1) {
+          if (insertErrors.length > 0) {
+            console.error(
+              `❌ ${insertErrors.length} errores al insertar partidos`
+            );
+            return callback(insertErrors[0]);
+          }
+
+          console.log(
+            `✅ Todos los ${insertedCount} partidos insertados correctamente`
+          );
+
+          // Crear estadísticas iniciales
+          initializeStats(tournamentId, teams, callback, insertedCount);
+        }
+      });
+    };
+
+    // Insertar todos los partidos
+    matches.forEach((match, index) => {
+      insertMatch(match, index);
     });
   });
 }
@@ -1075,136 +1087,7 @@ app.get("/api/tournament/:id/stats", (req, res) => {
 // ==========================================
 // FUNCIÓN DE GENERACIÓN MEJORADA
 // ==========================================
-function generateTournamentMatches(tournamentId, teams, startDate, callback) {
-  console.log(`🎯 Generando partidos para torneo ${tournamentId} con ${teams.length} equipos`);
-  
-  if (teams.length < 2) {
-    console.log("⚠️ Se necesitan al menos 2 equipos");
-    return callback(new Error("Se necesitan al menos 2 equipos"));
-  }
 
-  // Crear tabla tournament_matches si no existe
-  const createMatchesTable = `
-    CREATE TABLE IF NOT EXISTS tournament_matches (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      tournament_id INT NOT NULL,
-      team1_id INT NOT NULL,
-      team2_id INT NOT NULL,
-      match_date DATE,
-      match_time TIME,
-      match_format VARCHAR(10) DEFAULT 'BO3',
-      jornada INT DEFAULT 1,
-      score_team1 INT DEFAULT 0,
-      score_team2 INT DEFAULT 0,
-      status ENUM('pending', 'completed', 'live', 'cancelled') DEFAULT 'pending',
-      FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
-      FOREIGN KEY (team1_id) REFERENCES teams(id) ON DELETE CASCADE,
-      FOREIGN KEY (team2_id) REFERENCES teams(id) ON DELETE CASCADE
-    )
-  `;
-
-  db.query(createMatchesTable, (err) => {
-    if (err) {
-      console.error("❌ Error creando tabla tournament_matches:", err);
-    }
-
-    const matches = [];
-    const defaultTime = "20:00:00";
-    let currentDate = new Date(startDate);
-    let jornada = 1;
-
-    // Generar partidos todos contra todos (ida)
-    for (let i = 0; i < teams.length; i++) {
-      for (let j = i + 1; j < teams.length; j++) {
-        matches.push({
-          tournament_id: tournamentId,
-          team1_id: teams[i].id,
-          team2_id: teams[j].id,
-          match_date: new Date(currentDate).toISOString().split('T')[0],
-          match_time: defaultTime,
-          match_format: 'BO3',
-          jornada: jornada,
-          score_team1: 0,
-          score_team2: 0,
-          status: 'pending'
-        });
-      }
-    }
-
-    // Generar partidos de vuelta
-    for (let i = 0; i < teams.length; i++) {
-      for (let j = i + 1; j < teams.length; j++) {
-        const fechaVuelta = new Date(currentDate);
-        fechaVuelta.setDate(fechaVuelta.getDate() + 14); // 2 semanas después
-        
-        matches.push({
-          tournament_id: tournamentId,
-          team1_id: teams[j].id,  // Invertido para vuelta
-          team2_id: teams[i].id,
-          match_date: fechaVuelta.toISOString().split('T')[0],
-          match_time: defaultTime,
-          match_format: 'BO3',
-          jornada: jornada + 1,
-          score_team1: 0,
-          score_team2: 0,
-          status: 'pending'
-        });
-      }
-    }
-
-    console.log(`✅ Preparados ${matches.length} partidos para insertar`);
-
-    if (matches.length === 0) {
-      return callback(null, 0);
-    }
-
-    // Insertar partidos uno por uno para mejor debugging
-    let insertedCount = 0;
-    let insertErrors = [];
-
-    const insertMatch = (match, index) => {
-      const insertQuery = `
-        INSERT INTO tournament_matches 
-        (tournament_id, team1_id, team2_id, match_date, match_time, match_format, jornada, score_team1, score_team2, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-
-      const values = [
-        match.tournament_id, match.team1_id, match.team2_id,
-        match.match_date, match.match_time, match.match_format, match.jornada,
-        match.score_team1, match.score_team2, match.status
-      ];
-
-      db.query(insertQuery, values, (err, result) => {
-        if (err) {
-          console.error(`❌ Error insertando partido ${index + 1}:`, err);
-          insertErrors.push(err);
-        } else {
-          insertedCount++;
-          console.log(`✅ Partido ${index + 1}/${matches.length} insertado`);
-        }
-
-        // Si es el último partido
-        if (index === matches.length - 1) {
-          if (insertErrors.length > 0) {
-            console.error(`❌ ${insertErrors.length} errores al insertar partidos`);
-            return callback(insertErrors[0]);
-          }
-
-          console.log(`✅ Todos los ${insertedCount} partidos insertados correctamente`);
-
-          // Crear estadísticas iniciales
-          initializeStats(tournamentId, teams, callback, insertedCount);
-        }
-      });
-    };
-
-    // Insertar todos los partidos
-    matches.forEach((match, index) => {
-      insertMatch(match, index);
-    });
-  });
-}
 
 // Función auxiliar para inicializar estadísticas
 function initializeStats(tournamentId, teams, callback, matchesCreated) {
