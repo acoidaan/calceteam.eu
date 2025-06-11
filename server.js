@@ -906,10 +906,16 @@ app.post("/api/tournaments/create", verifyToken, isAdmin, (req, res) => {
   );
 });
 
-// Actualizar torneo
+// Actualizar torneo - CORREGIDO
 app.put("/api/tournaments/update/:id", verifyToken, isAdmin, (req, res) => {
   const { id } = req.params;
   const { name, game, status, date, description } = req.body;
+
+  // Convertir fecha ISO a formato MySQL
+  let mysqlDate = date;
+  if (date && date.includes('T')) {
+    mysqlDate = date.split('T')[0]; // Solo tomar la parte de fecha
+  }
 
   const query = `
     UPDATE tournaments 
@@ -917,7 +923,7 @@ app.put("/api/tournaments/update/:id", verifyToken, isAdmin, (req, res) => {
     WHERE id = ?
   `;
 
-  db.query(query, [name, game, status, date, description, id], (err) => {
+  db.query(query, [name, game, status, mysqlDate, description, id], (err) => {
     if (err) {
       console.error("Error actualizando torneo:", err);
       return res.status(500).json({ message: "Error del servidor" });
