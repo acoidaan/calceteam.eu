@@ -85,17 +85,17 @@ function isAdmin(req, res, next) {
 // ==========================================
 // FUNCIÓN SIMPLIFICADA PARA GENERAR PARTIDOS
 // ==========================================
+// ==========================================
+// ALGORITMO DE CALENDARIO TIPO FÚTBOL
+// ==========================================
 function generateTournamentMatches(tournamentId, teams, startDate, callback) {
-  console.log(
-    `🎯 Generando partidos para torneo ${tournamentId} con ${teams.length} equipos`
-  );
-
+  console.log(`🎯 Generando partidos para torneo ${tournamentId} con ${teams.length} equipos`);
+  
   if (teams.length < 2) {
     console.log("⚠️ Se necesitan al menos 2 equipos");
     return callback(new Error("Se necesitan al menos 2 equipos"));
   }
 
-  // Crear tabla tournament_matches si no existe
   const createMatchesTable = `
     CREATE TABLE IF NOT EXISTS tournament_matches (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -103,15 +103,13 @@ function generateTournamentMatches(tournamentId, teams, startDate, callback) {
       team1_id INT NOT NULL,
       team2_id INT NOT NULL,
       match_date DATE,
-      match_time TIME,
+      match_time TIME DEFAULT '20:00:00',
       match_format VARCHAR(10) DEFAULT 'BO3',
       jornada INT DEFAULT 1,
       score_team1 INT DEFAULT 0,
       score_team2 INT DEFAULT 0,
       status ENUM('pending', 'completed', 'live', 'cancelled') DEFAULT 'pending',
-      FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
-      FOREIGN KEY (team1_id) REFERENCES teams(id) ON DELETE CASCADE,
-      FOREIGN KEY (team2_id) REFERENCES teams(id) ON DELETE CASCADE
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `;
 
@@ -120,112 +118,145 @@ function generateTournamentMatches(tournamentId, teams, startDate, callback) {
       console.error("❌ Error creando tabla tournament_matches:", err);
     }
 
-    const matches = [];
-    const defaultTime = "20:00:00";
-    let currentDate = new Date(startDate);
-    let jornada = 1;
-
-    // Generar partidos todos contra todos (ida)
-    for (let i = 0; i < teams.length; i++) {
-      for (let j = i + 1; j < teams.length; j++) {
-        matches.push({
-          tournament_id: tournamentId,
-          team1_id: teams[i].id,
-          team2_id: teams[j].id,
-          match_date: new Date(currentDate).toISOString().split("T")[0],
-          match_time: defaultTime,
-          match_format: "BO3",
-          jornada: jornada,
-          score_team1: 0,
-          score_team2: 0,
-          status: "pending",
-        });
-      }
-    }
-
-    // Generar partidos de vuelta
-    for (let i = 0; i < teams.length; i++) {
-      for (let j = i + 1; j < teams.length; j++) {
-        const fechaVuelta = new Date(currentDate);
-        fechaVuelta.setDate(fechaVuelta.getDate() + 14); // 2 semanas después
-
-        matches.push({
-          tournament_id: tournamentId,
-          team1_id: teams[j].id, // Invertido para vuelta
-          team2_id: teams[i].id,
-          match_date: fechaVuelta.toISOString().split("T")[0],
-          match_time: defaultTime,
-          match_format: "BO3",
-          jornada: jornada + 1,
-          score_team1: 0,
-          score_team2: 0,
-          status: "pending",
-        });
-      }
-    }
-
-    console.log(`✅ Preparados ${matches.length} partidos para insertar`);
+    // Generar calendario tipo liga de fútbol
+    const matches = generateFootballSchedule(teams, tournamentId, startDate);
+    
+    console.log(`✅ Generado calendario con ${matches.length} partidos`);
 
     if (matches.length === 0) {
       return callback(null, 0);
     }
 
-    // Insertar partidos uno por uno para mejor debugging
-    let insertedCount = 0;
-    let insertErrors = [];
-
-    const insertMatch = (match, index) => {
-      const insertQuery = `
-        INSERT INTO tournament_matches 
-        (tournament_id, team1_id, team2_id, match_date, match_time, match_format, jornada, score_team1, score_team2, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-
-      const values = [
-        match.tournament_id,
-        match.team1_id,
-        match.team2_id,
-        match.match_date,
-        match.match_time,
-        match.match_format,
-        match.jornada,
-        match.score_team1,
-        match.score_team2,
-        match.status,
-      ];
-
-      db.query(insertQuery, values, (err, result) => {
-        if (err) {
-          console.error(`❌ Error insertando partido ${index + 1}:`, err);
-          insertErrors.push(err);
-        } else {
-          insertedCount++;
-          console.log(`✅ Partido ${index + 1}/${matches.length} insertado`);
-        }
-
-        // Si es el último partido
-        if (index === matches.length - 1) {
-          if (insertErrors.length > 0) {
-            console.error(
-              `❌ ${insertErrors.length} errores al insertar partidos`
-            );
-            return callback(insertErrors[0]);
-          }
-
-          console.log(
-            `✅ Todos los ${insertedCount} partidos insertados correctamente`
-          );
-
-          // Crear estadísticas iniciales
-          initializeStats(tournamentId, teams, callback, insertedCount);
-        }
-      });
-    };
-
-    // Insertar todos los partidos
-    matches.forEach((match, index) => {
-      insertMatch(match, index);
+    // Insertar partidos
+    insertMatches(matches, (err, insertedCount) => {
+      if (err) return callback(err);
+      
+      // Inicializar estadísticas
+      initializeStats(tournamentId, teams, callback, insertedCount);
     });
+  });
+}
+
+// Generar calendario estilo liga de fútbol
+function generateFootballSchedule(teams, tournamentId, startDate) {
+  const matches = [];
+  const numTeams = teams.length;
+  const defaultTime = "20:00:00";
+  
+  // Si hay número impar de equipos, agregar "descanso"
+  let teamsArray = [...teams];
+  if (numTeams % 2 !== 0) {
+    teamsArray.push({ id: null, name: "DESCANSO" });
+  }
+  
+  const totalTeams = teamsArray.length;
+  const totalJornadas = (totalTeams - 1) * 2; // Ida y vuelta
+  
+  console.log(`📅 Generando ${totalJornadas} jornadas para ${numTeams} equipos`);
+
+  // Generar ida
+  for (let jornada = 1; jornada <= totalTeams - 1; jornada++) {
+    const jornadaMatches = generateJornadaMatches(teamsArray, jornada, false);
+    addMatchesToList(matches, jornadaMatches, tournamentId, startDate, jornada, defaultTime);
+  }
+
+  // Generar vuelta (invertir equipos)
+  for (let jornada = 1; jornada <= totalTeams - 1; jornada++) {
+    const jornadaMatches = generateJornadaMatches(teamsArray, jornada, true);
+    addMatchesToList(matches, jornadaMatches, tournamentId, startDate, jornada + (totalTeams - 1), defaultTime);
+  }
+
+  return matches.filter(match => match.team1_id !== null && match.team2_id !== null);
+}
+
+// Generar partidos para una jornada específica
+function generateJornadaMatches(teams, jornada, isVuelta) {
+  const matches = [];
+  const totalTeams = teams.length;
+  
+  // Algoritmo round-robin
+  const homeTeams = [];
+  const awayTeams = [];
+  
+  // Equipo fijo (posición 0) siempre en casa
+  if (jornada % 2 === 1) {
+    homeTeams.push(teams[0]);
+    awayTeams.push(teams[jornada]);
+  } else {
+    homeTeams.push(teams[jornada]);
+    awayTeams.push(teams[0]);
+  }
+  
+  // Rotar el resto de equipos
+  for (let i = 1; i < totalTeams / 2; i++) {
+    const homeIndex = (jornada + i - 1) % (totalTeams - 1) + 1;
+    const awayIndex = (jornada - i - 1 + totalTeams - 1) % (totalTeams - 1) + 1;
+    
+    homeTeams.push(teams[homeIndex]);
+    awayTeams.push(teams[awayIndex]);
+  }
+  
+  // Crear partidos
+  for (let i = 0; i < homeTeams.length; i++) {
+    let team1 = homeTeams[i];
+    let team2 = awayTeams[i];
+    
+    // En vuelta, invertir local/visitante
+    if (isVuelta) {
+      [team1, team2] = [team2, team1];
+    }
+    
+    if (team1.id && team2.id) {
+      matches.push({ team1, team2 });
+    }
+  }
+  
+  return matches;
+}
+
+// Agregar partidos a la lista con fecha y jornada
+function addMatchesToList(matches, jornadaMatches, tournamentId, startDate, jornada, defaultTime) {
+  const matchDate = new Date(startDate);
+  matchDate.setDate(matchDate.getDate() + (jornada - 1) * 7); // Una semana entre jornadas
+  
+  jornadaMatches.forEach(match => {
+    matches.push({
+      tournament_id: tournamentId,
+      team1_id: match.team1.id,
+      team2_id: match.team2.id,
+      match_date: matchDate.toISOString().split('T')[0],
+      match_time: defaultTime,
+      match_format: 'BO3',
+      jornada: jornada,
+      score_team1: 0,
+      score_team2: 0,
+      status: 'pending'
+    });
+  });
+}
+
+// Insertar partidos con mejor manejo de errores
+function insertMatches(matches, callback) {
+  const insertQuery = `
+    INSERT INTO tournament_matches 
+    (tournament_id, team1_id, team2_id, match_date, match_time, match_format, jornada, score_team1, score_team2, status)
+    VALUES ?
+  `;
+
+  const values = matches.map(m => [
+    m.tournament_id, m.team1_id, m.team2_id,
+    m.match_date, m.match_time, m.match_format, m.jornada,
+    m.score_team1, m.score_team2, m.status
+  ]);
+
+  db.query(insertQuery, [values], (err, result) => {
+    if (err) {
+      console.error("❌ Error insertando partidos:", err);
+      return callback(err);
+    }
+
+    console.log(`✅ ${matches.length} partidos insertados correctamente`);
+    callback(null, matches.length);
   });
 }
 
