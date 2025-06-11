@@ -29,12 +29,6 @@
   z-index: -1;
 }
 
-
-
-.teams-header h1 {
-  color: white;
-}
-
 .game-selector {
   margin: 1rem 0;
   display: flex;
@@ -1080,5 +1074,13 @@
 
 .teams-content,
 .tournaments-content {
-  padding-top: 1rem; /* Espacio después del header */
+  padding-top: 1rem;
+}
+
+.teams-container {
+  padding: 0; /* quitar padding superior */
+}
+
+.tournaments-container {
+  padding: 0; /* quitar padding superior */
 }
