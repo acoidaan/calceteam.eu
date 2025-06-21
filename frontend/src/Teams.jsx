@@ -557,7 +557,6 @@ const Teams = ({ onBack }) => {
       <Header
         onBack={onBack}
         titleImage="/equipos-title.png"
-        logoImage="/team-logo.png"
       />
 
       <div className="teams-content">
