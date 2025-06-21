@@ -65,10 +65,12 @@ const Teams = ({ onBack }) => {
 
           if (response.ok) {
             showSuccess("Has salido del torneo");
-            setTimeout(() => {
-              fetchTournaments();
-              fetchUpcomingMatches();
-            }, 500);
+            // ✅ ARREGLO: Refrescar todo inmediatamente
+            await Promise.all([
+              fetchTournaments(),
+              fetchUpcomingMatches(),
+              fetchMyTeam(), // Refrescar el equipo también
+            ]);
           } else {
             const error = await response.json();
             showError(error.message || "Error al salir del torneo");
@@ -167,27 +169,75 @@ const Teams = ({ onBack }) => {
         const data = await response.json();
         const matches = data.matches || [];
 
-        // Organizar partidos por jornada
-        const organizedMatches = {};
+        console.log("🏆 [DEBUG] Partidos recibidos:", matches);
+
+        // ✅ MEJORADO: Organizar partidos por TORNEO y luego por jornada
+        const organizedByTournament = {};
         let maxJornada = 0;
 
         matches.forEach((match) => {
+          const tournamentId = match.tournament_id;
           const jornada = match.jornada;
-          if (!organizedMatches[jornada]) {
-            organizedMatches[jornada] = [];
+
+          // Crear estructura por torneo
+          if (!organizedByTournament[tournamentId]) {
+            organizedByTournament[tournamentId] = {
+              name: match.tournament_name,
+              matches: {},
+              maxJornada: 0,
+            };
           }
-          organizedMatches[jornada].push(match);
+
+          // Organizar por jornada dentro del torneo
+          if (!organizedByTournament[tournamentId].matches[jornada]) {
+            organizedByTournament[tournamentId].matches[jornada] = [];
+          }
+
+          organizedByTournament[tournamentId].matches[jornada].push(match);
+          organizedByTournament[tournamentId].maxJornada = Math.max(
+            organizedByTournament[tournamentId].maxJornada,
+            jornada
+          );
           maxJornada = Math.max(maxJornada, jornada);
         });
 
-        setMatchesByJornada(organizedMatches);
+        console.log("🏆 [DEBUG] Organizado por torneo:", organizedByTournament);
+
+        // ✅ NUEVO: Combinar todas las jornadas de todos los torneos
+        const combinedMatches = {};
+        for (let jornada = 1; jornada <= maxJornada; jornada++) {
+          combinedMatches[jornada] = [];
+
+          Object.values(organizedByTournament).forEach((tournament) => {
+            if (tournament.matches[jornada]) {
+              // Añadir identificador de torneo a cada partido
+              const matchesWithTournament = tournament.matches[jornada].map(
+                (match) => ({
+                  ...match,
+                  tournament_display_name: tournament.name,
+                })
+              );
+              combinedMatches[jornada].push(...matchesWithTournament);
+            }
+          });
+        }
+
+        console.log("🏆 [DEBUG] Jornadas combinadas:", combinedMatches);
+
+        setMatchesByJornada(combinedMatches);
         setTotalJornadas(maxJornada);
-        setUpcomingMatches(organizedMatches[selectedJornada] || []);
+        setUpcomingMatches(combinedMatches[selectedJornada] || []);
+
+        // ✅ NUEVO: Guardar info de torneos para mostrar
+        setTournamentInfo(organizedByTournament);
       }
     } catch (error) {
       console.error("Error fetching matches:", error);
     }
   };
+
+  // ✅ NUEVO: Estado para información de torneos
+  const [tournamentInfo, setTournamentInfo] = useState({});
 
   useEffect(() => {
     if (matchesByJornada[selectedJornada]) {
@@ -416,6 +466,42 @@ const Teams = ({ onBack }) => {
       }
     } catch (error) {
       showError("Error de conexión");
+    }
+  };
+
+  const handleRegister = async (tournament) => {
+    if (!userTeam) {
+      showError("Necesitas tener un equipo para inscribirte");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/tournament/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          tournamentId: tournament.id,
+          teamId: userTeam.id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        showSuccess(data.message);
+        // ✅ ARREGLO: Actualizar partidos después de inscribirse
+        setTimeout(async () => {
+          await Promise.all([fetchTournaments(), fetchUpcomingMatches()]);
+        }, 1000); // Pequeño delay para que la BD se actualice
+      } else {
+        showError(data.message);
+      }
+    } catch (err) {
+      showError("Error al inscribirse en el torneo");
     }
   };
 
@@ -1076,6 +1162,62 @@ const Teams = ({ onBack }) => {
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+};
+
+const renderMatchCard = (match, index) => {
+  const isHome = match.home_team_id === myTeam.id;
+  const homeTeam = {
+    id: match.home_team_id,
+    name: match.home_team_name,
+    logo: match.home_team_logo,
+  };
+  const awayTeam = {
+    id: match.away_team_id,
+    name: match.away_team_name,
+    logo: match.away_team_logo,
+  };
+
+  return (
+    <div key={`${match.tournament_id}-${match.id}`} className="match-card">
+      <div className="match-tournament-info">
+        <span className="match-tournament-name">
+          {match.tournament_display_name || match.tournament_name}
+        </span>
+        <span className="match-date">
+          {formatDateToSpanish(match.match_date)}
+        </span>
+      </div>
+      <div className="match-content">
+        <div className="match-time">{formatTime(match.match_time)}</div>
+        <div className="match-team home">
+          <span className="team-name">{homeTeam.name}</span>
+          <div className="team-logo">
+            {homeTeam.logo ? (
+              <img src={homeTeam.logo} alt={homeTeam.name} />
+            ) : (
+              <span className="default-logo">
+                {homeTeam.name.substring(0, 2).toUpperCase()}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="match-vs">VS</div>
+        <div className="match-team away">
+          <div className="team-logo">
+            {awayTeam.logo ? (
+              <img src={awayTeam.logo} alt={awayTeam.name} />
+            ) : (
+              <span className="default-logo">
+                {awayTeam.name.substring(0, 2).toUpperCase()}
+              </span>
+            )}
+          </div>
+          <span className="team-name">{awayTeam.name}</span>
+        </div>
+        <div className="match-format">{match.format}</div>
       </div>
     </div>
   );

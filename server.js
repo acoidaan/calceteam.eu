@@ -392,44 +392,104 @@ function insertMatches(matches, callback) {
 // FUNCIÓN AUXILIAR PARA REGENERAR PARTIDOS
 // ==========================================
 function regenerateMatches(tournamentId, tournament, callback) {
-  console.log(`🔄 Regenerando partidos para torneo ${tournamentId}`);
+  console.log(
+    `🔄 [REGENERATE] Iniciando regeneración para torneo ${tournamentId}`
+  );
 
-  // Eliminar partidos existentes
+  // ✅ PASO 1: Eliminar TODOS los datos relacionados
   const deleteMatchesQuery =
     "DELETE FROM tournament_matches WHERE tournament_id = ?";
-  db.query(deleteMatchesQuery, [tournamentId], (err) => {
+  const deleteStatsQuery =
+    "DELETE FROM tournament_stats WHERE tournament_id = ?";
+
+  db.query(deleteMatchesQuery, [tournamentId], (err, deleteResult) => {
     if (err) {
-      console.error("❌ Error eliminando partidos:", err);
+      console.error("❌ [REGENERATE] Error eliminando partidos:", err);
       return callback(err);
     }
 
-    // Obtener equipos inscritos
-    const getTeamsQuery = `
-      SELECT t.id, t.name 
-      FROM teams t
-      INNER JOIN tournaments_teams tt ON t.id = tt.team_id
-      WHERE tt.tournament_id = ?
-      ORDER BY t.name
-    `;
+    console.log(
+      `✅ [REGENERATE] ${deleteResult.affectedRows} partidos eliminados`
+    );
 
-    db.query(getTeamsQuery, [tournamentId], (err, teams) => {
+    // ✅ PASO 2: Eliminar estadísticas también
+    db.query(deleteStatsQuery, [tournamentId], (err, statsResult) => {
       if (err) {
-        console.error("❌ Error obteniendo equipos:", err);
+        console.error("❌ [REGENERATE] Error eliminando estadísticas:", err);
         return callback(err);
       }
 
-      if (teams.length < 2) {
-        console.log("⚠️ Menos de 2 equipos, no se generan partidos");
-        return callback(null, 0);
-      }
-
       console.log(
-        `📋 Equipos encontrados:`,
-        teams.map((t) => t.name)
+        `✅ [REGENERATE] ${statsResult.affectedRows} estadísticas eliminadas`
       );
 
-      // Generar partidos
-      generateTournamentMatches(tournamentId, teams, tournament.date, callback);
+      // ✅ PASO 3: Obtener equipos ACTUALIZADOS
+      const getTeamsQuery = `
+        SELECT DISTINCT t.id, t.name 
+        FROM teams t
+        INNER JOIN tournaments_teams tt ON t.id = tt.team_id
+        WHERE tt.tournament_id = ?
+        ORDER BY t.name ASC
+      `;
+
+      db.query(getTeamsQuery, [tournamentId], (err, teams) => {
+        if (err) {
+          console.error("❌ [REGENERATE] Error obteniendo equipos:", err);
+          return callback(err);
+        }
+
+        console.log(`📋 [REGENERATE] Equipos encontrados: ${teams.length}`);
+        console.log(
+          `📋 [REGENERATE] Lista:`,
+          teams.map((t) => `${t.id}: ${t.name}`)
+        );
+
+        if (teams.length < 2) {
+          console.log(
+            "⚠️ [REGENERATE] Menos de 2 equipos, no se generan partidos"
+          );
+          return callback(null, 0);
+        }
+
+        // ✅ PASO 4: Generar nuevos partidos
+        console.log(
+          `🎯 [REGENERATE] Generando partidos para ${teams.length} equipos...`
+        );
+        generateTournamentMatches(
+          tournamentId,
+          teams,
+          tournament.date,
+          (err, matchesCreated) => {
+            if (err) {
+              console.error("❌ [REGENERATE] Error generando partidos:", err);
+              return callback(err);
+            }
+
+            console.log(
+              `✅ [REGENERATE] Regeneración completada: ${matchesCreated} partidos`
+            );
+
+            // ✅ PASO 5: Verificar que se crearon los partidos
+            const verifyQuery =
+              "SELECT COUNT(*) as count FROM tournament_matches WHERE tournament_id = ?";
+            db.query(verifyQuery, [tournamentId], (err, verifyResult) => {
+              if (err) {
+                console.error(
+                  "❌ [REGENERATE] Error verificando partidos:",
+                  err
+                );
+              } else {
+                const actualCount = verifyResult[0]?.count || 0;
+                console.log(
+                  `✅ [REGENERATE] Verificación: ${actualCount} partidos en BD`
+                );
+              }
+
+              callback(null, matchesCreated);
+            });
+          }
+        );
+      });
     });
   });
 }
@@ -1407,7 +1467,61 @@ app.post(
   (req, res) => {
     const { id } = req.params;
 
-    console.log(`🔄 Admin regenerando partidos para torneo ${id}`);
+    console.log(`🔄 [ADMIN] Regenerando partidos para torneo ${id}`);
+
+    const getTournamentQuery = "SELECT * FROM tournaments WHERE id = ?";
+    db.query(getTournamentQuery, [id], (err, tournaments) => {
+      if (err || tournaments.length === 0) {
+        console.error("❌ [ADMIN] Torneo no encontrado:", err);
+        return res.status(404).json({ message: "Torneo no encontrado" });
+      }
+
+      const tournament = tournaments[0];
+      console.log(`📋 [ADMIN] Torneo encontrado: ${tournament.name}`);
+
+      regenerateMatches(id, tournament, (err, matchesCreated) => {
+        if (err) {
+          console.error("❌ [ADMIN] Error en regeneración:", err);
+          return res.status(500).json({
+            message: "Error regenerando partidos",
+            error: err.message,
+          });
+        }
+
+        console.log(
+          `✅ [ADMIN] Regeneración exitosa: ${matchesCreated} partidos`
+        );
+
+        // ✅ RESPUESTA DETALLADA
+        res.json({
+          success: true,
+          message: `Partidos regenerados exitosamente. Se crearon ${matchesCreated} partidos.`,
+          matchesCreated,
+          tournamentId: id,
+          timestamp: new Date().toISOString(),
+        });
+      });
+    });
+  }
+);
+
+app.post("/api/tournament/:id/force-regenerate", verifyToken, (req, res) => {
+  const { id } = req.params;
+
+  // Verificar que el usuario tiene un equipo en el torneo
+  const checkTeamQuery = `
+    SELECT tt.team_id 
+    FROM tournaments_teams tt
+    INNER JOIN teams_players tp ON tt.team_id = tp.team_id
+    WHERE tt.tournament_id = ? AND tp.user_id = ?
+  `;
+
+  db.query(checkTeamQuery, [id, req.userId], (err, teamResults) => {
+    if (err || teamResults.length === 0) {
+      return res
+        .status(403)
+        .json({ message: "No tienes equipos en este torneo" });
+    }
 
     const getTournamentQuery = "SELECT * FROM tournaments WHERE id = ?";
     db.query(getTournamentQuery, [id], (err, tournaments) => {
@@ -1418,20 +1532,126 @@ app.post(
       const tournament = tournaments[0];
       regenerateMatches(id, tournament, (err, matchesCreated) => {
         if (err) {
-          console.error("Error regenerando partidos:", err);
           return res
             .status(500)
             .json({ message: "Error regenerando partidos" });
         }
 
         res.json({
-          message: `Partidos regenerados exitosamente. Se crearon ${matchesCreated} partidos.`,
+          success: true,
+          message: `Calendario actualizado. ${matchesCreated} partidos generados.`,
           matchesCreated,
         });
       });
     });
+  });
+});
+
+app.post("/api/tournament/register", verifyToken, (req, res) => {
+  const { tournamentId, teamId } = req.body;
+
+  if (!tournamentId || !teamId) {
+    return res.status(400).json({ message: "Faltan datos requeridos" });
   }
-);
+
+  const checkMemberQuery =
+    "SELECT * FROM teams_players WHERE team_id = ? AND user_id = ?";
+  db.query(checkMemberQuery, [teamId, req.userId], (err, memberResults) => {
+    if (err || memberResults.length === 0) {
+      return res
+        .status(403)
+        .json({ message: "No eres miembro de este equipo" });
+    }
+
+    const checkTournamentQuery =
+      "SELECT * FROM tournaments WHERE id = ? AND status = 'abierto'";
+    db.query(checkTournamentQuery, [tournamentId], (err, tournamentResults) => {
+      if (err || tournamentResults.length === 0) {
+        return res.status(404).json({ message: "Torneo no disponible" });
+      }
+
+      const tournament = tournamentResults[0];
+
+      const checkRegistrationQuery =
+        "SELECT * FROM tournaments_teams WHERE tournament_id = ? AND team_id = ?";
+      db.query(
+        checkRegistrationQuery,
+        [tournamentId, teamId],
+        (err, regResults) => {
+          if (err) {
+            return res.status(500).json({ message: "Error del servidor" });
+          }
+
+          if (regResults.length > 0) {
+            return res
+              .status(400)
+              .json({ message: "El equipo ya está inscrito en este torneo" });
+          }
+
+          // ✅ INSCRIBIR EL EQUIPO
+          const insertQuery =
+            "INSERT INTO tournaments_teams (tournament_id, team_id, registration_date) VALUES (?, ?, NOW())";
+          db.query(insertQuery, [tournamentId, teamId], (err) => {
+            if (err) {
+              console.error("❌ Error inscribiendo equipo:", err);
+              return res
+                .status(500)
+                .json({ message: "Error al inscribir equipo" });
+            }
+
+            console.log(
+              `✅ Equipo ${teamId} inscrito en torneo ${tournamentId}`
+            );
+
+            // ✅ REGENERAR PARTIDOS CON DELAY PARA ASEGURAR CONSISTENCY
+            setTimeout(() => {
+              regenerateMatches(
+                tournamentId,
+                tournament,
+                (err, matchesCreated) => {
+                  if (err) {
+                    console.error("❌ Error regenerando partidos:", err);
+                    return res.json({
+                      success: true,
+                      message:
+                        "Equipo inscrito exitosamente, pero hubo un error regenerando el calendario",
+                      inscribed: true,
+                      matchesGenerated: false,
+                    });
+                  }
+
+                  // ✅ CONTAR EQUIPOS TOTALES
+                  const countTeamsQuery =
+                    "SELECT COUNT(*) as count FROM tournaments_teams WHERE tournament_id = ?";
+                  db.query(
+                    countTeamsQuery,
+                    [tournamentId],
+                    (err, countResults) => {
+                      const teamCount =
+                        countResults && countResults[0]
+                          ? countResults[0].count
+                          : 0;
+
+                      res.json({
+                        success: true,
+                        message: `Equipo inscrito exitosamente. Calendario generado con ${matchesCreated} partidos para ${teamCount} equipos.`,
+                        inscribed: true,
+                        matchesGenerated: true,
+                        matchesCreated,
+                        totalTeams: teamCount,
+                        timestamp: new Date().toISOString(),
+                      });
+                    }
+                  );
+                }
+              );
+            }, 500); // 500ms delay para consistency
+          });
+        }
+      );
+    });
+  });
+});
 
 // ==========================================
 // ENDPOINT KEEP-ALIVE PARA RAILWAY

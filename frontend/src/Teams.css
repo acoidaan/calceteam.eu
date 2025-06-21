@@ -1178,3 +1178,16 @@
     transform: translateY(0);
   }
 }
+
+/* ✅ QUITAR CUADRADITO AZUL - Eliminar elementos sobrantes */
+*::before,
+*::after {
+  box-shadow: none !important;
+}
+
+/* Eliminar cualquier elemento flotante azul */
+.teams-container *[style*="position: fixed"],
+.teams-container *[style*="position: absolute"] {
+  display: none;
+}
+
