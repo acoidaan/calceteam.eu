@@ -1481,6 +1481,423 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// AÑADIR también estos endpoints en tu server.js
+
+// ==========================================
+// UNIRSE A UN EQUIPO
+// ==========================================
+app.post("/api/team/join", verifyToken, (req, res) => {
+  const { code, game, playerRole, playerNickname, playerOpgg } = req.body;
+
+  if (!code || !game || !playerRole || !playerNickname) {
+    return res.status(400).json({ message: "Faltan campos requeridos" });
+  }
+
+  // Buscar equipo por código
+  const findTeamQuery = "SELECT * FROM teams WHERE invite_code = ? AND game = ?";
+  
+  db.query(findTeamQuery, [code, game], (err, teamResults) => {
+    if (err) {
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+
+    if (teamResults.length === 0) {
+      return res.status(404).json({ message: "Código de equipo inválido" });
+    }
+
+    const team = teamResults[0];
+
+    // Verificar que no esté ya en el equipo
+    const checkMemberQuery = "SELECT * FROM teams_players WHERE team_id = ? AND user_id = ?";
+    
+    db.query(checkMemberQuery, [team.id, req.userId], (err, memberResults) => {
+      if (err) {
+        return res.status(500).json({ message: "Error del servidor" });
+      }
+
+      if (memberResults.length > 0) {
+        return res.status(400).json({ message: "Ya eres miembro de este equipo" });
+      }
+
+      // Añadir al equipo
+      const addPlayerQuery = `
+        INSERT INTO teams_players (team_id, user_id, nickname, role, opgg_link)
+        VALUES (?, ?, ?, ?, ?)
+      `;
+
+      db.query(addPlayerQuery, [team.id, req.userId, playerNickname, playerRole, playerOpgg], (err) => {
+        if (err) {
+          console.error("❌ Error añadiendo jugador al equipo:", err);
+          return res.status(500).json({ message: "Error al unirse al equipo" });
+        }
+
+        console.log(`✅ Usuario ${req.userId} se unió al equipo ${team.id}`);
+        res.json({ message: "Te has unido al equipo exitosamente" });
+      });
+    });
+  });
+});
+
+// ==========================================
+// SALIR DE UN EQUIPO
+// ==========================================
+app.post("/api/team/leave", verifyToken, (req, res) => {
+  const { teamId } = req.body;
+
+  if (!teamId) {
+    return res.status(400).json({ message: "teamId requerido" });
+  }
+
+  const removePlayerQuery = "DELETE FROM teams_players WHERE team_id = ? AND user_id = ?";
+  
+  db.query(removePlayerQuery, [teamId, req.userId], (err, result) => {
+    if (err) {
+      console.error("❌ Error saliendo del equipo:", err);
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "No eres miembro de este equipo" });
+    }
+
+    console.log(`✅ Usuario ${req.userId} salió del equipo ${teamId}`);
+    res.json({ message: "Has salido del equipo exitosamente" });
+  });
+});
+
+// ==========================================
+// ACTUALIZAR EQUIPO
+// ==========================================
+app.put("/api/team/update", verifyToken, upload.single("teamLogo"), (req, res) => {
+  const { teamId, teamName } = req.body;
+  const teamLogo = req.file ? req.file.buffer : null;
+
+  if (!teamId || !teamName) {
+    return res.status(400).json({ message: "teamId y teamName requeridos" });
+  }
+
+  // Verificar que es el creador del equipo
+  const checkCreatorQuery = "SELECT * FROM teams WHERE id = ? AND created_by = ?";
+  
+  db.query(checkCreatorQuery, [teamId, req.userId], (err, teamResults) => {
+    if (err) {
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+
+    if (teamResults.length === 0) {
+      return res.status(403).json({ message: "Solo el creador puede editar el equipo" });
+    }
+
+    // Actualizar equipo
+    let updateQuery = "UPDATE teams SET name = ?";
+    let params = [teamName];
+
+    if (teamLogo) {
+      updateQuery += ", logo = ?";
+      params.push(teamLogo);
+    }
+
+    updateQuery += " WHERE id = ?";
+    params.push(teamId);
+
+    db.query(updateQuery, params, (err) => {
+      if (err) {
+        console.error("❌ Error actualizando equipo:", err);
+        return res.status(500).json({ message: "Error al actualizar equipo" });
+      }
+
+      console.log(`✅ Equipo ${teamId} actualizado`);
+      res.json({ message: "Equipo actualizado exitosamente" });
+    });
+  });
+});
+
+// ==========================================
+// ACTUALIZAR JUGADOR
+// ==========================================
+app.put("/api/team/update-player", verifyToken, (req, res) => {
+  const { teamId, playerId, nickname, role, opgg } = req.body;
+
+  if (!teamId || !playerId || !nickname || !role) {
+    return res.status(400).json({ message: "Faltan campos requeridos" });
+  }
+
+  // Verificar que es el creador del equipo o el mismo jugador
+  const checkPermissionQuery = `
+    SELECT t.created_by, tp.user_id 
+    FROM teams t
+    INNER JOIN teams_players tp ON t.id = tp.team_id
+    WHERE t.id = ? AND tp.user_id = ?
+  `;
+
+  db.query(checkPermissionQuery, [teamId, playerId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "Jugador no encontrado" });
+    }
+
+    const isCreator = results[0].created_by === req.userId;
+    const isSamePlayer = results[0].user_id === req.userId;
+
+    if (!isCreator && !isSamePlayer) {
+      return res.status(403).json({ message: "No tienes permisos para editar este jugador" });
+    }
+
+    // Actualizar jugador
+    const updateQuery = `
+      UPDATE teams_players 
+      SET nickname = ?, role = ?, opgg_link = ?
+      WHERE team_id = ? AND user_id = ?
+    `;
+
+    db.query(updateQuery, [nickname, role, opgg, teamId, playerId], (err) => {
+      if (err) {
+        console.error("❌ Error actualizando jugador:", err);
+        return res.status(500).json({ message: "Error al actualizar jugador" });
+      }
+
+      console.log(`✅ Jugador ${playerId} actualizado en equipo ${teamId}`);
+      res.json({ message: "Jugador actualizado exitosamente" });
+    });
+  });
+});
+
+// ==========================================
+// ELIMINAR JUGADOR
+// ==========================================
+app.delete("/api/team/remove-player", verifyToken, (req, res) => {
+  const { teamId, playerId } = req.body;
+
+  if (!teamId || !playerId) {
+    return res.status(400).json({ message: "teamId y playerId requeridos" });
+  }
+
+  // Verificar que es el creador del equipo
+  const checkCreatorQuery = "SELECT * FROM teams WHERE id = ? AND created_by = ?";
+  
+  db.query(checkCreatorQuery, [teamId, req.userId], (err, teamResults) => {
+    if (err) {
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+
+    if (teamResults.length === 0) {
+      return res.status(403).json({ message: "Solo el creador puede eliminar jugadores" });
+    }
+
+    // Eliminar jugador
+    const removeQuery = "DELETE FROM teams_players WHERE team_id = ? AND user_id = ?";
+    
+    db.query(removeQuery, [teamId, playerId], (err, result) => {
+      if (err) {
+        console.error("❌ Error eliminando jugador:", err);
+        return res.status(500).json({ message: "Error del servidor" });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Jugador no encontrado" });
+      }
+
+      console.log(`✅ Jugador ${playerId} eliminado del equipo ${teamId}`);
+      res.json({ message: "Jugador eliminado exitosamente" });
+    });
+  });
+});
+
+// ==========================================
+// ELIMINAR EQUIPO
+// ==========================================
+app.delete("/api/team/delete", verifyToken, (req, res) => {
+  const { teamId } = req.body;
+
+  if (!teamId) {
+    return res.status(400).json({ message: "teamId requerido" });
+  }
+
+  // Verificar que es el creador del equipo
+  const checkCreatorQuery = "SELECT * FROM teams WHERE id = ? AND created_by = ?";
+  
+  db.query(checkCreatorQuery, [teamId, req.userId], (err, teamResults) => {
+    if (err) {
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+
+    if (teamResults.length === 0) {
+      return res.status(403).json({ message: "Solo el creador puede eliminar el equipo" });
+    }
+
+    // Eliminar en orden: jugadores, inscripciones, equipo
+    const deletePlayersQuery = "DELETE FROM teams_players WHERE team_id = ?";
+    const deleteRegistrationsQuery = "DELETE FROM tournaments_teams WHERE team_id = ?";
+    const deleteTeamQuery = "DELETE FROM teams WHERE id = ?";
+
+    db.query(deletePlayersQuery, [teamId], (err) => {
+      if (err) {
+        return res.status(500).json({ message: "Error eliminando jugadores" });
+      }
+
+      db.query(deleteRegistrationsQuery, [teamId], (err) => {
+        if (err) {
+          return res.status(500).json({ message: "Error eliminando inscripciones" });
+        }
+
+        db.query(deleteTeamQuery, [teamId], (err) => {
+          if (err) {
+            return res.status(500).json({ message: "Error eliminando equipo" });
+          }
+
+          console.log(`✅ Equipo ${teamId} eliminado completamente`);
+          res.json({ message: "Equipo eliminado exitosamente" });
+        });
+      });
+    });
+  });
+});
+
+// ==========================================
+// OBTENER TORNEOS DE UN EQUIPO
+// ==========================================
+app.get("/api/tournaments/my-tournaments", verifyToken, (req, res) => {
+  const { teamId } = req.query;
+
+  if (!teamId) {
+    return res.status(400).json({ message: "teamId requerido" });
+  }
+
+  const query = `
+    SELECT t.*, tt.registration_date
+    FROM tournaments t
+    INNER JOIN tournaments_teams tt ON t.id = tt.tournament_id
+    WHERE tt.team_id = ?
+    ORDER BY t.date DESC
+  `;
+
+  db.query(query, [teamId], (err, results) => {
+    if (err) {
+      console.error("❌ Error obteniendo torneos del equipo:", err);
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+
+    console.log(`✅ Torneos encontrados para equipo ${teamId}:`, results.length);
+    res.json({ tournaments: results });
+  });
+});
+
+// ==========================================
+// OBTENER PARTIDOS DE UN EQUIPO
+// ==========================================
+app.get("/api/matches/my-team-matches", verifyToken, (req, res) => {
+  const { teamId } = req.query;
+
+  if (!teamId) {
+    return res.status(400).json({ message: "teamId requerido" });
+  }
+
+  const query = `
+    SELECT 
+      m.*,
+      t.name as tournament_name,
+      
+      -- Datos equipo local
+      t1.name as home_team_name,
+      t1.logo as home_team_logo,
+      
+      -- Datos equipo visitante  
+      t2.name as away_team_name,
+      t2.logo as away_team_logo
+      
+    FROM tournament_matches m
+    INNER JOIN tournaments t ON m.tournament_id = t.id
+    INNER JOIN teams t1 ON m.team1_id = t1.id
+    INNER JOIN teams t2 ON m.team2_id = t2.id
+    WHERE m.team1_id = ? OR m.team2_id = ?
+    ORDER BY m.jornada ASC, m.match_date ASC, m.match_time ASC
+  `;
+
+  db.query(query, [teamId, teamId], (err, results) => {
+    if (err) {
+      console.error("❌ Error obteniendo partidos del equipo:", err);
+      return res.status(500).json({ message: "Error del servidor" });
+    }
+
+    console.log(`✅ Partidos encontrados para equipo ${teamId}:`, results.length);
+
+    // Convertir logos a base64
+    const matches = results.map(match => ({
+      ...match,
+      home_team_logo: match.home_team_logo 
+        ? `data:image/jpeg;base64,${match.home_team_logo.toString('base64')}` 
+        : null,
+      away_team_logo: match.away_team_logo 
+        ? `data:image/jpeg;base64,${match.away_team_logo.toString('base64')}` 
+        : null,
+    }));
+
+    res.json({ matches });
+  });
+});
+
+// ==========================================
+// SALIR DE UN TORNEO
+// ==========================================
+app.post("/api/tournament/leave", verifyToken, (req, res) => {
+  const { tournamentId, teamId } = req.body;
+
+  if (!tournamentId || !teamId) {
+    return res.status(400).json({ message: "tournamentId y teamId requeridos" });
+  }
+
+  // Verificar que el usuario es miembro del equipo
+  const checkMemberQuery = "SELECT * FROM teams_players WHERE team_id = ? AND user_id = ?";
+  
+  db.query(checkMemberQuery, [teamId, req.userId], (err, memberResults) => {
+    if (err || memberResults.length === 0) {
+      return res.status(403).json({ message: "No eres miembro de este equipo" });
+    }
+
+    // Eliminar de tournaments_teams
+    const deleteQuery = "DELETE FROM tournaments_teams WHERE tournament_id = ? AND team_id = ?";
+    
+    db.query(deleteQuery, [tournamentId, teamId], (err, result) => {
+      if (err) {
+        console.error("❌ Error saliendo del torneo:", err);
+        return res.status(500).json({ message: "Error del servidor" });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "No estás inscrito en este torneo" });
+      }
+
+      console.log(`✅ Equipo ${teamId} salió del torneo ${tournamentId}`);
+
+      // Regenerar partidos automáticamente
+      const getTournamentQuery = "SELECT * FROM tournaments WHERE id = ?";
+      db.query(getTournamentQuery, [tournamentId], (err, tournaments) => {
+        if (err || tournaments.length === 0) {
+          return res.json({ message: "Saliste del torneo exitosamente" });
+        }
+
+        const tournament = tournaments[0];
+        regenerateMatches(tournamentId, tournament, (err, matchesCreated) => {
+          if (err) {
+            console.error("❌ Error regenerando partidos:", err);
+            return res.json({ 
+              message: "Saliste del torneo exitosamente, pero hubo un error regenerando el calendario" 
+            });
+          }
+
+          res.json({ 
+            message: `Saliste del torneo exitosamente. Se regeneraron ${matchesCreated} partidos.`,
+            matchesRegenerated: matchesCreated
+          });
+        });
+      });
+    });
+  });
+});
+
 // Ruta 404 para APIs
 app.all("/api/*", (req, res) => {
   res.status(404).json({ message: "Ruta API no encontrada" });

@@ -46,7 +46,7 @@
   height: 40px;
   max-width: 200px;
   object-fit: contain;
-  filter: brightness(0) invert(1); /* Convierte a blanco */
+  /* filter: brightness(0) invert(1); Convierte a blanco */
 }
 
 .header-logo-image {

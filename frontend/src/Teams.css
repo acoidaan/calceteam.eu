@@ -1,5 +1,5 @@
 .teams-container {
-  padding: 1rem;
+  padding: 2rem;
   color: white;
   background-color: #0e0e0e;
   font-family: 'Segoe UI', sans-serif;
@@ -219,27 +219,27 @@
 .team-logo-name {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 2.5rem;
 }
 
 .team-logo {
-  width: 90px;
-  height: 90px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid var(--calce-blue);
 }
 
 .team-logo-placeholder {
-  width: 90px;
-  height: 90px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   background: var(--calce-blue);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.2rem;
+  font-size: 2.8rem;
   font-weight: bold;
   border: 3px solid var(--calce-blue-light);
 }
@@ -976,8 +976,20 @@
 
 @media (max-width: 768px) {
   .teams-container {
-    padding: 0.5rem;
+    padding: 1rem;
   }
+
+  .team-logo,
+  .team-logo-placeholder {
+    width: 100px;
+    height: 100px;
+  }
+
+  .team-logo-placeholder {
+    font-size: 2.2rem;
+  }
+
+  
   
   .game-selector {
     width: 100%;
@@ -1058,6 +1070,10 @@
   .match-team {
     justify-content: center !important;
   }
+}
+
+.teams-content {
+  padding: 1.5rem;
 }
 
 .teams-content,
