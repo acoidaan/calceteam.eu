@@ -178,6 +178,68 @@
   border-top: 2px solid #333;
 }
 
+/* Regenerate Button - NUEVO */
+.regenerate-matches-btn {
+  padding: 0.75rem 1.5rem;
+  background: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  margin-right: 1rem;
+}
+
+.regenerate-matches-btn:hover {
+  background: #d97706;
+  transform: translateY(-2px);
+}
+
+.regenerate-matches-btn:disabled {
+  background: #666;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Update Stats Button - NUEVO */
+.update-stats-btn {
+  padding: 0.75rem 1.5rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.update-stats-btn:hover {
+  background: #059669;
+  transform: translateY(-2px);
+}
+
+.update-stats-btn:disabled {
+  background: #666;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Admin Controls - NUEVO */
+.admin-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 /* Detalles del torneo */
 .tournament-details {
   min-height: 100vh;
@@ -726,6 +788,82 @@
   border: 1px dashed rgba(255, 255, 255, 0.1);
 }
 
+/* Tournament Details Admin Controls - NUEVO */
+.tournament-details-admin {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.tournament-details-admin h4 {
+  color: var(--calce-blue-light);
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.admin-controls-detail {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Loading States - NUEVO */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-top: 5px solid var(--calce-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  color: white;
+  margin-top: 1rem;
+  font-size: 1.1rem;
+}
+
+/* Success/Error Messages - NUEVO */
+.action-message {
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  text-align: center;
+  font-weight: 600;
+}
+
+.action-message.success {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border: 1px solid #22c55e;
+}
+
+.action-message.error {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}
+
 /* Responsive - MEJORADO */
 @media (max-width: 1200px) {
   .tournament-content {
@@ -737,6 +875,18 @@
     position: static;
     max-width: 700px;
     margin: 0 auto;
+  }
+
+  .admin-controls,
+  .admin-controls-detail {
+    flex-direction: column;
+  }
+
+  .regenerate-matches-btn,
+  .update-stats-btn {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 0.5rem;
   }
 }
 
@@ -822,6 +972,19 @@
   .match-format {
     margin: 0 auto;
     width: fit-content;
+  }
+
+  .tournament-game-logo {
+    width: 60px;
+    height: 60px;
+  }
+
+  .admin-controls {
+    padding: 1rem;
+  }
+
+  .tournament-details-admin {
+    padding: 1rem;
   }
 }
 

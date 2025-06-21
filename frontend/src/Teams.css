@@ -105,6 +105,66 @@
   transform: translateY(-2px);
 }
 
+/* Regenerate Button - NUEVO */
+.regenerate-btn {
+  padding: 0.75rem 1.5rem;
+  background: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+.regenerate-btn:hover {
+  background: #d97706;
+  transform: translateY(-2px);
+}
+
+.regenerate-btn:disabled {
+  background: #666;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Update Stats Button - NUEVO */
+.update-stats-btn {
+  padding: 0.75rem 1.5rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  margin-left: 1rem;
+}
+
+.update-stats-btn:hover {
+  background: #059669;
+  transform: translateY(-2px);
+}
+
+.update-stats-btn:disabled {
+  background: #666;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Buttons Container - NUEVO */
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
 /* Form Container */
 .form-container {
   background: rgba(0, 0, 0, 0.9);
@@ -223,11 +283,12 @@
 
 /* Team Header Section - LAYOUT MEJORADO */
 .team-header-section {
-  background: rgba(25, 25, 25, 0.9);
-  border: 1px solid #333;
+  background: rgba(25, 25, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
   padding: 2.5rem;
   backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 /* NUEVO LAYOUT - Nombre y botones lado a lado - MEJORADO */
@@ -243,31 +304,43 @@
 .team-logo-name {
   display: flex;
   align-items: center;
-  gap: 3rem; /* ✅ Aumentado de 2.5rem a 3rem */
+  gap: 3rem;
 }
 
 .team-logo {
-  width: 140px; /* ✅ Aumentado de 120px a 140px */
-  height: 140px; /* ✅ Aumentado de 120px a 140px */
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid var(--calce-blue); /* ✅ Border más grueso */
-  box-shadow: 0 0 20px rgba(0, 140, 255, 0.3); /* ✅ Brillo azul */
+  border: 4px solid var(--calce-blue);
+  box-shadow: 0 0 20px rgba(0, 140, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.team-logo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(0, 140, 255, 0.5);
 }
 
 .team-logo-placeholder {
-  width: 140px; /* ✅ Aumentado de 120px a 140px */
-  height: 140px; /* ✅ Aumentado de 120px a 140px */
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--calce-blue), var(--calce-blue-light)); /* ✅ Gradiente */
+  background: linear-gradient(135deg, var(--calce-blue), var(--calce-blue-light));
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 3.2rem; /* ✅ Aumentado de 2.8rem */
+  font-size: 3.2rem;
   font-weight: bold;
-  border: 4px solid var(--calce-blue-light); /* ✅ Border más grueso */
-  box-shadow: 0 0 20px rgba(0, 140, 255, 0.3); /* ✅ Brillo azul */
+  border: 4px solid var(--calce-blue-light);
+  box-shadow: 0 0 20px rgba(0, 140, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.team-logo-placeholder:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(0, 140, 255, 0.5);
 }
 
 .team-logo-name h2 {
@@ -342,11 +415,12 @@
 
 /* Players Section - MEJORADO */
 .players-section {
-  background: rgba(25, 25, 25, 0.9);
-  border: 1px solid #333;
+  background: rgba(25, 25, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
   padding: 2.5rem;
   backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .players-section h3 {
@@ -473,11 +547,12 @@
 
 /* Tournaments Section - MEJORADO */
 .tournaments-section {
-  background: rgba(25, 25, 25, 0.9);
-  border: 1px solid #333;
+  background: rgba(25, 25, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
   padding: 2.5rem;
   backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .tournaments-section h3 {
@@ -675,12 +750,11 @@
 
 /* Logos de juegos - SIN FILTRO, NORMAL */
 .tournament-game-logo {
-  width: 90px; /* ✅ Aumentado de 80px */
-  height: 90px; /* ✅ Aumentado de 80px */
+  width: 90px;
+  height: 90px;
   opacity: 1;
   margin-left: auto;
 }
-
 
 .no-tournaments {
   color: #888;
@@ -695,12 +769,13 @@
 
 /* Upcoming Matches Section - MEJORADO */
 .upcoming-matches-section {
-  background: rgba(25, 25, 25, 0.9);
-  border: 1px solid #333;
+  background: rgba(25, 25, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
   padding: 2.5rem;
   margin-bottom: 2rem;
   backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .upcoming-matches-section h3 {
@@ -830,8 +905,8 @@
 }
 
 .match-team .team-logo {
-  width: 50px; /* ✅ Aumentado de 40px */
-  height: 50px; /* ✅ Aumentado de 40px */
+  width: 50px;
+  height: 50px;
   background: #2a2a2a;
   border-radius: 8px;
   display: flex;
@@ -843,9 +918,9 @@
 }
 
 .team-info .team-logo {
-  width: 38px; /* ✅ Aumentado de 32px */
-  height: 38px; /* ✅ Aumentado de 32px */
-  border-radius: 8px; /* ✅ Más redondeado */
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
   background: #2a2a2a;
   display: flex;
   align-items: center;
@@ -1004,6 +1079,25 @@
   background: #666;
 }
 
+/* Animaciones */
+.team-header-section,
+.players-section,
+.tournaments-section,
+.upcoming-matches-section {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Responsive - MEJORADO */
 @media (max-width: 1200px) {
   .team-display {
@@ -1049,6 +1143,17 @@
   .action-btn {
     width: 100%;
   }
+
+  .action-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .regenerate-btn,
+  .update-stats-btn {
+    width: 100%;
+    margin-left: 0;
+  }
   
   .form-container {
     padding: 1.5rem;
@@ -1090,7 +1195,7 @@
     gap: 1rem;
   }
   
-  .jornada-b768tn {
+  .jornada-btn {
     padding: 0.75rem 1rem;
     font-size: 0.9rem;
     width: 100%;
@@ -1116,17 +1221,15 @@
     justify-content: center !important;
   }
 
-    /* Logos más pequeños en móvil pero proporcionales */
-    .tournament-game-logo {
-      width: 70px;
-      height: 70px;
-    }
-    
-    .match-team .team-logo {
-      width: 40px;
-      height: 40px;
-    }
+  .tournament-game-logo {
+    width: 70px;
+    height: 70px;
+  }
   
+  .match-team .team-logo {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 .teams-content {
@@ -1135,59 +1238,7 @@
   z-index: 2;
 }
 
-.team-header-section,
-.players-section,
-.tournaments-section,
-.upcoming-matches-section {
-  background: rgba(25, 25, 25, 0.95); /* ✅ Más opaco */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 15px;
-  padding: 2.5rem;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); /* ✅ Sombra más profunda */
-}
-
 .teams-content,
 .tournaments-content {
   padding-top: 1rem;
 }
-
-/* ✅ EFECTO HOVER MEJORADO PARA EL LOGO PRINCIPAL */
-.team-logo:hover,
-.team-logo-placeholder:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 30px rgba(0, 140, 255, 0.5);
-  transition: all 0.3s ease;
-}
-
-/* ✅ ANIMACIÓN SUTIL PARA LAS SECCIONES */
-.team-header-section,
-.players-section,
-.tournaments-section,
-.upcoming-matches-section {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ✅ QUITAR CUADRADITO AZUL - Eliminar elementos sobrantes */
-*::before,
-*::after {
-  box-shadow: none !important;
-}
-
-/* Eliminar cualquier elemento flotante azul */
-.teams-container *[style*="position: fixed"],
-.teams-container *[style*="position: absolute"] {
-  display: none;
-}
-

@@ -1407,8 +1407,9 @@ app.put("/api/admin/matches/:matchId", verifyToken, isAdmin, (req, res) => {
   const values = [];
 
   if (match_date) {
-    // Convertir fecha ISO a formato MySQL
-    const mysqlDate = match_date.includes('T') ? match_date.split('T')[0] : match_date;
+    const mysqlDate = match_date.includes("T")
+      ? match_date.split("T")[0]
+      : match_date;
     fieldsToUpdate.push("match_date = ?");
     values.push(mysqlDate);
   }
@@ -1443,7 +1444,9 @@ app.put("/api/admin/matches/:matchId", verifyToken, isAdmin, (req, res) => {
   }
 
   values.push(matchId);
-  const updateQuery = `UPDATE tournament_matches SET ${fieldsToUpdate.join(", ")} WHERE id = ?`;
+  const updateQuery = `UPDATE tournament_matches SET ${fieldsToUpdate.join(
+    ", "
+  )} WHERE id = ?`;
 
   db.query(updateQuery, values, (err, result) => {
     if (err) {
@@ -1455,7 +1458,47 @@ app.put("/api/admin/matches/:matchId", verifyToken, isAdmin, (req, res) => {
       return res.status(404).json({ message: "Partido no encontrado" });
     }
 
-    res.json({ message: "Partido actualizado exitosamente" });
+    // ✅ AUTO-ACTUALIZAR ESTADÍSTICAS si se cambió el resultado o estado
+    if (score_team1 !== undefined || score_team2 !== undefined || status) {
+      // Obtener tournament_id del partido
+      const getTournamentQuery =
+        "SELECT tournament_id FROM tournament_matches WHERE id = ?";
+
+      db.query(getTournamentQuery, [matchId], (err, tournamentResult) => {
+        if (err) {
+          console.error("Error obteniendo tournament_id:", err);
+          return res.json({
+            message:
+              "Partido actualizado, pero error al actualizar estadísticas",
+          });
+        }
+
+        if (tournamentResult.length === 0) {
+          return res.json({ message: "Partido actualizado exitosamente" });
+        }
+
+        const tournamentId = tournamentResult[0].tournament_id;
+
+        // Actualizar estadísticas automáticamente
+        updateTournamentStats(tournamentId, (err, teamsUpdated) => {
+          if (err) {
+            console.error("Error auto-actualizando estadísticas:", err);
+            return res.json({
+              message:
+                "Partido actualizado, pero error al actualizar estadísticas automáticamente",
+            });
+          }
+
+          res.json({
+            message: `Partido actualizado exitosamente. Estadísticas recalculadas para ${teamsUpdated} equipos.`,
+            statsUpdated: true,
+            teamsUpdated,
+          });
+        });
+      });
+    } else {
+      res.json({ message: "Partido actualizado exitosamente" });
+    }
   });
 });
 
@@ -1505,6 +1548,7 @@ app.post(
   }
 );
 
+// Forzar regeneración desde el frontend de usuarios
 app.post("/api/tournament/:id/force-regenerate", verifyToken, (req, res) => {
   const { id } = req.params;
 
@@ -1518,9 +1562,9 @@ app.post("/api/tournament/:id/force-regenerate", verifyToken, (req, res) => {
 
   db.query(checkTeamQuery, [id, req.userId], (err, teamResults) => {
     if (err || teamResults.length === 0) {
-      return res
-        .status(403)
-        .json({ message: "No tienes equipos en este torneo" });
+      return res.status(403).json({ 
+        message: "No tienes equipos en este torneo" 
+      });
     }
 
     const getTournamentQuery = "SELECT * FROM tournaments WHERE id = ?";
@@ -1532,9 +1576,9 @@ app.post("/api/tournament/:id/force-regenerate", verifyToken, (req, res) => {
       const tournament = tournaments[0];
       regenerateMatches(id, tournament, (err, matchesCreated) => {
         if (err) {
-          return res
-            .status(500)
-            .json({ message: "Error regenerando partidos" });
+          return res.status(500).json({ 
+            message: "Error regenerando partidos" 
+          });
         }
 
         res.json({
@@ -1785,6 +1829,119 @@ app.post("/api/team/leave", verifyToken, (req, res) => {
   });
 });
 
+function updateTournamentStats(tournamentId, callback) {
+  console.log(
+    `📊 [STATS] Actualizando estadísticas para torneo ${tournamentId}`
+  );
+
+  // Query para recalcular estadísticas basándose en los partidos completados
+  const statsQuery = `
+    SELECT 
+      team_id,
+      SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as games_played,
+      SUM(CASE 
+        WHEN status = 'completed' AND 
+             ((team_id = team1_id AND score_team1 > score_team2) OR 
+              (team_id = team2_id AND score_team2 > score_team1))
+        THEN 1 ELSE 0 END) as wins,
+      SUM(CASE 
+        WHEN status = 'completed' AND 
+             ((team_id = team1_id AND score_team1 < score_team2) OR 
+              (team_id = team2_id AND score_team2 < score_team1))
+        THEN 1 ELSE 0 END) as losses,
+      SUM(CASE 
+        WHEN status = 'completed' AND 
+             ((team_id = team1_id AND score_team1 > score_team2) OR 
+              (team_id = team2_id AND score_team2 > score_team1))
+        THEN 3 ELSE 0 END) as points
+    FROM (
+      SELECT tournament_id, team1_id as team_id, team2_id, score_team1, score_team2, status
+      FROM tournament_matches 
+      WHERE tournament_id = ?
+      
+      UNION ALL
+      
+      SELECT tournament_id, team2_id as team_id, team1_id, score_team1, score_team2, status
+      FROM tournament_matches 
+      WHERE tournament_id = ?
+    ) as team_matches
+    GROUP BY team_id
+  `;
+
+  db.query(statsQuery, [tournamentId, tournamentId], (err, statsResults) => {
+    if (err) {
+      console.error("❌ [STATS] Error calculando estadísticas:", err);
+      return callback(err);
+    }
+
+    if (statsResults.length === 0) {
+      console.log("📊 [STATS] No hay estadísticas que actualizar");
+      return callback(null, 0);
+    }
+
+    console.log(
+      `📊 [STATS] Estadísticas calculadas para ${statsResults.length} equipos`
+    );
+
+    // Preparar datos para la actualización
+    const updatePromises = statsResults.map((stat) => {
+      return new Promise((resolve, reject) => {
+        const updateQuery = `
+          INSERT INTO tournament_stats 
+          (tournament_id, team_id, wins, losses, points, games_played)
+          VALUES (?, ?, ?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE
+          wins = VALUES(wins),
+          losses = VALUES(losses),
+          points = VALUES(points),
+          games_played = VALUES(games_played)
+        `;
+
+        db.query(
+          updateQuery,
+          [
+            tournamentId,
+            stat.team_id,
+            stat.wins,
+            stat.losses,
+            stat.points,
+            stat.games_played,
+          ],
+          (err, result) => {
+            if (err) {
+              console.error(
+                `❌ [STATS] Error actualizando equipo ${stat.team_id}:`,
+                err
+              );
+              return reject(err);
+            }
+
+            console.log(
+              `✅ [STATS] Equipo ${stat.team_id}: ${stat.wins}W-${stat.losses}L (${stat.points}pts)`
+            );
+            resolve(result);
+          }
+        );
+      });
+    });
+
+    // Ejecutar todas las actualizaciones
+    Promise.all(updatePromises)
+      .then(() => {
+        console.log(
+          `✅ [STATS] Estadísticas actualizadas para ${statsResults.length} equipos`
+        );
+        callback(null, statsResults.length);
+      })
+      .catch((err) => {
+        console.error("❌ [STATS] Error en Promise.all:", err);
+        callback(err);
+      });
+  });
+}
+
+
+
 // ==========================================
 // ACTUALIZAR EQUIPO
 // ==========================================
@@ -1831,6 +1988,36 @@ app.put("/api/team/update", verifyToken, upload.single("teamLogo"), (req, res) =
     });
   });
 });
+
+app.post(
+  "/api/admin/tournament/:id/update-stats",
+  verifyToken,
+  isAdmin,
+  (req, res) => {
+    const { id } = req.params;
+
+    console.log(`📊 [ADMIN] Recalculando estadísticas para torneo ${id}`);
+
+    updateTournamentStats(id, (err, teamsUpdated) => {
+      if (err) {
+        console.error("❌ [ADMIN] Error actualizando estadísticas:", err);
+        return res.status(500).json({
+          message: "Error actualizando estadísticas",
+          error: err.message,
+        });
+      }
+
+      res.json({
+        success: true,
+        message: `Estadísticas actualizadas para ${teamsUpdated} equipos`,
+        teamsUpdated,
+        timestamp: new Date().toISOString(),
+      });
+    });
+  }
+);
+
+
 
 // ==========================================
 // ACTUALIZAR JUGADOR

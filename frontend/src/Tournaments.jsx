@@ -280,6 +280,8 @@ const Tournaments = ({ onBack }) => {
 };
 
 // Componente para mostrar detalles del torneo
+// En Tournaments.jsx, actualiza el componente TournamentDetails con esto:
+
 const TournamentDetails = ({ tournament, onBack }) => {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -287,6 +289,97 @@ const TournamentDetails = ({ tournament, onBack }) => {
   const [matches, setMatches] = useState({});
   const [totalJornadas, setTotalJornadas] = useState(0);
   const [stats, setStats] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+  const [updatingStats, setUpdatingStats] = useState(false);
+  const [actionMessage, setActionMessage] = useState(null);
+
+  // Verificar si es admin
+  useEffect(() => {
+    checkAdminStatus();
+  }, []);
+
+  const checkAdminStatus = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/user/is-admin", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      setIsAdmin(data.isAdmin);
+    } catch (error) {
+      console.error("Error verificando admin:", error);
+    }
+  };
+
+  const showMessage = (message, type = 'success') => {
+    setActionMessage({ message, type });
+    setTimeout(() => setActionMessage(null), 5000);
+  };
+
+  // Regenerar partidos
+  const handleRegenerateMatches = async () => {
+    if (!window.confirm("¿Estás seguro de que quieres regenerar todos los partidos? Esto eliminará el calendario actual.")) {
+      return;
+    }
+
+    setRegenerating(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/admin/tournament/${tournament.id}/regenerate-matches`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showMessage(`Partidos regenerados exitosamente. ${data.matchesCreated} partidos creados.`, 'success');
+        // Recargar datos
+        await fetchTournamentData();
+      } else {
+        showMessage(data.message || 'Error regenerando partidos', 'error');
+      }
+    } catch (error) {
+      console.error("Error regenerando partidos:", error);
+      showMessage('Error de conexión al regenerar partidos', 'error');
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
+  // Actualizar estadísticas
+  const handleUpdateStats = async () => {
+    setUpdatingStats(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/admin/tournament/${tournament.id}/update-stats`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showMessage(`Estadísticas actualizadas para ${data.teamsUpdated} equipos.`, 'success');
+        // Recargar estadísticas
+        await fetchTournamentData();
+      } else {
+        showMessage(data.message || 'Error actualizando estadísticas', 'error');
+      }
+    } catch (error) {
+      console.error("Error actualizando estadísticas:", error);
+      showMessage('Error de conexión al actualizar estadísticas', 'error');
+    } finally {
+      setUpdatingStats(false);
+    }
+  };
 
   useEffect(() => {
     fetchTournamentData();
@@ -352,6 +445,7 @@ const TournamentDetails = ({ tournament, onBack }) => {
       setTotalJornadas(maxJornada);
     } catch (err) {
       console.error("Error al cargar datos del torneo:", err);
+      showMessage('Error cargando datos del torneo', 'error');
     } finally {
       setLoading(false);
     }
@@ -421,6 +515,25 @@ const TournamentDetails = ({ tournament, onBack }) => {
         logoImage="/team-logo.png"
       />
 
+      {/* Loading Overlay */}
+      {(regenerating || updatingStats) && (
+        <div className="loading-overlay">
+          <div style={{ textAlign: 'center' }}>
+            <div className="loading-spinner"></div>
+            <div className="loading-text">
+              {regenerating ? 'Regenerando partidos...' : 'Actualizando estadísticas...'}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Action Message */}
+      {actionMessage && (
+        <div className={`action-message ${actionMessage.type}`}>
+          {actionMessage.message}
+        </div>
+      )}
+
       <div className="tournament-info-section">
         <div className="tournament-meta">
           <span className="tournament-date-detail">
@@ -436,6 +549,29 @@ const TournamentDetails = ({ tournament, onBack }) => {
           </p>
         )}
       </div>
+
+      {/* Admin Controls */}
+      {isAdmin && (
+        <div className="tournament-details-admin">
+          <h4>Controles de Administrador</h4>
+          <div className="admin-controls-detail">
+            <button
+              className="regenerate-matches-btn"
+              onClick={handleRegenerateMatches}
+              disabled={regenerating || updatingStats}
+            >
+              {regenerating ? 'Regenerando...' : 'Regenerar Partidos'}
+            </button>
+            <button
+              className="update-stats-btn"
+              onClick={handleUpdateStats}
+              disabled={regenerating || updatingStats}
+            >
+              {updatingStats ? 'Actualizando...' : 'Actualizar Estadísticas'}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="tournament-content">
         {/* Clasificación a la izquierda */}
