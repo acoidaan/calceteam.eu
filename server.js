@@ -27,19 +27,51 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // Conexión a MySQL
-const db = mysql.createConnection({
+const db = mysql.createPool({
   host: process.env.MYSQLHOST,
   user: process.env.MYSQLUSER,
   password: process.env.MYSQLPASSWORD,
   database: process.env.MYSQLDATABASE,
+
+  // Pool configuration para Railway
+  connectionLimit: 10,
+  acquireTimeout: 60000,
+  timeout: 60000,
+
+  // Reconexión automática
+  reconnect: true,
+  idleTimeout: 300000,
+
+  // Keep alive para evitar timeouts
+  keepAliveInitialDelay: 0,
+  enableKeepAlive: true,
+
+  // Manejo de errores de conexión
+  handleDisconnects: true,
 });
 
-db.connect((err) => {
+// Manejar eventos del pool
+db.on('connection', function (connection) {
+  console.log('✅ Nueva conexión MySQL establecida como id ' + connection.threadId);
+});
+
+db.on('error', function(err) {
+  console.error('❌ Error en pool MySQL:', err);
+  if(err.code === 'PROTOCOL_CONNECTION_LOST') {
+    console.log('🔄 Conexión perdida, el pool se reconectará automáticamente');
+  } else {
+    throw err;
+  }
+});
+
+// Test inicial de conexión
+db.getConnection((err, connection) => {
   if (err) {
     console.error("❌ Error al conectar con MySQL:", err);
     process.exit(1);
   }
-  console.log("✅ Conectado a MySQL.");
+  console.log("✅ Pool MySQL conectado correctamente.");
+  connection.release(); // Liberar la conexión de prueba
 });
 
 // Configuración de multer
@@ -1400,6 +1432,54 @@ app.post(
     });
   }
 );
+
+// ==========================================
+// ENDPOINT KEEP-ALIVE PARA RAILWAY
+// ==========================================
+app.get("/api/keep-alive", (req, res) => {
+  // Hacer una query simple para mantener la BD activa
+  db.query("SELECT 1 as ping", (err, result) => {
+    if (err) {
+      console.error("❌ Keep-alive DB error:", err);
+      return res.status(500).json({ 
+        status: "error", 
+        message: "Database connection failed",
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    res.json({ 
+      status: "alive", 
+      timestamp: new Date().toISOString(),
+      database: "connected",
+      uptime: process.uptime()
+    });
+  });
+});
+
+// Health check más completo
+app.get("/api/health", (req, res) => {
+  const healthCheck = {
+    status: "OK",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || "development"
+  };
+
+  // Test de base de datos
+  db.query("SELECT COUNT(*) as user_count FROM users", (err, result) => {
+    if (err) {
+      healthCheck.status = "ERROR";
+      healthCheck.database = "disconnected";
+      healthCheck.error = err.message;
+      return res.status(500).json(healthCheck);
+    }
+    
+    healthCheck.database = "connected";
+    healthCheck.user_count = result[0]?.user_count || 0;
+    res.json(healthCheck);
+  });
+});
 
 // Ruta 404 para APIs
 app.all("/api/*", (req, res) => {
