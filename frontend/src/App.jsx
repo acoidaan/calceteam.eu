@@ -308,7 +308,7 @@ function AppContent() {
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-video-bg">
-          <video autoPlay muted loop className="background-video">
+          <video autoPlay muted loop playsInLine className="background-video">
             <source src="/hero-video.mp4" type="video/mp4" />
           </video>
         </div>

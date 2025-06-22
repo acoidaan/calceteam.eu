@@ -480,8 +480,22 @@ body {
   font-size: 0.9rem;
 }
 
-/* Responsive */
+/* Responsive MOVIL*/ 
 @media (max-width: 768px) {
+  .header {
+    height: 60px;
+    padding: 0.5rem;
+  }
+
+  .header-title {
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+  }
+
+  .header-logo-img {
+    height: 25px;
+  }
+
   .header-content {
     padding: 0 1rem;
   }
@@ -494,6 +508,11 @@ body {
     width: 35px;
     height: 35px;
   }
+
+  .hero {
+    min-height: 100vh;
+    padding-top: 60px;
+  }
   
   .nav-icon img {
     width: 16px;
@@ -501,7 +520,8 @@ body {
   }
   
   .hero {
-    padding-top: 70px;
+    min-height: 100vh;
+    padding-top: 60px;
   }
   
   .menu-label {
