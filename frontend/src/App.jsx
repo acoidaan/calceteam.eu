@@ -22,6 +22,8 @@ function App() {
 function AppContent() {
   const { isAuthenticated, user, loading, logout } = useAuth();
 
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileVideoError, setMobileVideoError] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
@@ -50,6 +52,13 @@ function AppContent() {
       }, 100);
     }
 
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const mobile =
+      /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
+        userAgent.toLowerCase()
+      );
+    setIsMobile(mobile);
+
     // Verificar si es la página de reset password
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("reset-password")) {
@@ -63,6 +72,13 @@ function AppContent() {
     showSocial,
     showSupport,
   ]);
+
+  // Función solo para móvil:
+  const handleMobileVideoError = () => {
+    if (isMobile) {
+      setMobileVideoError(true);
+    }
+  };
 
   // Función principal para inicializar el efecto de scroll tipo Apple
   const initAppleScrollEffect = () => {
@@ -306,12 +322,24 @@ function AppContent() {
       </header>
 
       {/* Hero Section */}
-      <section className="hero">
-        <div className="hero-video-bg">
-          <video autoPlay muted loop playsInline className="background-video">
-            <source src="/hero-video.mp4" type="video/mp4" />
-          </video>
-        </div>
+      <div className={`hero-video-bg ${isMobile && mobileVideoError ? 'fallback' : ''}`}>
+  <video 
+    autoPlay 
+    muted 
+    loop 
+    playsInline
+    className="background-video"
+    {...(isMobile && {
+      'webkit-playsinline': 'true',
+      poster: '/hero-poster.jpg',
+      onError: handleMobileVideoError,
+      style: { display: mobileVideoError ? 'none' : 'block' }
+    })}
+  >
+    <source src="/hero-video.mp4" type="video/mp4" />
+    {isMobile && <source src="/hero-video.webm" type="video/webm" />}
+  </video>
+</div>
 
         {/* Welcome Message */}
         {isAuthenticated && (
