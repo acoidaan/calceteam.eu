@@ -7,11 +7,22 @@ import Tournaments from "./Tournaments";
 import ResetPassword from "./ResetPassword";
 import Social from "./Social";
 import Support from "./Support";
+import { AuthProvider, useAuth } from "./AuthContext";
 
+// Componente principal envuelto con AuthProvider
 function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
+
+// Contenido principal que usa AuthContext
+function AppContent() {
+  const { isAuthenticated, user, loading, logout } = useAuth();
+
   const [showLogin, setShowLogin] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState("");
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
   const [showTeams, setShowTeams] = useState(false);
@@ -44,24 +55,6 @@ function App() {
     if (urlParams.get("reset-password")) {
       return; // No hacer nada, dejar que ResetPassword maneje esto
     }
-
-    const tokenFromURL = urlParams.get("token");
-    const nameFromURL = urlParams.get("username");
-
-    if (tokenFromURL && nameFromURL) {
-      localStorage.setItem("token", tokenFromURL);
-      localStorage.setItem("username", nameFromURL);
-      window.history.replaceState(null, "", window.location.pathname);
-      setIsLoggedIn(true);
-      setUsername(nameFromURL);
-    } else {
-      const token = localStorage.getItem("token");
-      const name = localStorage.getItem("username");
-      if (token && name) {
-        setIsLoggedIn(true);
-        setUsername(name);
-      }
-    }
   }, [
     showAccount,
     showTeams,
@@ -69,7 +62,7 @@ function App() {
     showLogin,
     showSocial,
     showSupport,
-  ]); // Re-ejecutar cuando cambian las vistas
+  ]);
 
   // Función principal para inicializar el efecto de scroll tipo Apple
   const initAppleScrollEffect = () => {
@@ -180,10 +173,53 @@ function App() {
     };
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.reload();
+  const handleLogout = async () => {
+    await logout();
+    setShowLogin(false);
+    setShowUserMenu(false);
+    // Resetear todas las vistas
+    setShowAccount(false);
+    setShowTeams(false);
+    setShowTournaments(false);
+    setShowSocial(false);
+    setShowSupport(false);
   };
+
+  // Mostrar loading mientras se verifica la autenticación
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          background: "#000",
+          color: "white",
+          flexDirection: "column",
+          gap: "1rem",
+        }}
+      >
+        <div
+          style={{
+            width: "50px",
+            height: "50px",
+            border: "3px solid rgba(255, 255, 255, 0.3)",
+            borderTop: "3px solid #00aaff",
+            borderRadius: "50%",
+            animation: "spin 1s linear infinite",
+          }}
+        ></div>
+        <div>Verificando autenticación...</div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   // Verificar si estamos en la página de reset password
   const urlParams = new URLSearchParams(window.location.search);
@@ -191,8 +227,8 @@ function App() {
     return <ResetPassword />;
   }
 
-  if (showLogin && !isLoggedIn) {
-    return <Login />;
+  if (showLogin && !isAuthenticated) {
+    return <Login onBack={() => setShowLogin(false)} />;
   }
 
   if (showAccount) {
@@ -232,7 +268,7 @@ function App() {
             <button className="nav-icon">
               <img src="/search-icon.png" alt="Buscar" />
             </button>
-            {isLoggedIn ? (
+            {isAuthenticated ? (
               <div className="user-menu">
                 <button
                   className="user-button"
@@ -243,10 +279,13 @@ function App() {
                 {showUserMenu && (
                   <div className="user-dropdown">
                     <div className="user-info">
-                      <span className="username-text">{username}</span>
+                      <span className="username-text">{user?.username}</span>
                     </div>
                     <button
-                      onClick={() => setShowAccount(true)}
+                      onClick={() => {
+                        setShowAccount(true);
+                        setShowUserMenu(false);
+                      }}
                       className="account-btn"
                     >
                       Cuenta
@@ -275,9 +314,9 @@ function App() {
         </div>
 
         {/* Welcome Message */}
-        {isLoggedIn && (
+        {isAuthenticated && (
           <div className="welcome-message">
-            <h1>Bienvenido, {username}</h1>
+            <h1>Bienvenido, {user?.username}</h1>
           </div>
         )}
 
@@ -288,7 +327,7 @@ function App() {
             <div
               className="menu-item"
               onClick={() => {
-                if (isLoggedIn) {
+                if (isAuthenticated) {
                   setShowAccount(true);
                 } else {
                   setShowLogin(true);
@@ -302,7 +341,7 @@ function App() {
             <div
               className="menu-item"
               onClick={() => {
-                if (isLoggedIn) {
+                if (isAuthenticated) {
                   setShowTeams(true);
                 } else {
                   setShowLogin(true);
@@ -318,7 +357,7 @@ function App() {
             <div
               className="menu-item"
               onClick={() => {
-                if (isLoggedIn) {
+                if (isAuthenticated) {
                   setShowAccount(false);
                   setShowTeams(false);
                   setShowTournaments(true);
@@ -335,7 +374,7 @@ function App() {
             <div
               className="menu-item"
               onClick={() => {
-                if (isLoggedIn) {
+                if (isAuthenticated) {
                   setShowSupport(true);
                 } else {
                   setShowLogin(true);
