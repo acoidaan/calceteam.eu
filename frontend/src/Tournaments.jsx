@@ -140,7 +140,7 @@ const Tournaments = ({ onBack }) => {
 
   const fetchUserTeam = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const res = await fetch("/api/team/my-team?game=lol", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -152,7 +152,7 @@ const Tournaments = ({ onBack }) => {
   };
 
   const checkAdmin = async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("accessToken");
     const res = await fetch("/api/user/is-admin", {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -167,7 +167,7 @@ const Tournaments = ({ onBack }) => {
     }
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const res = await fetch("/api/tournament/register", {
         method: "POST",
         headers: {
@@ -301,7 +301,7 @@ const TournamentDetails = ({ tournament, onBack }) => {
 
   const checkAdminStatus = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch("/api/user/is-admin", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -325,7 +325,7 @@ const TournamentDetails = ({ tournament, onBack }) => {
 
     setRegenerating(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch(`/api/admin/tournament/${tournament.id}/regenerate-matches`, {
         method: 'POST',
         headers: {
@@ -355,7 +355,7 @@ const TournamentDetails = ({ tournament, onBack }) => {
   const handleUpdateStats = async () => {
     setUpdatingStats(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch(`/api/admin/tournament/${tournament.id}/update-stats`, {
         method: 'POST',
         headers: {

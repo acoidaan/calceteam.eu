@@ -13,7 +13,7 @@ const TournamentCreate = ({ onBack }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch("/api/tournament/create", {
         method: "POST",
         headers: {

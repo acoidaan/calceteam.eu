@@ -24,7 +24,7 @@ function CreateTeamForm({ game, onClose, onTeamCreated }) {
     if (logo) formData.append("logo", logo);
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       await axios.post("/api/team/create", formData, {
         headers: {
           "Content-Type": "multipart/form-data",

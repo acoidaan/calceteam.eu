@@ -63,7 +63,7 @@ function Support({ onBack }) {
     setIsSubmitting(true);
     setSubmitStatus(null);
 
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("accessToken");
 
     try {
       const response = await fetch(
@@ -144,7 +144,7 @@ function Support({ onBack }) {
           <div className="ticket-section">
             <h3>Enviar un Ticket</h3>
             <form onSubmit={handleSubmit} className="ticket-form">
-              {!localStorage.getItem("token") && (
+              {!localStorage.getItem("accessToken") && (
                 <div className="form-group">
                   <label>Email de contacto *</label>
                   <input

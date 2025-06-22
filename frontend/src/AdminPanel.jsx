@@ -34,7 +34,7 @@ const AdminPanel = () => {
 
   const fetchTournaments = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const res = await fetch("/api/tournaments", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -48,7 +48,7 @@ const AdminPanel = () => {
   const fetchMatches = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const url = selectedTournament
         ? `/api/admin/matches?tournamentId=${selectedTournament}`
         : "/api/admin/matches";
@@ -74,7 +74,7 @@ const AdminPanel = () => {
     }
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const res = await fetch("/api/tournaments/create", {
         method: "POST",
         headers: {
@@ -108,7 +108,7 @@ const AdminPanel = () => {
     e.preventDefault();
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const res = await fetch(
         `/api/tournaments/update/${editingTournament.id}`,
         {
@@ -145,7 +145,7 @@ const AdminPanel = () => {
     }
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const res = await fetch(`/api/tournaments/delete/${tournamentId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
@@ -168,7 +168,7 @@ const AdminPanel = () => {
     e.preventDefault();
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const res = await fetch(`/api/admin/matches/${editingMatch.id}`, {
         method: "PUT",
         headers: {
@@ -210,7 +210,7 @@ const AdminPanel = () => {
 
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const res = await fetch(
         `/api/admin/tournament/${tournamentId}/regenerate-matches`,
         {
