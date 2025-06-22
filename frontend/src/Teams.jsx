@@ -53,7 +53,7 @@ const Teams = ({ onBack }) => {
       "¿Estás seguro de que quieres salir de este torneo?",
       async () => {
         try {
-          const token = localStorage.getItem("token");
+          const token = localStorage.getItem("accessToken");
           const response = await fetch("/api/tournament/leave", {
             method: "POST",
             headers: {
@@ -103,7 +103,7 @@ const Teams = ({ onBack }) => {
 
   const fetchMyTeam = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch(`/api/team/my-team?game=${selectedGame}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -124,7 +124,7 @@ const Teams = ({ onBack }) => {
 
   const fetchTournaments = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
 
       if (!myTeam) {
         setMyTournaments([]);
@@ -157,7 +157,7 @@ const Teams = ({ onBack }) => {
     if (!myTeam) return;
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch(
         `/api/matches/my-team-matches?teamId=${myTeam.id}`,
         {
@@ -279,7 +279,7 @@ const Teams = ({ onBack }) => {
     if (teamLogo) formData.append("teamLogo", teamLogo);
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch("/api/team/create", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -305,7 +305,7 @@ const Teams = ({ onBack }) => {
       return;
     }
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch("/api/team/join", {
         method: "POST",
         headers: {
@@ -336,7 +336,7 @@ const Teams = ({ onBack }) => {
 
   const handleLeaveTeam = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch("/api/team/leave", {
         method: "POST",
         headers: {
@@ -368,7 +368,7 @@ const Teams = ({ onBack }) => {
 
   const handleDeleteTeam = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch("/api/team/delete", {
         method: "DELETE",
         headers: {
@@ -410,7 +410,7 @@ const Teams = ({ onBack }) => {
     if (teamLogo) formData.append("teamLogo", teamLogo);
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch("/api/team/update", {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
@@ -436,7 +436,7 @@ const Teams = ({ onBack }) => {
     e.preventDefault();
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch("/api/team/update-player", {
         method: "PUT",
         headers: {
@@ -476,7 +476,7 @@ const Teams = ({ onBack }) => {
     }
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const res = await fetch("/api/tournament/register", {
         method: "POST",
         headers: {
@@ -507,7 +507,7 @@ const Teams = ({ onBack }) => {
 
   const handleRemovePlayer = async (playerId) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch("/api/team/remove-player", {
         method: "DELETE",
         headers: {
@@ -932,7 +932,7 @@ const Teams = ({ onBack }) => {
                 <h3>Jugadores</h3>
                 <div className="players-list">
                   {myTeam.players.map((player, index) => {
-                    const token = localStorage.getItem("token");
+                    const token = localStorage.getItem("accessToken");
                     const tokenPayload = JSON.parse(atob(token.split(".")[1]));
                     const currentUserId = tokenPayload.id;
 

@@ -28,7 +28,7 @@ const Account = ({ onBack }) => {
 
   const fetchUserData = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch("/api/user/profile", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -54,7 +54,7 @@ const Account = ({ onBack }) => {
     }
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch(`/api/user/update`, {
         method: "PUT",
         headers: {
@@ -99,7 +99,7 @@ const Account = ({ onBack }) => {
     formData.append("profilePic", file);
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch("/api/user/upload-avatar", {
         method: "POST",
         headers: {
@@ -130,7 +130,7 @@ const Account = ({ onBack }) => {
     }
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch("/api/user/change-password", {
         method: "PUT",
         headers: {
