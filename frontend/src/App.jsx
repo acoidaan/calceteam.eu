@@ -33,6 +33,14 @@ function AppContent() {
   const [showSupport, setShowSupport] = useState(false);
 
   useEffect(() => {
+    // Detectar móvil
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const mobile =
+      /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
+        userAgent.toLowerCase()
+      );
+    setIsMobile(mobile);
+
     // Reiniciar animaciones cuando se muestra la landing
     if (
       !showAccount &&
@@ -51,13 +59,6 @@ function AppContent() {
         initAppleScrollEffect();
       }, 100);
     }
-
-    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-    const mobile =
-      /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
-        userAgent.toLowerCase()
-      );
-    setIsMobile(mobile);
 
     // Verificar si es la página de reset password
     const urlParams = new URLSearchParams(window.location.search);
@@ -322,24 +323,29 @@ function AppContent() {
       </header>
 
       {/* Hero Section */}
-      <div className={`hero-video-bg ${isMobile && mobileVideoError ? 'fallback' : ''}`}>
-  <video 
-    autoPlay 
-    muted 
-    loop 
-    playsInline
-    className="background-video"
-    {...(isMobile && {
-      'webkit-playsinline': 'true',
-      poster: '/hero-poster.jpg',
-      onError: handleMobileVideoError,
-      style: { display: mobileVideoError ? 'none' : 'block' }
-    })}
-  >
-    <source src="/hero-video.mp4" type="video/mp4" />
-    {isMobile && <source src="/hero-video.webm" type="video/webm" />}
-  </video>
-</div>
+      <section className="hero">
+        <div
+          className={`hero-video-bg ${
+            isMobile && mobileVideoError ? "fallback" : ""
+          }`}
+        >
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="background-video"
+            {...(isMobile && {
+              "webkit-playsinline": "true",
+              poster: "/hero-poster.jpg",
+              onError: handleMobileVideoError,
+              style: { display: mobileVideoError ? "none" : "block" },
+            })}
+          >
+            <source src="/hero-video.mp4" type="video/mp4" />
+            {isMobile && <source src="/hero-video.webm" type="video/webm" />}
+          </video>
+        </div>
 
         {/* Welcome Message */}
         {isAuthenticated && (

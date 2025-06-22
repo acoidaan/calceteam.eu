@@ -139,7 +139,7 @@ body {
   object-fit: cover;
   position: absolute;
   top: 0;
-  left: -40;
+  left: -40px;
 }
 
 /* Fallback background mientras no hay video */
@@ -480,82 +480,6 @@ body {
   font-size: 0.9rem;
 }
 
-/* Responsive MOVIL*/ 
-@media (max-width: 768px) {
-/* Solo para móvil - no afecta escritorio */
-@media (max-width: 768px) {
-  /* Fallback con imagen para móvil */
-  .hero-video-bg.fallback {
-    background-image: url('/hero-poster.jpg');
-    background-size: cover;
-    background-position: center;
-  }
-  
-  .hero-video-bg.fallback .background-video {
-    display: none !important;
-  }
-}
-
-  .header {
-    height: 60px;
-    padding: 0 0.5rem;
-  }
-
-  .header-title {
-    font-size: 1rem;
-    letter-spacing: 1px;
-  }
-
-  .header-logo-img {
-    height: 25px;
-  }
-
-  .nav-icon {
-    width: 35px;
-    height: 35px;
-  }
-
-  .nav-icon img {
-    width: 16px;
-    height: 16px;
-  }
-
-  /* Video móvil */
-  .hero {
-    min-height: 100vh;
-    padding-top: 60px;
-  }
-
-  .background-video {
-    width: 100%;
-    height: 100vh;
-    object-fit: cover;
-    object-position: center;
-    left: 0;
-  }
-
-  /* Side menu móvil */
-  .side-menu-trigger {
-    width: 60px;
-    background: rgba(0, 0, 0, 0.1);
-  }
-
-  .side-menu-trigger:hover {
-    width: 280px;
-  }
-
-  .menu-label {
-    font-size: 1.5rem;
-    letter-spacing: 2px;
-  }
-
-  /* Welcome message móvil */
-  .welcome-message h1 {
-    font-size: 2rem;
-    padding: 1rem;
-  }
-}
-
 /* User Menu Dropdown */
 .user-menu {
   position: relative;
@@ -762,4 +686,77 @@ html {
 /* Pausar en hover */
 .sponsors-carousel:hover .sponsors-wrapper {
   animation-play-state: paused;
+}
+
+/* Responsive MOVIL*/ 
+@media (max-width: 768px) {
+  /* Fallback con imagen para móvil */
+  .hero-video-bg.fallback {
+    background-image: url('/hero-poster.jpg');
+    background-size: cover;
+    background-position: center;
+  }
+  
+  .hero-video-bg.fallback .background-video {
+    display: none !important;
+  }
+
+  .header {
+    height: 60px;
+    padding: 0 0.5rem;
+  }
+
+  .header-title {
+    font-size: 1rem;
+    letter-spacing: 1px;
+  }
+
+  .header-logo-img {
+    height: 25px;
+  }
+
+  .nav-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .nav-icon img {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Video móvil */
+  .hero {
+    min-height: 100vh;
+    padding-top: 60px;
+  }
+
+  .background-video {
+    width: 100%;
+    height: 100vh;
+    object-fit: cover;
+    object-position: center;
+    left: 0;
+  }
+
+  /* Side menu móvil */
+  .side-menu-trigger {
+    width: 60px;
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .side-menu-trigger:hover {
+    width: 280px;
+  }
+
+  .menu-label {
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+  }
+
+  /* Welcome message móvil */
+  .welcome-message h1 {
+    font-size: 2rem;
+    padding: 1rem;
+  }
 }
