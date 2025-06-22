@@ -345,30 +345,25 @@ function AppContent() {
             isMobile && mobileVideoError ? "fallback" : ""
           }`}
         >
-          <video
-            ref={(el) => {
-              if (el && isMobile) {
-                el.addEventListener("loadeddata", () => {
-                  el.muted = true;
-                  el.play().catch(() => {
-                    console.log("Autoplay bloqueado en móvil");
-                    setMobileVideoError(true);
-                  });
-                });
-              }
-            }}
-            autoPlay
-            muted
-            loop
-            playsInline
-            webkit-playsinline="true"
-            poster="/hero-poster.jpg"
-            className="background-video"
-            onError={handleMobileVideoError}
-            preload="auto"
-          >
-            <source src="/hero-video.mp4" type="video/mp4" />
-          </video>
+          {!isMobile ? (
+            <video autoPlay muted loop playsInline className="background-video">
+              <source src="/hero-video.mp4" type="video/mp4" />
+            </video>
+          ) : (
+            <div
+              className="mobile-poster"
+              style={{
+                backgroundImage: "url(/hero-poster.jpg)",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                width: "100%",
+                height: "100%",
+                position: "absolute",
+                top: 0,
+                left: 0,
+              }}
+            />
+          )}
         </div>
 
         {/* Welcome Message */}
