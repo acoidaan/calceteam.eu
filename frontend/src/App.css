@@ -482,6 +482,20 @@ body {
 
 /* Responsive MOVIL*/ 
 @media (max-width: 768px) {
+/* Solo para móvil - no afecta escritorio */
+@media (max-width: 768px) {
+  /* Fallback con imagen para móvil */
+  .hero-video-bg.fallback {
+    background-image: url('/hero-poster.jpg');
+    background-size: cover;
+    background-position: center;
+  }
+  
+  .hero-video-bg.fallback .background-video {
+    display: none !important;
+  }
+}
+
   .header {
     height: 60px;
     padding: 0 0.5rem;
