@@ -65,6 +65,22 @@ function AppContent() {
     if (urlParams.get("reset-password")) {
       return; // No hacer nada, dejar que ResetPassword maneje esto
     }
+
+    // Forzar reproducción en móvil
+    if (mobile) {
+      const timer = setTimeout(() => {
+        const video = document.querySelector(".background-video");
+        if (video) {
+          video.muted = true;
+          video.play().catch(() => {
+            console.log("Autoplay bloqueado");
+            setMobileVideoError(true);
+          });
+        }
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
   }, [
     showAccount,
     showTeams,
@@ -330,6 +346,17 @@ function AppContent() {
           }`}
         >
           <video
+            ref={(el) => {
+              if (el && isMobile) {
+                el.addEventListener("loadeddata", () => {
+                  el.muted = true;
+                  el.play().catch(() => {
+                    console.log("Autoplay bloqueado en móvil");
+                    setMobileVideoError(true);
+                  });
+                });
+              }
+            }}
             autoPlay
             muted
             loop
@@ -338,6 +365,7 @@ function AppContent() {
             poster="/hero-poster.jpg"
             className="background-video"
             onError={handleMobileVideoError}
+            preload="auto"
           >
             <source src="/hero-video.mp4" type="video/mp4" />
           </video>
