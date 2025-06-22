@@ -179,7 +179,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("username");
 
       // También limpiar el token viejo si existe
-      localStorage.removeItem("token");
+      localStorage.removeItem("accessToken");
 
       setIsAuthenticated(false);
       setUser(null);
