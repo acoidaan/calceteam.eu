@@ -73,7 +73,28 @@ db.getConnection((err, connection) => {
     process.exit(1);
   }
   console.log("✅ Pool MySQL conectado correctamente.");
-  connection.release(); // Liberar la conexión de prueba
+  connection.release();
+  
+  // Crear tabla refresh_tokens después de confirmar conexión
+  const createRefreshTokensTable = `
+    CREATE TABLE IF NOT EXISTS refresh_tokens (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      token TEXT NOT NULL,
+      expires_at DATETIME NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY unique_user (user_id),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `;
+
+  db.query(createRefreshTokensTable, (err) => {
+    if (err) {
+      console.error("❌ Error creando tabla refresh_tokens:", err);
+    } else {
+      console.log("✅ Tabla refresh_tokens verificada/creada");
+    }
+  });
 });
 
 // Configuración de multer
