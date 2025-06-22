@@ -77,16 +77,16 @@ db.getConnection((err, connection) => {
   
   // Crear tabla refresh_tokens después de confirmar conexión
   const createRefreshTokensTable = `
-    CREATE TABLE IF NOT EXISTS refresh_tokens (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      user_id INT NOT NULL,
-      token TEXT NOT NULL,
-      expires_at DATETIME NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE KEY unique_user (user_id),
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    )
-  `;
+  CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    token TEXT NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_user (user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  )
+`;
 
   db.query(createRefreshTokensTable, (err) => {
     if (err) {
