@@ -61,7 +61,8 @@ const Login = () => {
 
       if (response.ok) {
         if (isLogin) {
-          localStorage.setItem("token", data.token);
+          localStorage.setItem("accessToken", data.accessToken);
+          localStorage.setItem("refreshToken", data.refreshToken);
           localStorage.setItem("username", data.username);
           showSuccess("Inicio de sesión exitoso");
           setTimeout(() => {
