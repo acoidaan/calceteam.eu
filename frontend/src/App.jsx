@@ -334,16 +334,12 @@ function AppContent() {
             muted
             loop
             playsInline
+            webkit-playsinline="true"
+            poster="/hero-poster.jpg"
             className="background-video"
-            {...(isMobile && {
-              "webkit-playsinline": "true",
-              poster: "/hero-poster.jpg",
-              onError: handleMobileVideoError,
-              style: { display: mobileVideoError ? "none" : "block" },
-            })}
+            onError={handleMobileVideoError}
           >
             <source src="/hero-video.mp4" type="video/mp4" />
-            {isMobile && <source src="/hero-video.webm" type="video/webm" />}
           </video>
         </div>
 
