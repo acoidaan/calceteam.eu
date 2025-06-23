@@ -298,9 +298,7 @@ function AppContent() {
           </div>
           <div className="header-title">CALCE TEAM</div>
           <nav className="header-nav">
-            <button className="nav-icon">
-              <img src="/search-icon.png" alt="Buscar" />
-            </button>
+            
             {isAuthenticated ? (
               <div className="user-menu">
                 <button
