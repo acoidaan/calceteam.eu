@@ -811,3 +811,32 @@ html {
     justify-content: center;
   }
 }
+
+/* En App.css, agrega al final: */
+
+/* Forzar estado inicial de animaciones */
+.about h2,
+.about p,
+.games h2,
+.game-item,
+.footer {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Estado visible */
+.about h2.visible,
+.about p.visible,
+.games h2.visible,
+.game-item.visible,
+.footer.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Delays escalonados para párrafos */
+.about p:nth-child(3).visible { transition-delay: 0.1s; }
+.about p:nth-child(4).visible { transition-delay: 0.2s; }
+.about p:nth-child(5).visible { transition-delay: 0.3s; }
+.about p:nth-child(6).visible { transition-delay: 0.4s; }

@@ -98,112 +98,118 @@ function AppContent() {
   };
 
   // Función principal para inicializar el efecto de scroll tipo Apple
+
   const initAppleScrollEffect = () => {
     // Limpiar observer anterior si existe
     if (window.scrollObserver) {
       window.scrollObserver.disconnect();
     }
 
-    // Crear el intersection observer para elementos animados
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: "-50px",
-    };
+    // Pequeño delay para asegurar que el DOM esté listo
+    setTimeout(() => {
+      // Crear el intersection observer para elementos animados
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: "-50px",
+      };
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("visible");
-        }
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+            console.log("✨ Elemento animado:", entry.target.className);
+          }
+        });
+      }, observerOptions);
+
+      // Guardar referencia global
+      window.scrollObserver = observer;
+
+      // Observar elementos específicos - CORREGIDO
+      const animatedElements = document.querySelectorAll(
+        ".about h2, .about p, .games h2, .game-item, .footer"
+      );
+
+      console.log(
+        "🎯 Elementos encontrados para animar:",
+        animatedElements.length
+      );
+
+      if (animatedElements.length === 0) {
+        console.warn("⚠️ No se encontraron elementos para animar");
+        // Intentar de nuevo después de un delay
+        setTimeout(() => {
+          initAppleScrollEffect();
+        }, 1000);
+        return;
+      }
+
+      animatedElements.forEach((element, index) => {
+        // Quitar la clase visible primero
+        element.classList.remove("visible");
+        observer.observe(element);
+        console.log(`👀 Observando elemento ${index + 1}:`, element.tagName);
       });
-    }, observerOptions);
 
-    // Guardar referencia global
-    window.scrollObserver = observer;
+      // Efecto parallax sutil en scroll
+      let ticking = false;
+      const updateParallax = () => {
+        const scrolled = window.pageYOffset;
 
-    // Observar elementos específicos
-    const animatedElements = document.querySelectorAll(
-      ".about h2, .about p, .sponsors h2, .sponsor-item, .games h2, .game-item, .footer"
-    );
-
-    animatedElements.forEach((element) => {
-      observer.observe(element);
-    });
-
-    // Efecto parallax sutil en scroll
-    let ticking = false;
-    const updateParallax = () => {
-      const scrolled = window.pageYOffset;
-
-      // Parallax para la sección hero
-      const hero = document.querySelector(".hero-video-bg");
-      if (hero) {
-        hero.style.transform = `translateY(${scrolled * 0.5}px)`;
-      }
-
-      // Efecto de escala sutil para elementos
-      const aboutSection = document.querySelector(".about");
-      const sponsorsSection = document.querySelector(".sponsors");
-      const gamesSection = document.querySelector(".games");
-
-      if (aboutSection) {
-        const aboutRect = aboutSection.getBoundingClientRect();
-        const aboutVisible =
-          aboutRect.top < window.innerHeight && aboutRect.bottom > 0;
-
-        if (aboutVisible) {
-          const progress = 1 - aboutRect.top / window.innerHeight;
-          const scale = 0.95 + progress * 0.05;
-          aboutSection.style.transform = `scale(${Math.min(scale, 1)})`;
+        // Parallax para la sección hero
+        const hero = document.querySelector(".hero-video-bg");
+        if (hero) {
+          hero.style.transform = `translateY(${scrolled * 0.5}px)`;
         }
-      }
 
-      if (sponsorsSection) {
-        const sponsorsRect = sponsorsSection.getBoundingClientRect();
-        const sponsorsVisible =
-          sponsorsRect.top < window.innerHeight && sponsorsRect.bottom > 0;
+        // Efecto de escala sutil para elementos
+        const aboutSection = document.querySelector(".about");
+        const gamesSection = document.querySelector(".games");
 
-        if (sponsorsVisible) {
-          const progress = 1 - sponsorsRect.top / window.innerHeight;
-          const scale = 0.95 + progress * 0.05;
-          sponsorsSection.style.transform = `scale(${Math.min(scale, 1)})`;
+        if (aboutSection) {
+          const aboutRect = aboutSection.getBoundingClientRect();
+          const aboutVisible =
+            aboutRect.top < window.innerHeight && aboutRect.bottom > 0;
+
+          if (aboutVisible) {
+            const progress = 1 - aboutRect.top / window.innerHeight;
+            const scale = 0.95 + progress * 0.05;
+            aboutSection.style.transform = `scale(${Math.min(scale, 1)})`;
+          }
         }
-      }
 
-      if (gamesSection) {
-        const gamesRect = gamesSection.getBoundingClientRect();
-        const gamesVisible =
-          gamesRect.top < window.innerHeight && gamesRect.bottom > 0;
+        if (gamesSection) {
+          const gamesRect = gamesSection.getBoundingClientRect();
+          const gamesVisible =
+            gamesRect.top < window.innerHeight && gamesRect.bottom > 0;
 
-        if (gamesVisible) {
-          const progress = 1 - gamesRect.top / window.innerHeight;
-          const scale = 0.95 + progress * 0.05;
-          gamesSection.style.transform = `scale(${Math.min(scale, 1)})`;
+          if (gamesVisible) {
+            const progress = 1 - gamesRect.top / window.innerHeight;
+            const scale = 0.95 + progress * 0.05;
+            gamesSection.style.transform = `scale(${Math.min(scale, 1)})`;
+          }
         }
-      }
 
-      ticking = false;
-    };
+        ticking = false;
+      };
 
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(updateParallax);
-        ticking = true;
-      }
-    };
+      const handleScroll = () => {
+        if (!ticking) {
+          window.requestAnimationFrame(updateParallax);
+          ticking = true;
+        }
+      };
 
-    window.scrollHandler = handleScroll;
-    window.addEventListener("scroll", handleScroll);
-
-    // Cleanup function
-    return () => {
-      if (window.scrollObserver) {
-        window.scrollObserver.disconnect();
-      }
+      // Limpiar listeners anteriores
       if (window.scrollHandler) {
         window.removeEventListener("scroll", window.scrollHandler);
       }
-    };
+
+      window.scrollHandler = handleScroll;
+      window.addEventListener("scroll", handleScroll);
+
+      console.log("✅ Efectos de scroll inicializados correctamente");
+    }, 100); // Delay de 100ms para asegurar DOM listo
   };
 
   const handleLogout = async () => {
@@ -298,7 +304,6 @@ function AppContent() {
           </div>
           <div className="header-title">CALCE TEAM</div>
           <nav className="header-nav">
-            
             {isAuthenticated ? (
               <div className="user-menu">
                 <button
