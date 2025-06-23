@@ -632,11 +632,11 @@ const Teams = ({ onBack }) => {
 
   return (
     <div className="teams-container">
-      {/* Video de fondo */}
+      {/* Video de fondo
       <video className="background-video" autoPlay muted loop>
         <source src="/background_wave.mp4" type="video/mp4" />
       </video>
-      <div className="video-overlay"></div>
+      <div className="video-overlay"></div> */}
 
       <Modal {...modalConfig} />
 
