@@ -693,10 +693,12 @@ html {
 }
 
 /* Responsive MOVIL*/ 
+/* En App.css, reemplaza la sección @media (max-width: 768px) con esto: */
+
 @media (max-width: 768px) {
   /* Header móvil */
   .header {
-    height: 60px !important;
+    height: 70px !important; /* Aumentamos un poco la altura */
     padding: 0 0.5rem !important;
     position: fixed !important;
     top: 0 !important;
@@ -709,27 +711,46 @@ html {
 
   .header-content {
     height: 100%;
-    align-items: center;
+    align-items: flex-start; /* Cambiar a flex-start para control manual */
+    padding-top: 0.5rem; /* Padding general */
   }
 
   .header-title {
     font-size: 1rem !important;
     letter-spacing: 1px !important;
+    margin-top: 0.5rem; /* Padding arriba del título */
   }
 
   .header-logo-img {
     height: 30px !important;
+    margin-top: 0.5rem; /* Padding arriba del logo */
   }
 
-  .nav-icon {
+  /* Icono de usuario - posición absoluta arriba a la derecha */
+  .header-nav {
+    position: absolute;
+    top: 0.3rem; /* Más arriba */
+    right: 0.5rem; /* A la derecha */
+  }
+
+  .nav-icon,
+  .user-button {
     width: 40px !important;
     height: 40px !important;
     border-width: 1px !important;
   }
 
-  .nav-icon img {
+  .nav-icon img,
+  .user-button img {
     width: 18px !important;
     height: 18px !important;
+  }
+
+  /* User dropdown también ajustado */
+  .user-dropdown {
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
   }
 
   /* Video móvil - ocultar y mostrar poster */
@@ -744,15 +765,15 @@ html {
   /* Hero móvil */
   .hero {
     min-height: 100vh;
-    padding-top: 60px !important;
+    padding-top: 70px !important; /* Ajustar para el header más alto */
   }
 
   /* Side menu móvil */
   .side-menu-trigger {
     width: 60px;
     background: rgba(0, 0, 0, 0.2);
-    top: 60px;
-    height: calc(100vh - 60px);
+    top: 70px; /* Ajustar para el header más alto */
+    height: calc(100vh - 70px);
   }
 
   .side-menu-trigger:hover {
