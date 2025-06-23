@@ -4,7 +4,7 @@ import Modal from "./Modal";
 import { useModal } from "./useModal";
 import ForgotPasswordModal from "./ForgotPasswordModal";
 
-const Login = () => {
+const Login = ({ onBack }) => {
   const { modalConfig, showAlert, showSuccess, showError } = useModal();
   const [isLogin, setIsLogin] = useState(true);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -44,10 +44,6 @@ const Login = () => {
       const endpoint = isLogin
         ? `${baseURL}/api/login`
         : `${baseURL}/api/register`;
-      // CAMBIAR PARA PRODUCCION POR
-      // const endpoint = isLogin
-      //   ? "https://calceteam.eu/api/login"
-      //   : "https://calceteam.eu/api/register";
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -185,6 +181,12 @@ const Login = () => {
               </a>
             </div>
           )}
+
+          <div className="back-link">
+            <button className="back-btn" onClick={onBack}>
+              ← Volver al inicio
+            </button>
+          </div>
         </div>
       </div>
 
