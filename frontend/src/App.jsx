@@ -605,8 +605,37 @@ function AppContent() {
               </div>
             </div>
           </div>
+          <div className="footer-legal">
+            <h3>Legal</h3>
+            <div className="legal-links">
+              <a href="#" className="legal-link">
+                Términos y Condiciones
+              </a>
+              <a href="#" className="legal-link">
+                Política de Privacidad
+                <a href="#" className="legal-link">
+                  Términos y Condiciones
+                </a>
+              </a>
+              <a href="#" className="legal-link">
+                Aviso Legal
+              </a>
+              <a href="mailto:calceteam@proton.me" className="legal-link">
+                Contacto
+              </a>
+            </div>
+          </div>
+
+          {/* Línea separadora y copyright */}
           <div className="footer-bottom">
-            <p>&copy; 2025 Calce Team. Todos los derechos reservados.</p>
+            <div className="footer-bottom-content">
+              <p>&copy; 2025 Calce Team. Todos los derechos reservados.</p>
+              <a href="#" className="footer-bottom-link">
+                Política de Cookies
+              </a>
+              <span className="separator">•</span>
+              <a href="#" className="footer-bottom-link">RGPD</a>
+            </div>
           </div>
         </div>
       </footer>
