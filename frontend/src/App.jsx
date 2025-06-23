@@ -518,7 +518,8 @@ function AppContent() {
       {/* Footer */}
       <footer className="footer">
         <div className="container">
-          <div className="footer-content">
+          {/* Primera fila: Logo y Redes Sociales */}
+          <div className="footer-top">
             <div className="footer-logo">
               <img
                 src="/logo_transparent.png"
@@ -605,6 +606,8 @@ function AppContent() {
               </div>
             </div>
           </div>
+
+          {/* Segunda fila: Legal */}
           <div className="footer-legal">
             <h3>Legal</h3>
             <div className="legal-links">
@@ -613,9 +616,6 @@ function AppContent() {
               </a>
               <a href="#" className="legal-link">
                 Política de Privacidad
-                <a href="#" className="legal-link">
-                  Términos y Condiciones
-                </a>
               </a>
               <a href="#" className="legal-link">
                 Aviso Legal
@@ -630,11 +630,15 @@ function AppContent() {
           <div className="footer-bottom">
             <div className="footer-bottom-content">
               <p>&copy; 2025 Calce Team. Todos los derechos reservados.</p>
-              <a href="#" className="footer-bottom-link">
-                Política de Cookies
-              </a>
-              <span className="separator">•</span>
-              <a href="#" className="footer-bottom-link">RGPD</a>
+              <div className="footer-bottom-links">
+                <a href="#" className="footer-bottom-link">
+                  Política de Cookies
+                </a>
+                <span className="separator">•</span>
+                <a href="#" className="footer-bottom-link">
+                  RGPD
+                </a>
+              </div>
             </div>
           </div>
         </div>
